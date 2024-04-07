@@ -1,6 +1,5 @@
 import Redis from 'ioredis'
 
-
 export const connectToRedis = () => {
 
     const redisUri = process.env.REDIS_URI || ''
