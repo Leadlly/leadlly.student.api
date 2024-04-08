@@ -9,6 +9,7 @@ type Cookie = {
   message: string;
   statusCode: number;
 };
+
 const setCookie = async ({ user, res, next, message, statusCode }: Cookie) => {
   try {
     const secret = process.env.JWT_SECRET;

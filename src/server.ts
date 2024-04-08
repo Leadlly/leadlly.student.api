@@ -1,6 +1,6 @@
 import { app } from "./app";
 import ConnectToDB from "./db/db";
-import connectToRedis from "./services/redis";
+import { connectToRedis } from "./services/redis";
 import { v2 as cloudinary } from "cloudinary";
 
 const port = process.env.PORT || 4000

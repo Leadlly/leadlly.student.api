@@ -1,16 +1,23 @@
+import dotenv from 'dotenv';
+dotenv.config(); 
 import Redis from 'ioredis'
 
+let redis: Redis | null = null;
 export const connectToRedis = () => {
 
-    const redisUri = process.env.REDIS_URI || ''
-    console.log(redisUri)
-    let redis = new Redis(redisUri);
+    const redisUri = process.env.REDIS_URI
+
+    if(!redisUri) { 
+        console.log("Redis Url is undefined")
+        return
+    }
+    
+    redis = new Redis(redisUri);
     redis.on('connect', () => console.log('Redis Connected.'));
-    redis.on('error', (err) => {
+    redis.on('error', (err:any) => {
         console.log('Redis Client Error', err);
-        redis.disconnect(); // Disconnect from Redis
+        redis!.disconnect(); // Disconnect from Redis
     });
 }
 
-
-export default connectToRedis
+export default redis;
