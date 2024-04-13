@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config(); 
 import Redis from 'ioredis'
 
-let redis: Redis | null = null;
+let redis: any = null;
 export const connectToRedis = () => {
 
     const redisUri = process.env.REDIS_URI

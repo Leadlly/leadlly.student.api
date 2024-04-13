@@ -44,7 +44,7 @@ const userModel = new Schema({
   },
   role: {
     type: String,
-    enum: ["user", "admin", "superAdmin"],
+    enum: ["user", "mentor", "parent", "admin"],
     default: "user",
   },
   badges: [
