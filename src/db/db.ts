@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 
 const ConnectToDB = async() =>{
-    const DatabaseUrl: string = process.env.DATABASE_URL || ''
+    const DatabaseUrl = process.env.DATABASE_URL
+    if(!DatabaseUrl){ 
+        console.log("Database url is undefined")
+        return
+    }
+        
     try {
         await mongoose.connect(DatabaseUrl, {
              dbName: "leadlly"
