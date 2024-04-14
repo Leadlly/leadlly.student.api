@@ -1,5 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config(); 
 import Redis from 'ioredis'
 
 let redis: any = null;
