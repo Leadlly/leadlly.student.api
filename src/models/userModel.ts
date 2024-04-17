@@ -1,13 +1,10 @@
-import mongoose, { Schema } from 'mongoose';
-import bcrypt from 'bcrypt';
+import mongoose, { Schema } from "mongoose";
+import bcrypt from "bcrypt";
 
 const userModel = new Schema({
-  firstName: {
+  name: {
     type: String,
-    required: [true, "Please enter the first name"],
-  },
-  lastName: {
-    type: String,
+    required: [true, "Please enter your name"],
   },
   email: {
     type: String,
@@ -17,7 +14,7 @@ const userModel = new Schema({
   phone: {
     personal: {
       type: Number,
-      required: true,
+      // required: true,
       unique: true,
     },
     other: Number,
@@ -30,11 +27,11 @@ const userModel = new Schema({
   avatar: {
     public_id: {
       type: String,
-      default: '',
+      default: "",
     },
     url: {
       type: String,
-      default: '',
+      default: "",
     },
   },
   about: {
@@ -53,7 +50,7 @@ const userModel = new Schema({
         type: String,
         default: "Beginner",
       },
-      url:{
+      url: {
         type: String,
         default: "default_url",
       },
@@ -61,18 +58,17 @@ const userModel = new Schema({
   ],
   payment: {},
   quiz: {
-    minor:[],
-    major:[]
+    minor: [],
+    major: [],
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-
 // Pre-save hook for email validation
-userModel.pre('save', function (next) {
+userModel.pre("save", function (next) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(this.email)) {
     return next(new Error("Please enter a valid email address"));
@@ -81,8 +77,8 @@ userModel.pre('save', function (next) {
 });
 
 // Pre-save hook for password hashing
-userModel.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userModel.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -90,6 +86,6 @@ userModel.pre('save', async function (next) {
   next();
 });
 
-const User = mongoose.model('User', userModel);
+const User = mongoose.model("User", userModel);
 
 export default User;

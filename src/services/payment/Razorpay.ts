@@ -1,6 +1,6 @@
 import Razorpay from "razorpay";
-import { config } from 'dotenv';
-config()
+import { config } from "dotenv";
+config();
 
 const key_id = process.env.RAZORPAY_API_KEY;
 const key_secret = process.env.RAZORPAY_API_SECRET;

@@ -1,7 +1,7 @@
 org: shivang16
 app: aws-node-express-api-project
 service: aws-node-express-api-project
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
@@ -11,4 +11,4 @@ functions:
   api:
     handler: index.handler
     events:
-      - httpApi: '*'
+      - httpApi: "*"
