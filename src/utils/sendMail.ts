@@ -2,12 +2,12 @@ import { NextFunction } from "express";
 import nodemailer from "nodemailer";
 import { CustomError } from "../middlewares/error";
 
-type Options = {
+export type Options = {
   email: string;
   subject: string;
   message: string;
 };
-export const sendMail = async (options: Options, next: NextFunction) => {
+export const sendMail = async (options: Options) => {
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -28,7 +28,7 @@ export const sendMail = async (options: Options, next: NextFunction) => {
     };
 
     await transporter.sendMail(mailOptions);
-  } catch (error: any) {
-    next(new CustomError(error.message));
+  } catch (error) {
+    console.log(error);
   }
 };
