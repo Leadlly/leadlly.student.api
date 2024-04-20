@@ -13,9 +13,9 @@ export const googleAuth = async (
     const data = req.body;
     if (!data) return next(new CustomError("No data from body", 404));
 
-    // Decode the JWT and assert the type
+    // Decode the JWT 
     const userData = jwt.decode(data.credential) as JwtPayload;
-    if (!userData) return next(new CustomError("No data found", 404));
+    if (!userData) return next(new CustomError("Credential not found", 404));
 
     const user = await User.findOne({ email: userData.email });
     if (user) return next(new CustomError("User already exists", 400));

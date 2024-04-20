@@ -5,8 +5,16 @@ import Redis from "ioredis";
 
 const connection = new Redis({ maxRetriesPerRequest: null });
 
-export const myWorker = new Worker(
-  "email-queue",
+export const otpWorker = new Worker(
+  "otp-queue",
+  async (job) => {
+    await sendMail(job.data?.options);
+  },
+  { connection },
+);
+
+export const subWorker = new Worker(
+  "subscription-queue",
   async (job) => {
     await sendMail(job.data?.options);
   },

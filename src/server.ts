@@ -2,7 +2,7 @@ import { app } from "./app";
 import ConnectToDB from "./db/db";
 import { connectToRedis } from "./services/redis";
 import { questions_db } from "./db/db";
-import { myWorker } from "./services/bullmq/worker";
+import { otpWorker, subWorker } from "./services/bullmq/worker";
 
 const port = process.env.PORT || 4000;
 
@@ -15,7 +15,8 @@ questions_db.on("connected", () => {
 //Services
 connectToRedis();
 
-// email-queue
-myWorker;
+// queues
+otpWorker; // for otps related emails
+subWorker; // for subscription related emails
 
 app.listen(port, () => console.log(`Server is listening at port ${port}`));
