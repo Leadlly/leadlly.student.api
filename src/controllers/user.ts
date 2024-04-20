@@ -109,6 +109,7 @@ export const login = async (
     // Use the comparePassword method here
     const isMatched = await user.comparePassword(password);
     if (!isMatched) return next(new CustomError("Wrong password", 400));
+
     setCookie({
       user,
       res,

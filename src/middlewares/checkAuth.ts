@@ -10,7 +10,7 @@ declare global {
     }
   }
 }
-const isAuthenticated = async (
+const checkAuth = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -20,7 +20,7 @@ const isAuthenticated = async (
     if (!token) return next(new CustomError("Login First", 400));
 
     const secret = process.env.JWT_SECRET;
-    if (!secret) return new CustomError("Jwt Secret not defined");
+    if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
 
     const decoded = jwt.verify(token, secret) as JwtPayload;
     req.user = await User.findById(decoded._id);
@@ -29,4 +29,4 @@ const isAuthenticated = async (
   }
 };
 
-export default isAuthenticated;
+export default checkAuth;

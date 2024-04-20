@@ -13,11 +13,10 @@ type Cookie = {
 const setCookie = async ({ user, res, next, message, statusCode }: Cookie) => {
   try {
     const secret = process.env.JWT_SECRET;
-    if (!secret) return new CustomError("Jwt Secret not defined");
+    if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
 
     const token = jwt.sign({ id: user._id }, secret);
 
-    console.log(token);
     res
       .status(statusCode)
       .cookie("token", token, {
