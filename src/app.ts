@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import errorMiddleware from "./middlewares/error";
 import userRoutes from "./routes/user";
+import googleRoutes from "./routes/googleAuth";
 
 config({
   path: "./.env",
@@ -19,6 +20,7 @@ app.use(cors());
 
 //User routes
 app.use("/api/user", userRoutes);
+app.use("/api/google", googleRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello, world!");
