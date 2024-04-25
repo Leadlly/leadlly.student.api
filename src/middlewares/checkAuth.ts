@@ -16,6 +16,7 @@ const checkAuth = async (
   next: NextFunction,
 ) => {
   try {
+
     const { token } = req.cookies;
     if (!token) return next(new CustomError("Login First", 400));
 
@@ -23,7 +24,10 @@ const checkAuth = async (
     if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
 
     const decoded = jwt.verify(token, secret) as JwtPayload;
-    req.user = await User.findById(decoded._id);
+    req.user = await User.findById(decoded.id);
+
+    next()
+
   } catch (error: any) {
     next(new CustomError(error.message));
   }

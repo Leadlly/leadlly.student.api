@@ -23,7 +23,7 @@
     "mongoose": "^8.3.0",
     "node-cache": "^5.1.2",
     "nodemailer": "^6.9.13",
-    "razorpay": "^2.9.2",
+    "razorpay": "^2.9.3",
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {

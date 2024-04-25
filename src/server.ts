@@ -3,20 +3,23 @@ import ConnectToDB from "./db/db";
 import { connectToRedis } from "./services/redis";
 import { questions_db } from "./db/db";
 import { otpWorker, subWorker } from "./services/bullmq/worker";
+// import razorpay from "./services/payment/Razorpay";
 
 const port = process.env.PORT || 4000;
 
 //Database
-ConnectToDB();
+ConnectToDB(); //main db
 questions_db.on("connected", () => {
   console.log("Question_DB connected");
-});
+}); //question db
 
-//Services
+// Services
 connectToRedis();
 
-// queues
+// Queues
 otpWorker; // for otps related emails
 subWorker; // for subscription related emails
+
+
 
 app.listen(port, () => console.log(`Server is listening at port ${port}`));

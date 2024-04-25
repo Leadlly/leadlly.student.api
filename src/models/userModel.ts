@@ -56,7 +56,11 @@ const userSchema = new Schema({
     },
   ],
   points: Number,
-  payment: {},
+  subscription: {
+    category: String,
+    id: String,
+    status: String
+  },
   quiz: {
     minor: [],
     major: [],

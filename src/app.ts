@@ -6,6 +6,7 @@ import cors from "cors";
 import errorMiddleware from "./middlewares/error";
 import userRoutes from "./routes/user";
 import googleRoutes from "./routes/googleAuth";
+import paymentRoutes from "./routes/paymentRoutes";
 
 config({
   path: "./.env",
@@ -21,6 +22,7 @@ app.use(cors());
 //User routes
 app.use("/api/user", userRoutes);
 app.use("/api/google", googleRoutes);
+app.use("/api/subscribe", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello, world!");

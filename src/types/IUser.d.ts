@@ -19,11 +19,15 @@ interface IUser extends Document {
   };
   role?: string;
   badges?: Array<{
-    name?: string;
-    url?: string;
+    name: string;
+    url: string;
   }>;
-  points?: number;
-  payment?: any;                      // Any type or specify a more detailed type if known
+  points?: number;                    // Any type or specify a more detailed type if known
+  subscription: {
+    category: string;                    // Any type or specify a more detailed type if known
+    id: string;
+    status: string                    // Any type or specify a more detailed type if known
+  };
   quiz?: {
     minor?: any[];                    // Any type or specify a more detailed type if known
     major?: any[];                    // Any type or specify a more detailed type if known
