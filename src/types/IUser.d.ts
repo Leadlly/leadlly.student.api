@@ -24,9 +24,15 @@ interface IUser extends Document {
   }>;
   points?: number;                    // Any type or specify a more detailed type if known
   subscription: {
-    category: string;                    // Any type or specify a more detailed type if known
-    id: string;
-    status: string                    // Any type or specify a more detailed type if known
+    type?: string;                    // Any type or specify a more detailed type if known
+    id?: string;
+    status?: string                    // Any type or specify a more detailed type if known
+  };
+  refund: {
+    type?: string,
+    subscriptionType?: string
+    status?: string,
+    amount?: string
   };
   quiz?: {
     minor?: any[];                    // Any type or specify a more detailed type if known

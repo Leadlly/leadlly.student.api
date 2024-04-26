@@ -10,27 +10,30 @@ declare global {
     }
   }
 }
-const checkAuth = async (
+export const checkAuth = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
-  try {
+  const { token } = req.cookies;
+  if (!token) return next(new CustomError("Login First", 400));
 
-    const { token } = req.cookies;
-    if (!token) return next(new CustomError("Login First", 400));
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
+  const decoded = jwt.verify(token, secret) as JwtPayload;
+  req.user = await User.findById(decoded.id);
 
-    const decoded = jwt.verify(token, secret) as JwtPayload;
-    req.user = await User.findById(decoded.id);
-
-    next()
-
-  } catch (error: any) {
-    next(new CustomError(error.message));
-  }
+  next();
 };
 
-export default checkAuth;
+export const authoriseSubscriber = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.user.subscripiton.status !== "active")
+    return next(new CustomError("You are not subscribed", 400));
+
+  next();
+};

@@ -57,9 +57,15 @@ const userSchema = new Schema({
   ],
   points: Number,
   subscription: {
-    category: String,
+    type: String,
     id: String,
     status: String
+  },
+  refund: {
+    type: String,
+    subscriptionType: String,
+    status: String,
+    amount: Number
   },
   quiz: {
     minor: [],

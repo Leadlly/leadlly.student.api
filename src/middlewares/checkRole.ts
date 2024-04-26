@@ -9,6 +9,8 @@ const checkRole = (role: string) => {
       return next(new CustomError("Not Authorised", 403));
     if (role === "admin" && req.user.role !== role)
       return next(new CustomError("Not Authorised", 403));
+
+    next()
   };
 };
 
