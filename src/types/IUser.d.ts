@@ -18,6 +18,15 @@ interface IUser extends Document {
     dob?: string;
   };
   role?: string;
+  details?: {
+    level?: number,
+    points?: number,
+    streak?: number,
+    mood?: Array<{
+      day: String,
+      emoji: String,
+    }>
+  },
   badges?: Array<{
     name: string;
     url: string;

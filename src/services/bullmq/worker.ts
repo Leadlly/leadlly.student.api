@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import redis from "../redis";
+import redis from "../redis/redis";
 import { sendMail } from "../../utils/sendMail";
 import Redis from "ioredis";
 

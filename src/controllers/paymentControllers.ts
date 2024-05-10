@@ -173,6 +173,14 @@ export const cancelSubscription = async (
 
       await user.save();
 
+      await subQeuue.add("SubcriptionCancel", {
+        options: {
+          email: user.email,
+          subject: "Leadlly Subscription",
+          message: `Hello ${user.name}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
+        }
+        })
+
       res.status(200).json({
         success: true,
         message: "Subscription cancelled successfully.",

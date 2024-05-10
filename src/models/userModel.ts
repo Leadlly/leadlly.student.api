@@ -43,6 +43,15 @@ const userSchema = new Schema({
     type: String,
     default: "user",
   },
+  details: {
+    level: Number,
+    points: Number,
+    streak: Number,
+    mood: [{
+      day: String,
+      emoji: String,
+    }]
+  },
   badges: [
     {
       name: {
@@ -55,7 +64,6 @@ const userSchema = new Schema({
       },
     },
   ],
-  points: Number,
   subscription: {
     type: String,
     id: String,
@@ -68,8 +76,11 @@ const userSchema = new Schema({
     amount: Number
   },
   quiz: {
-    minor: [],
-    major: [],
+    daily: [],
+    weekly: [],
+    monthly: [],
+    QOTD: [],  // question of the day
+    others: [],
   },
   resetPasswordToken: String,
   resetTokenExpiry: String,

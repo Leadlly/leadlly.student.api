@@ -1,6 +1,6 @@
-import { app } from "./app";
+import { server } from "./app";
 import ConnectToDB from "./db/db";
-import { connectToRedis } from "./services/redis";
+import { connectToRedis } from "./services/redis/redis";
 import { questions_db } from "./db/db";
 import { otpWorker, subWorker } from "./services/bullmq/worker";
 // import razorpay from "./services/payment/Razorpay";
@@ -22,4 +22,4 @@ subWorker; // for subscription related emails
 
 
 
-app.listen(port, () => console.log(`Server is listening at port ${port}`));
+server.listen(port, () => console.log(`Server is listening at port ${port}`));
