@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
+
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
     "start": "node dist/server.js",
-    "build": "tsc --outDir dist"
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
