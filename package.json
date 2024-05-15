@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
+  "engines": {
+    "node": ">=14.x"
+  },
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
     "start": "node dist/server.js",
-    "build": "tsc"
+    "build": "tsc --output dist"
   },
   "author": "",
   "license": "ISC",
