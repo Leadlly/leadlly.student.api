@@ -1,6 +1,6 @@
 import Redis from "ioredis";
 
-let redis: any = null;
+let redis = null;
 export const connectToRedis = () => {
   const redisUri = process.env.REDIS_URI;
 

@@ -32,10 +32,8 @@ export const buySubscription = async (
       );
     }
 
-    console.log("hello");
     const duration = Number(req.query.duration);
-    console.log(duration);
-
+  
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
       customer_notify: 1,
