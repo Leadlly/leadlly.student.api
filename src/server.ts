@@ -1,8 +1,8 @@
-import { server } from "./app";
+import { app } from "./app";
 import ConnectToDB from "./db/db";
 import { questions_db } from "./db/db";
 import { otpWorker, subWorker } from "./services/bullmq/worker";
-import { Redis } from "ioredis";
+
 // import razorpay from "./services/payment/Razorpay";
 
 const port = process.env.PORT || 4000;
@@ -28,4 +28,4 @@ subWorker; // for subscription related emails
 
 
 
-server.listen(port, () => console.log(`Server is listening at port ${port}`));
+app.listen(port, () => console.log(`Server is listening at port ${port}`));

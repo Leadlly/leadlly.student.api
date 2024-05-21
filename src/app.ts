@@ -10,7 +10,6 @@ import subscriptionRoutes from "./routes/subscriptionRoutes";
 import courseRoutes from "./routes/courseRoutes"
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { redis } from "./server";
 import { Redis } from "ioredis";
 
 config({
@@ -18,10 +17,10 @@ config({
 });
 
 const app = express();
-const server = createServer(app)
-const io = new Server(server)
-const redisSubscriber = new Redis();
-const redisPublisher = new Redis();
+// const server = createServer(app)
+// const io = new Server(server)
+// const redisSubscriber = new Redis();
+// const redisPublisher = new Redis();
 
 
 app.use(cookieParser());
@@ -44,29 +43,29 @@ app.get("/", (req, res) => {
 });
 
 // socket-io connection 
-io.on('connection', (socket) => {
-  console.log('Mentor connected');
+// io.on('connection', (socket) => {
+//   console.log('Mentor connected');
 
-  socket.on('disconnect', () => {
-      console.log('Mentor disconnected');
-  });
+//   socket.on('disconnect', () => {
+//       console.log('Mentor disconnected');
+//   });
 
-  socket.on('sendMessageToStudent', (msg) => {
-      console.log('Message to student:', msg);
-      redisPublisher.publish('chatToStudent', msg);
-  });
+//   socket.on('sendMessageToStudent', (msg) => {
+//       console.log('Message to student:', msg);
+//       redisPublisher.publish('chatToStudent', msg);
+//   });
 
-  redisSubscriber.subscribe('chatToMentor', (err, count) => {
-      console.log(`Subscribed to chatToMentor channel`);
-  });
+//   redisSubscriber.subscribe('chatToMentor', (err, count) => {
+//       console.log(`Subscribed to chatToMentor channel`);
+//   });
 
-  redisSubscriber.on('message', (channel, message) => {
-      if (channel === 'chatToMentor') {
-          console.log(`Message from student: ${message}`);
-          socket.emit('message', message);
-      }
-  });
-});
+//   redisSubscriber.on('message', (channel, message) => {
+//       if (channel === 'chatToMentor') {
+//           console.log(`Message from student: ${message}`);
+//           socket.emit('message', message);
+//       }
+//   });
+// });
 
 
 app.use(errorMiddleware);
@@ -74,4 +73,4 @@ app.use(errorMiddleware);
 // Wrapping express app with serverless-http
 const handler = serverless(app);
 
-export { server, handler };
+export { app, handler };
