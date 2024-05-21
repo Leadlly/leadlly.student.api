@@ -4,10 +4,18 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
-    "start": "node dist/server.js",
-    "build": "tsc"
+    "dev": "nodemon src/server.ts",
+    "start": "node src/server.ts",
+    "build": "rimraf dist && tsc",
+    "ts.check": "tsc --project tsconfig.json",
+    "add-build": "git add dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "pre-commit": [
+    "ts.check",
+    "build",
+    "add-build"
+],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -24,7 +32,9 @@
     "mongoose": "^8.3.0",
     "node-cache": "^5.1.2",
     "nodemailer": "^6.9.13",
+    "pre-commit": "^1.2.2",
     "razorpay": "^2.9.3",
+    "rimraf": "^5.0.7",
     "serverless-http": "^3.2.0",
     "socket.io": "^4.7.5"
   },
