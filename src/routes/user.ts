@@ -7,7 +7,7 @@ import {
   register,
   resentOtp,
   resetpassword,
-} from "../controllers/user";
+} from "../controllers/User";
 
 const router = express.Router();
 

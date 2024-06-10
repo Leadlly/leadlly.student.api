@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { CustomError } from "../middlewares/error";
+import { CustomError } from "../../middlewares/error";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "../models/userModel";
-import setCookie from "../utils/setCookie";
+import User from "../../models/userModel";
+import setCookie from "../../utils/setCookie";
 
 export const googleAuth = async (
   req: Request,

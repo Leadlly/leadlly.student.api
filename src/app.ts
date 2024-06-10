@@ -8,20 +8,13 @@ import userRoutes from "./routes/user";
 import googleRoutes from "./routes/googleAuth";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import courseRoutes from "./routes/courseRoutes"
-import { Server } from "socket.io";
-import { createServer } from "http";
-import { Redis } from "ioredis";
+
 
 config({
   path: "./.env",
 });
 
 const app = express();
-// const server = createServer(app)
-// const io = new Server(server)
-// const redisSubscriber = new Redis();
-// const redisPublisher = new Redis();
-
 
 app.use(cookieParser());
 app.use(express.json());
@@ -41,32 +34,6 @@ app.use("/api/course", courseRoutes);
 app.get("/", (req, res) => {
   res.send("Hello, world!");
 });
-
-// socket-io connection 
-// io.on('connection', (socket) => {
-//   console.log('Mentor connected');
-
-//   socket.on('disconnect', () => {
-//       console.log('Mentor disconnected');
-//   });
-
-//   socket.on('sendMessageToStudent', (msg) => {
-//       console.log('Message to student:', msg);
-//       redisPublisher.publish('chatToStudent', msg);
-//   });
-
-//   redisSubscriber.subscribe('chatToMentor', (err, count) => {
-//       console.log(`Subscribed to chatToMentor channel`);
-//   });
-
-//   redisSubscriber.on('message', (channel, message) => {
-//       if (channel === 'chatToMentor') {
-//           console.log(`Message from student: ${message}`);
-//           socket.emit('message', message);
-//       }
-//   });
-// });
-
 
 app.use(errorMiddleware);
 

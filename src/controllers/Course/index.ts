@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { CustomError } from "../middlewares/error";
-import razorpay from "../services/payment/Razorpay";
-import Course from "../models/courseModel";
-import User from "../models/userModel";
-import Payment from "../models/paymentModel";
+import { CustomError } from "../../middlewares/error";
+import razorpay from "../../services/payment/Razorpay";
+import Course from "../../models/courseModel";
+import User from "../../models/userModel";
+import Payment from "../../models/paymentModel";
 import crypto from 'crypto'
-import { subQeuue } from "../services/bullmq/producer";
+import { subQeuue } from "../../services/bullmq/producer";
 export const createCourse = async (
   req: Request,
   res: Response,

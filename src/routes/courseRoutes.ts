@@ -1,5 +1,5 @@
 import express from 'express'
-import { coursePayment, createCourse, getAllCourses, getCourse, verifyPayment } from '../controllers/courseControllers'
+import { coursePayment, createCourse, getAllCourses, verifyPayment } from '../controllers/Course'
 
 const router = express.Router()
 

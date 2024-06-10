@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../models/userModel";
-import { CustomError } from "../middlewares/error";
-import setCookie from "../utils/setCookie";
-import generateOTP from "../utils/generateOTP";
-import { otpQueue } from "../services/bullmq/producer";
+import User from "../../models/userModel";
+import { CustomError } from "../../middlewares/error";
+import setCookie from "../../utils/setCookie";
+import generateOTP from "../../utils/generateOTP";
+import { otpQueue } from "../../services/bullmq/producer";
 import crypto from 'crypto'
 
 let OTP: string, newUser: any;

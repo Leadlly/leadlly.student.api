@@ -42,10 +42,6 @@ const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 });
 const app = (0, express_1.default)();
 exports.app = app;
-// const server = createServer(app)
-// const io = new Server(server)
-// const redisSubscriber = new Redis();
-// const redisPublisher = new Redis();
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use((0, express_1.urlencoded)({ extended: true }));
@@ -62,26 +58,6 @@ app.use("/api/course", courseRoutes_1.default);
 app.get("/", (req, res) => {
     res.send("Hello, world!");
 });
-// socket-io connection 
-// io.on('connection', (socket) => {
-//   console.log('Mentor connected');
-//   socket.on('disconnect', () => {
-//       console.log('Mentor disconnected');
-//   });
-//   socket.on('sendMessageToStudent', (msg) => {
-//       console.log('Message to student:', msg);
-//       redisPublisher.publish('chatToStudent', msg);
-//   });
-//   redisSubscriber.subscribe('chatToMentor', (err, count) => {
-//       console.log(`Subscribed to chatToMentor channel`);
-//   });
-//   redisSubscriber.on('message', (channel, message) => {
-//       if (channel === 'chatToMentor') {
-//           console.log(`Message from student: ${message}`);
-//           socket.emit('message', message);
-//       }
-//   });
-// });
 app.use(error_1.default);
 // Wrapping express app with serverless-http
 const handler = (0, serverless_http_1.default)(app);

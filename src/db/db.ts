@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+let db: mongoose.Connection;
 const ConnectToDB = async () => {
   const DatabaseUrl = process.env.LEADLLY_DB_URL;
   if (!DatabaseUrl) {
@@ -11,6 +12,7 @@ const ConnectToDB = async () => {
   }
   try {
     await mongoose.connect(DatabaseUrl);
+    db = mongoose.connection
     console.log("Leadlly_DB Connected.");
   } catch (error) {
     console.log(error);
@@ -26,5 +28,5 @@ if (questions_db_url) {
   console.log("Question_DB url is undefined");
 }
 
-export { questions_db };
+export { questions_db, db };
 export default ConnectToDB;

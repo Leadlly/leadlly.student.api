@@ -1,6 +1,6 @@
 import express from "express";
 import {checkAuth} from "../middlewares/checkAuth";
-import { buySubscription, cancelSubscription, verifySubscription } from "../controllers/subscriptionControllers";
+import { buySubscription, cancelSubscription, verifySubscription } from "../controllers/Subscription";
 
 const router = express.Router();
 

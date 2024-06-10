@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { CustomError } from "../middlewares/error";
-import razorpay from "../services/payment/Razorpay";
-import User from "../models/userModel";
-import { subQeuue } from "../services/bullmq/producer";
+import { CustomError } from "../../middlewares/error";
+import razorpay from "../../services/payment/Razorpay";
+import User from "../../models/userModel";
+import { subQeuue } from "../../services/bullmq/producer";
 import crypto from "crypto";
-import Payment from "../models/paymentModel";
+import Payment from "../../models/paymentModel";
 
 export const buySubscription = async (
   req: Request,
