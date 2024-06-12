@@ -4,12 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const plannerSchema = new mongoose_1.default.Schema({
-    student: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+const daySchema = new mongoose_1.default.Schema({
+    date: {
+        type: Date,
+        required: true
     },
-    date: String,
-    day: String,
+    day: {
+        type: String,
+        required: true
+    },
     topics: [
         {
             name: String,
@@ -21,6 +24,22 @@ const plannerSchema = new mongoose_1.default.Schema({
             },
         },
     ],
+});
+const plannerSchema = new mongoose_1.default.Schema({
+    student: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        required: true,
+        ref: "Student"
+    },
+    startDate: {
+        type: Date,
+        required: true
+    },
+    endDate: {
+        type: Date,
+        required: true
+    },
+    days: [daySchema],
     createdAt: {
         type: Date,
         default: Date.now,

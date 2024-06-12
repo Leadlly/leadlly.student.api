@@ -7,6 +7,7 @@ exports.getPlanner = exports.createPlanner = exports.postFeedbackData = void 0;
 const error_1 = require("../../middlewares/error");
 const db_1 = require("../../db/db");
 const plannerModel_1 = __importDefault(require("../../models/plannerModel"));
+const generatePlanner_1 = require("./Generate/generatePlanner");
 const postFeedbackData = async (req, res, next) => {
     try {
         const body = req.body;
@@ -34,7 +35,7 @@ exports.postFeedbackData = postFeedbackData;
 const createPlanner = async (req, res, next) => {
     try {
         const allStudentData = await db_1.db.collection("feedback").find({ user: req.user }).toArray();
-        const planner = await plannerModel_1.default.create({});
+        const planner = await (0, generatePlanner_1.generateWeeklyPlanner)(req.user._id);
         res.status(200).json({
             success: true,
             message: "Done",

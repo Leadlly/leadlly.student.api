@@ -1,22 +1,9 @@
 import express from "express";
-import {
-  forgotPassword,
-  login,
-  logout,
-  otpVerification,
-  register,
-  resentOtp,
-  resetpassword,
-} from "../controllers/User";
+import { storeBackRevisionData } from "../controllers/User/data";
+import { checkAuth } from "../middlewares/checkAuth";
 
 const router = express.Router();
 
-router.post("/register", register);
-router.post("/verify", otpVerification);
-router.post("/resend", resentOtp);
-router.post("/login", login);
-router.get("/logout", logout);
-router.post("/forgetpassword", forgotPassword);
-router.post("/resetpassword/:token", resetpassword);
+router.post("/progress/save", storeBackRevisionData);
 
 export default router;

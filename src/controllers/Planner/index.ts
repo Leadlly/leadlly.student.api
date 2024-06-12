@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../../middlewares/error";
 import { db } from '../../db/db'
 import Planner from "../../models/plannerModel";
+import { generateWeeklyPlanner } from "./Generate/generatePlanner";
 
 export const postFeedbackData = async (
     req: Request,
@@ -47,9 +48,7 @@ export const createPlanner = async (
 
         
 
-        const planner = await Planner.create({
-
-        })
+        const planner = await generateWeeklyPlanner(req.user._id)
 
         res.status(200).json({
             success: true,

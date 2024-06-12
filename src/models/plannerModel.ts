@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
 
-const plannerSchema = new mongoose.Schema({
-  student: {
-    type: mongoose.Schema.Types.ObjectId,
+const daySchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true
   },
-  date: String,
-  day: String,
+  day: {
+    type: String,
+    required: true
+  },
   topics: [
     {
       name: String,
@@ -17,6 +20,23 @@ const plannerSchema = new mongoose.Schema({
       },
     },
   ],
+});
+
+const plannerSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "Student"
+  },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
+  days: [daySchema],
   createdAt: {
     type: Date,
     default: Date.now,
