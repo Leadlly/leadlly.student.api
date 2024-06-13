@@ -38,7 +38,6 @@ const googleAuth_1 = __importDefault(require("./routes/googleAuth"));
 const subscriptionRoutes_1 = __importDefault(require("./routes/subscriptionRoutes"));
 const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 const user_1 = __importDefault(require("./routes/user"));
-// generateWeeklyPlanner("666a01a69461d46dc3c7b5fb")
 (0, dotenv_1.config)({
     path: "./.env",
 });
@@ -48,9 +47,9 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use((0, express_1.urlencoded)({ extended: true }));
 app.use((0, cors_1.default)({
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    credentials: true
+    origin: [process.env.FRONTEND_URL || ''],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
 }));
 // routes
 app.use("/api/auth", auth_1.default);
