@@ -12,10 +12,11 @@ interface IUser extends Document {
     public_id?: string;
     url?: string;
   };
-  about?: {
-    standard?: number;
+  about: {
+    standard: number;
     school?: string;
     dob?: string;
+    schedule: string;
   };
   role?: string;
   details?: {

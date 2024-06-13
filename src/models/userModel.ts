@@ -35,9 +35,14 @@ const userSchema = new Schema({
     },
   },
   about: {
-    standard: Number,
+    standard: {
+      type: Number,
+    },
     school: String,
     dob: String,
+    schedule: {
+      type: String,
+    }
   },
   role: {
     type: String,

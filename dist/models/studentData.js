@@ -15,15 +15,25 @@ const dataSchema = new mongoose_1.default.Schema({
         required: true
     },
     topic: {
-        type: String,
-        required: true
+        name: {
+            type: String,
+            required: true
+        },
+        level: String,
     },
     chapter: {
-        type: String,
-        required: true
+        name: {
+            type: String,
+            required: true
+        },
+        level: String,
     },
     subject: {
         type: String,
+        required: true
+    },
+    standard: {
+        type: Number,
         required: true
     },
     createdAt: {
@@ -35,4 +45,4 @@ const dataSchema = new mongoose_1.default.Schema({
         default: Date.now
     }
 });
-exports.StudyData = mongoose_1.default.model("StudyData", dataSchema);
+exports.StudyData = mongoose_1.default.model('StudyData', dataSchema);

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import IDataSchema from "../types/IDataSchema";
 
-const dataSchema = new mongoose.Schema({
+const dataSchema = new mongoose.Schema<IDataSchema>({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
@@ -10,15 +11,25 @@ const dataSchema = new mongoose.Schema({
         required: true
     },
     topic: {
-        type: String,
-        required: true
+        name: {
+            type: String,
+            required: true
+        },
+        level: String,
     },
     chapter: {
-        type: String,
-        required: true
+        name: {
+            type: String,
+            required: true
+        },
+        level: String,
     },
     subject: {
         type: String,
+        required: true
+    },
+    standard: {
+        type: Number,
         required: true
     },
     createdAt: {
@@ -31,4 +42,4 @@ const dataSchema = new mongoose.Schema({
     }
 })
 
-export const StudyData = mongoose.model("StudyData", dataSchema)
+export const StudyData = mongoose.model<IDataSchema>('StudyData', dataSchema);

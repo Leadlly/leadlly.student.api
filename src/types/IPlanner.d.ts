@@ -1,28 +1,27 @@
-// IPlanner.ts
-import { Document, ObjectId } from 'mongoose';
+import mongoose from "mongoose";
 
-interface ITopicDetail {
+export interface ITopicDetails {
   subject: string;
   chapter: string;
   topic: string;
   subtopic: string;
 }
 
-interface ITopic {
+export interface ITopic {
   name: string;
-  additionalDetails: ITopicDetail;
+  additionalDetails: ITopicDetails;
 }
 
-interface IPlanner {
-  student: ObjectId;
+export interface IDay {
+  date: Date;
+  day: string;
+  topics: ITopic[];
+}
+
+export interface IPlanner extends mongoose.Document {
+  student: mongoose.Schema.Types.ObjectId;
   startDate: Date;
   endDate: Date;
-  days: Array<{
-    day: string;
-    date: Date;
-    topics: ITopic[];
-  }>;
+  days: IDay[];
   createdAt?: Date;
 }
-
-export default IPlanner;

@@ -1,20 +1,30 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getDailyTopics = void 0;
 const getDailyTopics = (continuousRevisionTopics, backRevisionTopics) => {
     const dailyTopics = [];
     // Add 3 continuous revision topics
     if (continuousRevisionTopics.length > 0) {
-        dailyTopics.push(continuousRevisionTopics.shift());
+        const topic = continuousRevisionTopics.shift();
+        if (topic) {
+            dailyTopics.push(topic);
+        }
         // Add 2 back revision topics
         for (let i = 0; i < 2; i++) {
-            if (backRevisionTopics.length > 0) {
-                dailyTopics.push(backRevisionTopics.shift());
+            const backTopic = backRevisionTopics.shift();
+            if (backTopic) {
+                dailyTopics.push(backTopic);
             }
         }
     }
     else {
         for (let i = 0; i < 3; i++) {
-            dailyTopics.push(backRevisionTopics.shift());
+            const backTopic = backRevisionTopics.shift();
+            if (backTopic) {
+                dailyTopics.push(backTopic);
+            }
         }
     }
     return dailyTopics;
 };
+exports.getDailyTopics = getDailyTopics;

@@ -6,31 +6,42 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateWeeklyPlanner = void 0;
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const plannerModel_1 = __importDefault(require("../../../models/plannerModel"));
-const db_1 = require("../../../db/db");
+const studentData_1 = require("../../../models/studentData"); // Import the model
+const getDailyTopics_1 = require("../DailyTopics/getDailyTopics");
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const timezone = 'Asia/Kolkata';
 const generateWeeklyPlanner = async (studentId) => {
     const startDate = (0, moment_timezone_1.default)().tz(timezone).startOf('isoWeek').toDate();
     const endDate = (0, moment_timezone_1.default)().tz(timezone).endOf('isoWeek').toDate();
-    const yesterday = (0, moment_timezone_1.default)().tz(timezone).subtract(1, 'day').startOf('day').toDate();
+    const today = (0, moment_timezone_1.default)().tz(timezone).startOf('day').toDate();
     // Fetch continuous revision and back revision topics
-    const continuousRevisionTopics = await db_1.db.collection('topics').find({ student: studentId, tag: 'continuous_revision', createdAt: { $gte: yesterday, $lt: startDate } }).toArray();
-    const backRevisionTopics = await db_1.db.collection('topics').find({ student: studentId, tag: 'back_revision' }).toArray();
+    const continuousRevisionTopics = await studentData_1.StudyData.find({
+        user: studentId,
+        tag: 'continuous_revision',
+        createdAt: { $gte: today },
+    }).exec();
+    const backRevisionTopics = await studentData_1.StudyData.find({
+        user: studentId,
+        tag: 'unrevised_topic',
+    }).exec();
     // Generate daily topics
     const days = daysOfWeek.map((day, index) => {
         const date = (0, moment_timezone_1.default)(startDate).add(index, 'days').tz(timezone).toDate();
         // Get topics for the day
-        const dailyTopics = getDailyTopics(continuousRevisionTopics, backRevisionTopics);
-        // Reseting the tag for continuousRevisionTopics tag
-        // continuousRevisionTopics.tag = ""
+        const dailyTopics = (0, getDailyTopics_1.getDailyTopics)(continuousRevisionTopics, backRevisionTopics);
+        console.log("dailtpoc", dailyTopics);
+        // Resetting the tag for continuousRevisionTopics tag
+        // continuousRevisionTopics.forEach(topic => topic.tag = "");
         return { day, date, topics: dailyTopics };
     });
-    const planner = new plannerModel_1.default({
+    const generatedPlanner = new plannerModel_1.default({
         student: studentId,
         startDate,
         endDate,
-        days
+        days,
     });
+    const planner = await plannerModel_1.default.create(generatedPlanner);
+    console.log(planner);
     return planner;
 };
 exports.generateWeeklyPlanner = generateWeeklyPlanner;

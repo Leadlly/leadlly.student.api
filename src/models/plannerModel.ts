@@ -9,17 +9,7 @@ const daySchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  topics: [
-    {
-      name: String,
-      additionalDetails: {
-        subject: String,
-        chapter: String,
-        topic: String,
-        subtopic: String,
-      },
-    },
-  ],
+  topics: Array
 });
 
 const plannerSchema = new mongoose.Schema({

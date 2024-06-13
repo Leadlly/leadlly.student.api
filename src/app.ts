@@ -9,9 +9,8 @@ import googleRoutes from "./routes/googleAuth";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import courseRoutes from "./routes/courseRoutes"
 import userRoutes from "./routes/user"
-import { generateWeeklyPlanner } from "./controllers/Planner/Generate/generatePlanner";
 
-// generateWeeklyPlanner("666a01a69461d46dc3c7b5fb")
+
 config({
   path: "./.env",
 });

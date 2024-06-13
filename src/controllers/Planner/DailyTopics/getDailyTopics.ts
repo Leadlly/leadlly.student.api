@@ -1,24 +1,31 @@
-const getDailyTopics = (
-  continuousRevisionTopics: any,
-  backRevisionTopics: any
-) => {
-  const dailyTopics = [];
+import IDataSchema from "../../../types/IDataSchema";
+import { IDay } from "../../../types/IPlanner";
 
-  // Add 3 continuous revision topics
+export const getDailyTopics = (continuousRevisionTopics: IDataSchema[], backRevisionTopics: IDataSchema[]) => {
+    const dailyTopics = [];
 
-  if (continuousRevisionTopics.length > 0) {
-    dailyTopics.push(continuousRevisionTopics.shift());
-    // Add 2 back revision topics
-    for (let i = 0; i < 2; i++) {
-      if (backRevisionTopics.length > 0) {
-        dailyTopics.push(backRevisionTopics.shift());
-      }
+    // Add 3 continuous revision topics
+    if (continuousRevisionTopics.length > 0) {
+        const topic = continuousRevisionTopics.shift();
+        if (topic) {
+            dailyTopics.push(topic);
+        }
+
+        // Add 2 back revision topics
+        for (let i = 0; i < 2; i++) {
+            const backTopic = backRevisionTopics.shift();
+            if (backTopic) {
+                dailyTopics.push(backTopic);
+            }
+        }
+    } else {
+        for (let i = 0; i < 3; i++) {
+            const backTopic = backRevisionTopics.shift();
+            if (backTopic) {
+                dailyTopics.push(backTopic);
+            }
+        }
     }
-  } else {
-    for (let i = 0; i < 3; i++) {
-      dailyTopics.push(backRevisionTopics.shift());
-    }
-  }
 
-  return dailyTopics;
+    return dailyTopics;
 };
