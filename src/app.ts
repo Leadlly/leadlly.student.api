@@ -9,8 +9,9 @@ import googleRoutes from "./routes/googleAuth";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import courseRoutes from "./routes/courseRoutes"
 import userRoutes from "./routes/user"
+import { generateWeeklyPlanner } from "./controllers/Planner/Generate/generatePlanner";
 
-
+// generateWeeklyPlanner("666a01a69461d46dc3c7b5fb")
 config({
   path: "./.env",
 });
@@ -20,11 +21,26 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  credentials: true
-}));
+app.use(
+  cors({
+      origin: (origin, callback) => {
+          console.log('Request from origin:', origin);
+          if (origin === undefined || origin === null) {
+               callback(null, true);
+          } else if (
+              origin.match(/^https?:\/\/(.*\.)?vercel\.app$/) ||
+              origin === process.env.FRONTEND_URL
+          ) {
+              callback(null, true);
+          } else {
+              console.log('Not allowed by CORS:', origin);
+              callback(new Error('Not allowed by CORS'));
+          }
+      },
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      credentials: true,
+  })
+);
 
 // routes
 app.use("/api/auth", authRoutes);

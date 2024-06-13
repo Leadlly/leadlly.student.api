@@ -38,6 +38,7 @@ const googleAuth_1 = __importDefault(require("./routes/googleAuth"));
 const subscriptionRoutes_1 = __importDefault(require("./routes/subscriptionRoutes"));
 const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 const user_1 = __importDefault(require("./routes/user"));
+// generateWeeklyPlanner("666a01a69461d46dc3c7b5fb")
 (0, dotenv_1.config)({
     path: "./.env",
 });
