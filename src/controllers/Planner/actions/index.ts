@@ -13,19 +13,19 @@ interface ScheduleActionsConfig {
 }
 
 export const scheduleActions: ScheduleActionsConfig = {
-  11: {
-    coaching_college_selfstudy: handlecoacing,
-    coaching_college: handleCoachingCollege,
-    coaching_selfstudy: handleCoachingSelfStudy,
-  },
-  12: {
-    coaching_college_selfstudy: handleCoachingCollegeSelfStudy,
-    coaching_college: handleCoachingCollege,
-    coaching_selfstudy: handleCoachingSelfStudy,
-  },
-  13: {
-    coaching_college_selfstudy: handleCoachingCollegeSelfStudy,
-    coaching_college: handleCoachingCollege,
-    coaching_selfstudy: handleCoachingSelfStudy,
-  },
+  // 11: {
+  //   coaching_college_selfstudy: handlecoacing,
+  //   coaching_college: handleCoachingCollege,
+  //   coaching_selfstudy: handleCoachingSelfStudy,
+  // },
+  // 12: {
+  //   coaching_college_selfstudy: handleCoachingCollegeSelfStudy,
+  //   coaching_college: handleCoachingCollege,
+  //   coaching_selfstudy: handleCoachingSelfStudy,
+  // },
+  // 13: {
+  //   coaching_college_selfstudy: handleCoachingCollegeSelfStudy,
+  //   coaching_college: handleCoachingCollege,
+  //   coaching_selfstudy: handleCoachingSelfStudy,
+  // },
 };
