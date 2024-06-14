@@ -1,8 +1,16 @@
 import { Worker } from "bullmq";
 import { sendMail } from "../../utils/sendMail";
 import Redis from "ioredis";
+import { config } from "dotenv";
+config();
 
-const connection = new Redis({ maxRetriesPerRequest: null });
+const redisUri = process.env.REDIS_URI;
+
+  if (!redisUri) {
+   throw new Error("Redis Url is undefined");;
+  }
+
+const connection = new Redis(redisUri, { maxRetriesPerRequest: null });
 
 export const otpWorker = new Worker(
   "otp-queue",
