@@ -16,6 +16,7 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
             required: true
         },
         level: String,
+        efficiency: Number
     },
     chapter: {
         name: {

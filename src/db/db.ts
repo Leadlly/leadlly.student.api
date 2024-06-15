@@ -5,11 +5,11 @@ dotenv.config();
 
 let db: mongoose.Connection;
 const ConnectToDB = async () => {
-  const DatabaseUrl = process.env.LEADLLY_DB_URL;
-  if (!DatabaseUrl) {
-    console.log("Leadlly_DB url is undefined");
-    return;
-  }
+  const DatabaseUrl = process.env.LEADLLY_DB_URL as string;
+  // if (!DatabaseUrl) {
+  //   console.log("Leadlly_DB url is undefined");
+  //   return;
+  // }
   try {
     await mongoose.connect(DatabaseUrl);
     db = mongoose.connection
@@ -21,12 +21,8 @@ const ConnectToDB = async () => {
 
 //question_db_connection
 let questions_db: mongoose.Connection;
-const questions_db_url = process.env.LEADLLY_QUESTIONS_DB_URL;
-if (questions_db_url) {
+const questions_db_url = process.env.LEADLLY_QUESTIONS_DB_URL as string;
   questions_db = mongoose.createConnection(questions_db_url);
-} else {
-  console.log("Question_DB url is undefined");
-}
 
 export { questions_db, db };
 export default ConnectToDB;

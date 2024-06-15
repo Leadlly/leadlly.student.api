@@ -20,6 +20,7 @@ const dataSchema = new mongoose_1.default.Schema({
             required: true
         },
         level: String,
+        efficiency: Number
     },
     chapter: {
         name: {

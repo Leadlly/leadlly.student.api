@@ -21,19 +21,20 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      "http://localhost:3000",
-    ];
-    const vercelRegex = /^https?:\/\/(.*\.)?vercel\.app$/;
+  // origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  //   const allowedOrigins = [
+  //     process.env.FRONTEND_URL,
+  //     "http://localhost:3000",
+  //   ];
+  //   const vercelRegex = /^https?:\/\/(.*\.)?vercel\.app$/;
 
-    if (allowedOrigins.includes(origin!) || (origin && vercelRegex.test(origin))) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  //   if (allowedOrigins.includes(origin!) || (origin && vercelRegex.test(origin))) {
+  //     callback(null, true);
+  //   } else {
+  //     callback(new Error("Not allowed by CORS"));
+  //   }
+  // },
+  origin: "*",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
 };

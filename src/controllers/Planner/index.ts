@@ -58,7 +58,7 @@ export const postFeedbackData = async (
         throw new Error('Unsupported standard or schedule');
       }
   
-      const generatedPlanner = await generateWeeklyPlanner('666a01a69461d46dc3c7b5fb');
+      const generatedPlanner = await generateWeeklyPlanner('666a01a69461d46dc3c7b5fb',);
       const planner = await Planner.create(generatedPlanner);
   
       res.status(200).json({

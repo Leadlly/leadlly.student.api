@@ -8,10 +8,10 @@ const ioredis_1 = __importDefault(require("ioredis"));
 let redis = null;
 const connectToRedis = () => {
     const redisUri = process.env.REDIS_URI;
-    if (!redisUri) {
-        console.log("Redis Url is undefined");
-        return;
-    }
+    // if (!redisUri) {
+    //   console.log("Redis Url is undefined");
+    //   return;
+    // }
     redis = new ioredis_1.default(redisUri);
     redis.on("connect", () => console.log("Redis Connected."));
     redis.on("error", (err) => {
