@@ -4,22 +4,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.googleAuth = void 0;
+const axios_1 = __importDefault(require("axios"));
 const error_1 = require("../../middlewares/error");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const userModel_1 = __importDefault(require("../../models/userModel"));
 const setCookie_1 = __importDefault(require("../../utils/setCookie"));
 const googleAuth = async (req, res, next) => {
     try {
-        const data = req.body;
-        if (!data)
-            return next(new error_1.CustomError("No data from body", 404));
-        // Decode the JWT
-        const userData = jsonwebtoken_1.default.decode(data.credential);
-        if (!userData)
-            return next(new error_1.CustomError("Credential not found", 404));
-        const user = await userModel_1.default.findOne({ email: userData.email });
+        const { access_token } = req.body;
+        if (!access_token)
+            return next(new error_1.CustomError("No access token provided", 400));
+        // Verify the access token with Google
+        const tokenInfoResponse = await axios_1.default.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`);
+        const userInfoResponse = await axios_1.default.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`);
+        const tokenInfo = tokenInfoResponse.data;
+        const userData = userInfoResponse.data;
+        if (!tokenInfo || !userData)
+            return next(new error_1.CustomError("Invalid token", 401));
+        const { email, name } = userData;
+        if (!email)
+            return next(new error_1.CustomError("Email not found", 404));
+        const user = await userModel_1.default.findOne({ email });
         if (user) {
-            //if user already exists then login the user
+            // If user already exists then log in the user
             (0, setCookie_1.default)({
                 user,
                 res,
@@ -29,10 +35,10 @@ const googleAuth = async (req, res, next) => {
             });
         }
         else {
-            //if user not found then create a new user
+            // If user not found then create a new user
             const newUser = await userModel_1.default.create({
-                name: userData.name,
-                email: userData.email,
+                name,
+                email,
             });
             (0, setCookie_1.default)({
                 user: newUser,
@@ -44,7 +50,8 @@ const googleAuth = async (req, res, next) => {
         }
     }
     catch (error) {
-        console.log(error);
+        console.error(error);
+        next(new error_1.CustomError("Authentication failed", 500));
     }
 };
 exports.googleAuth = googleAuth;

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
+import axios from "axios";
 import { CustomError } from "../../middlewares/error";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../../models/userModel";
 import setCookie from "../../utils/setCookie";
 
@@ -10,16 +10,25 @@ export const googleAuth = async (
   next: NextFunction
 ) => {
   try {
-    const data = req.body;
-    if (!data) return next(new CustomError("No data from body", 404));
+    const { access_token } = req.body;
+    if (!access_token) return next(new CustomError("No access token provided", 400));
 
-    // Decode the JWT
-    const userData = jwt.decode(data.credential) as JwtPayload;
-    if (!userData) return next(new CustomError("Credential not found", 404));
+    // Verify the access token with Google
+    const tokenInfoResponse = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`);
+    const userInfoResponse = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`);
 
-    const user = await User.findOne({ email: userData.email });
+    const tokenInfo = tokenInfoResponse.data;
+    const userData = userInfoResponse.data;
+
+    if (!tokenInfo || !userData) return next(new CustomError("Invalid token", 401));
+
+    const { email, name } = userData;
+
+    if (!email) return next(new CustomError("Email not found", 404));
+
+    const user = await User.findOne({ email });
     if (user) {
-      //if user already exists then login the user
+      // If user already exists then log in the user
       setCookie({
         user,
         res,
@@ -28,10 +37,10 @@ export const googleAuth = async (
         statusCode: 200,
       });
     } else {
-      //if user not found then create a new user
+      // If user not found then create a new user
       const newUser = await User.create({
-        name: userData.name,
-        email: userData.email,
+        name,
+        email,
       });
 
       setCookie({
@@ -43,6 +52,7 @@ export const googleAuth = async (
       });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    next(new CustomError("Authentication failed", 500));
   }
 };
