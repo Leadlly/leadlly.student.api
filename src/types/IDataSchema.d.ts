@@ -9,6 +9,10 @@ interface IDataSchema extends mongoose.Document {
   standard: number;
   createdAt?: Date;
   updatedAt?: Date;
+  studiedDate?: Date;
+  quizScores: number[];
+  weeklyTestScore: number;
 }
+
 
 export default IDataSchema;

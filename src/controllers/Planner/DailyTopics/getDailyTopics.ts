@@ -2,31 +2,51 @@ import IDataSchema from "../../../types/IDataSchema";
 import { IDay } from "../../../types/IPlanner";
 
 export const getDailyTopics = (
-  continuousRevisionTopics: IDataSchema[],
-  backRevisionTopics: IDataSchema[],
+  continuousRevision: IDataSchema[],
+  continuousLowEfficiency: IDataSchema[],
+  unrevisedLowEfficiency: IDataSchema[],
+  unrevisedTopics: IDataSchema[],
+  moderateEfficiency: IDataSchema[]
 ) => {
-  const dailyTopics = [];
+  const dailyTopics: IDataSchema[] = [];
 
-  // Add 3 continuous revision topics
-  if (continuousRevisionTopics.length > 0) {
-    const topic = continuousRevisionTopics.shift();
+  // Add continuous revision topics
+  while (continuousRevision.length > 0 && dailyTopics.length < 3) {
+    const topic = continuousRevision.shift();
     if (topic) {
       dailyTopics.push(topic);
     }
+  }
 
-    // Add 2 back revision topics
-    for (let i = 0; i < 2; i++) {
-      const backTopic = backRevisionTopics.shift();
-      if (backTopic) {
-        dailyTopics.push(backTopic);
-      }
+  // Add continuous revision topics with efficiency < 40%
+  while (continuousLowEfficiency.length > 0 && dailyTopics.length < 3) {
+    const topic = continuousLowEfficiency.shift();
+    if (topic) {
+      dailyTopics.push(topic);
     }
-  } else {
-    for (let i = 0; i < 3; i++) {
-      const backTopic = backRevisionTopics.shift();
-      if (backTopic) {
-        dailyTopics.push(backTopic);
-      }
+  }
+
+  // Add unrevised topics with efficiency < 40%
+  while (unrevisedLowEfficiency.length > 0 && dailyTopics.length < 3) {
+    const topic = unrevisedLowEfficiency.shift();
+    if (topic) {
+      dailyTopics.push(topic);
+    }
+  }
+
+  // Add unrevised topics
+  while (unrevisedTopics.length > 0 && dailyTopics.length < 3) {
+    const topic = unrevisedTopics.shift();
+    if (topic) {
+      dailyTopics.push(topic);
+    }
+  }
+
+  // Add topics with efficiency >= 40% but < 50%
+  while (moderateEfficiency.length > 0 && dailyTopics.length < 3) {
+    const topic = moderateEfficiency.shift();
+    if (topic) {
+      dailyTopics.push(topic);
     }
   }
 
