@@ -20,27 +20,13 @@ const app = express();
 
 app.use(cookieParser());
 app.use(express.json());
-app.use(urlencoded({ extended: true }));
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      "http://localhost:3000",
-      "https://accounts.google.com" 
-    ];
-    const vercelRegex = /^https?:\/\/(.*\.)?vercel\.app$/;
+app.use(urlencoded({ extended: true })); 
 
-    if (allowedOrigins.includes(origin!) || (origin && vercelRegex.test(origin))) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+app.use(cors({
+  origin: [process.env.FRONTEND_URL as string, "http://localhost:3000"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
-};
-
-app.use(cors(corsOptions));
+}));
 
 // routes
 app.use("/api/auth", authRoutes);
@@ -48,7 +34,7 @@ app.use("/api/google", googleRoutes);
 app.use("/api/subscribe", subscriptionRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api", questionRoutes);
+app.use("/api/questionbank", questionRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello, world!");

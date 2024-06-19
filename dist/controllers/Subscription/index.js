@@ -70,7 +70,7 @@ const verifySubscription = async (req, res, next) => {
         });
         user.subscription.status = "active";
         await user.save();
-        await producer_1.subQeuue.add("subscrition", {
+        await producer_1.subQueue.add("subscrition", {
             options: {
                 email: user.email,
                 subject: "Leadlly Subscription",
@@ -123,7 +123,7 @@ const cancelSubscription = async (req, res, next) => {
             user.subscription.id = undefined;
             user.subscription.type = undefined;
             await user.save();
-            await producer_1.subQeuue.add("SubcriptionCancel", {
+            await producer_1.subQueue.add("SubcriptionCancel", {
                 options: {
                     email: user.email,
                     subject: "Leadlly Subscription",

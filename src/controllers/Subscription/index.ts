@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CustomError } from "../../middlewares/error";
 import razorpay from "../../services/payment/Razorpay";
 import User from "../../models/userModel";
-import { subQeuue } from "../../services/bullmq/producer";
+import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
 
@@ -98,7 +98,7 @@ export const verifySubscription = async (
 
     await user.save();
 
-    await subQeuue.add("subscrition", {
+    await subQueue.add("subscrition", {
       options: {
         email: user.email,
         subject: "Leadlly Subscription",
@@ -171,7 +171,7 @@ export const cancelSubscription = async (
 
       await user.save();
 
-      await subQeuue.add("SubcriptionCancel", {
+      await subQueue.add("SubcriptionCancel", {
         options: {
           email: user.email,
           subject: "Leadlly Subscription",

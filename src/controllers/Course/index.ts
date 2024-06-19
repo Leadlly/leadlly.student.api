@@ -5,7 +5,7 @@ import Course from "../../models/courseModel";
 import User from "../../models/userModel";
 import Payment from "../../models/paymentModel";
 import crypto from 'crypto'
-import { subQeuue } from "../../services/bullmq/producer";
+import { subQueue } from "../../services/bullmq/producer";
 export const createCourse = async (
   req: Request,
   res: Response,
@@ -148,7 +148,7 @@ export const verifyPayment = async (
         type: "OneTime"
       });
   
-      await subQeuue.add("coursePayment", {
+      await subQueue.add("coursePayment", {
         options: {
           email: user.email,
           subject: "Course @Leadlly",

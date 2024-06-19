@@ -121,7 +121,7 @@ const verifyPayment = async (req, res, next) => {
             user: user._id,
             type: "OneTime"
         });
-        await producer_1.subQeuue.add("coursePayment", {
+        await producer_1.subQueue.add("coursePayment", {
             options: {
                 email: user.email,
                 subject: "Course @Leadlly",

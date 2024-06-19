@@ -9,7 +9,7 @@ const getChapter = async (req, res, next) => {
         if (!subjectName || !standard) {
             return res.status(400).json({
                 success: false,
-                message: 'subjectName and standard are required in query params',
+                message: 'Subject and Standard are required',
             });
         }
         const chapters = await db_1.questions_db
@@ -99,13 +99,12 @@ const getQuestion = async (req, res, next) => {
             topic: { $regex: new RegExp(`^${topic}$`, 'i') },
         })
             .toArray();
-        // If no questions found, return 404
-        if (questions.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No questions found for the specified parameters',
-            });
-        }
+        //   if (questions.length === 0) {
+        //     return res.status(404).json({
+        //       success: false,
+        //       message: 'No questions found for the specified parameters',
+        //     });
+        //   }
         // Return questions if found
         res.status(200).json({
             success: true,
