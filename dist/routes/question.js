@@ -6,11 +6,9 @@ var __importDefault =
   };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const Course_1 = require("../controllers/Course");
+const Question_1 = require("../controllers/Question");
 const router = express_1.default.Router();
-router.post("/create", Course_1.createCourse);
-// router.get('/:id', getCourse)
-router.get("/all", Course_1.getAllCourses);
-router.post("/payment/:id", Course_1.coursePayment);
-router.post("/verifypayment", Course_1.verifyPayment);
+router.get("/chapter", Question_1.getChapter);
+router.get("/topic", Question_1.getTopic);
+router.get("/question", Question_1.getQuestion);
 exports.default = router;

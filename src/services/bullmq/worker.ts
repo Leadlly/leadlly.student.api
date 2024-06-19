@@ -6,9 +6,9 @@ config();
 
 const redisUri = process.env.REDIS_URI as string;
 
-  // if (!redisUri) {
-  //  throw new Error("Redis Url is undefined");;
-  // }
+// if (!redisUri) {
+//  throw new Error("Redis Url is undefined");;
+// }
 
 const connection = new Redis(redisUri, { maxRetriesPerRequest: null });
 

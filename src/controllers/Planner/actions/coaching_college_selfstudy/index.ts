@@ -1,3 +1,1 @@
-export const handleCoachingCollegeSelfStudy = async()=>{
-    
-}
+export const handleCoachingCollegeSelfStudy = async () => {};

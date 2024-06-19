@@ -13,7 +13,6 @@ questions_db.on("connected", () => {
   console.log("Question_DB connected");
 }); //question db
 
-
 // Redis
 // export const redis = new Redis()
 // redis.on("connect", () => console.log("Redis Connected."));
@@ -25,7 +24,5 @@ questions_db.on("connected", () => {
 // Queues
 otpWorker; // for otps related emails
 subWorker; // for subscription related emails
-
-
 
 app.listen(port, () => console.log(`Server is listening at port ${port}`));

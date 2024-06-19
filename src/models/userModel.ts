@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import IUser from "../types/IUser";
-import crypto from 'crypto'
+import crypto from "crypto";
 
 const userSchema = new Schema({
   name: {
@@ -42,7 +42,7 @@ const userSchema = new Schema({
     dob: String,
     schedule: {
       type: String,
-    }
+    },
   },
   role: {
     type: String,
@@ -52,10 +52,12 @@ const userSchema = new Schema({
     level: Number,
     points: Number,
     streak: Number,
-    mood: [{
-      day: String,
-      emoji: String,
-    }]
+    mood: [
+      {
+        day: String,
+        emoji: String,
+      },
+    ],
   },
   badges: [
     {
@@ -72,19 +74,19 @@ const userSchema = new Schema({
   subscription: {
     type: String,
     id: String,
-    status: String
+    status: String,
   },
   refund: {
     type: String,
     subscriptionType: String,
     status: String,
-    amount: Number
+    amount: Number,
   },
   quiz: {
     daily: [],
     weekly: [],
     monthly: [],
-    QOTD: [],  // question of the day
+    QOTD: [], // question of the day
     others: [],
   },
   resetPasswordToken: String,
@@ -115,23 +117,28 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string,
+): Promise<boolean> {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
-    throw new Error('Error comparing password.');
+    throw new Error("Error comparing password.");
   }
 };
 
 userSchema.methods.getToken = async function (): Promise<string> {
-    const resetToken = crypto.randomBytes(20).toString("hex")
+  const resetToken = crypto.randomBytes(20).toString("hex");
 
-    this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex")
-    this.resetTokenExpiry = Date.now() + 10*60*1000
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.resetTokenExpiry = Date.now() + 10 * 60 * 1000;
 
-    return resetToken
-}
+  return resetToken;
+};
 
-const User = mongoose.model<IUser>('User', userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;

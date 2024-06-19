@@ -4,13 +4,13 @@ import { CustomError } from "../../middlewares/error";
 import setCookie from "../../utils/setCookie";
 import generateOTP from "../../utils/generateOTP";
 import { otpQueue } from "../../services/bullmq/producer";
-import crypto from 'crypto'
+import crypto from "crypto";
 
 let OTP: string, newUser: any;
 export const register = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { name, email, password } = req.body;
@@ -47,7 +47,7 @@ export const register = async (
 export const resentOtp = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     OTP = "";
@@ -74,7 +74,7 @@ export const resentOtp = async (
 export const otpVerification = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { otp } = req.body;
@@ -98,7 +98,7 @@ export const otpVerification = async (
 export const login = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { email, password } = req.body;
@@ -126,7 +126,7 @@ export const login = async (
 export const forgotPassword = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { email } = req.body;
@@ -135,7 +135,7 @@ export const forgotPassword = async (
 
     const resetToken = await user.getToken();
 
-    await user.save() //saving the token in user
+    await user.save(); //saving the token in user
 
     const url = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`;
     await otpQueue.add("otpVerify", {
@@ -158,46 +158,49 @@ export const forgotPassword = async (
 export const resetpassword = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-   try {
-     const resetToken = req.params.token
-     if(!resetToken) return next(new CustomError("Something went wrong", 400));
+  try {
+    const resetToken = req.params.token;
+    if (!resetToken) return next(new CustomError("Something went wrong", 400));
 
-     const resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
 
-     const user = await User.findOne({
+    const user = await User.findOne({
       resetPasswordToken,
       resetTokenExpiry: {
-        $gt: Date.now()
-      }
-     })
+        $gt: Date.now(),
+      },
+    });
 
-     if(!user) return next(new CustomError("Your link is expired! Try again", 400));
+    if (!user)
+      return next(new CustomError("Your link is expired! Try again", 400));
 
     user.password = req.body.password;
     user.resetPasswordToken = null;
     user.resetTokenExpiry = null;
 
     await user.save();
-     res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: 'You password has been changed',
+      message: "You password has been changed",
     });
-
-   } catch (error: any) {
+  } catch (error: any) {
     next(new CustomError(error.message));
   }
-}
+};
 
-export const logout = async (
-  req: Request,
-  res: Response,
-) => {
-    res.status(200).cookie("token", null, {
-      expires: new Date(Date.now())
-    }).json({
-      success: true, 
-      message: "Logged out"
+export const logout = async (req: Request, res: Response) => {
+  res
+    .status(200)
+    .cookie("token", null, {
+      expires: new Date(Date.now()),
     })
+    .json({
+      success: true,
+      message: "Logged out",
+    });
 };

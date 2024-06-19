@@ -3,28 +3,28 @@ import mongoose from "mongoose";
 const daySchema = new mongoose.Schema({
   date: {
     type: Date,
-    required: true
+    required: true,
   },
   day: {
     type: String,
-    required: true
+    required: true,
   },
-  topics: Array
+  topics: Array,
 });
 
 const plannerSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "Student"
+    ref: "Student",
   },
   startDate: {
     type: Date,
-    required: true
+    required: true,
   },
   endDate: {
     type: Date,
-    required: true
+    required: true,
   },
   days: [daySchema],
   createdAt: {
