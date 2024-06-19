@@ -1,7 +1,6 @@
 // configuration/scheduleActions.ts
-import { Request, Response, NextFunction } from 'express';
-import { handleCoachingCollegeSelfStudy } from './coaching_college_selfstudy';
-
+import { Request, Response, NextFunction } from "express";
+import { handleCoachingCollegeSelfStudy } from "./coaching_college_selfstudy";
 
 interface ActionFunction {
   (req: Request, res: Response, next: NextFunction): Promise<void>;

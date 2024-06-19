@@ -13,7 +13,7 @@ declare global {
 export const checkAuth = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { token } = req.cookies;
   if (!token) return next(new CustomError("Login First", 400));
@@ -30,7 +30,7 @@ export const checkAuth = async (
 export const authoriseSubscriber = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (req.user.subscripiton.status !== "active")
     return next(new CustomError("You are not subscribed", 400));

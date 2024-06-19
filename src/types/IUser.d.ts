@@ -1,13 +1,13 @@
-import { Document } from 'mongoose';
+import { Document } from "mongoose";
 
 interface IUser extends Document {
-  name: string;                       // required in the schema
-  email: string;                      // required and unique in the schema
+  name: string; // required in the schema
+  email: string; // required and unique in the schema
   phone?: {
-    personal?: number;                // optional and unique in the schema
-    other?: number;                   // optional in the schema
+    personal?: number; // optional and unique in the schema
+    other?: number; // optional in the schema
   };
-  password: string;                   // required in the schema but not selected by default
+  password: string; // required in the schema but not selected by default
   avatar?: {
     public_id?: string;
     url?: string;
@@ -20,37 +20,37 @@ interface IUser extends Document {
   };
   role?: string;
   details?: {
-    level?: number,
-    points?: number,
-    streak?: number,
+    level?: number;
+    points?: number;
+    streak?: number;
     mood?: Array<{
-      day: String,
-      emoji: String,
-    }>
-  },
+      day: String;
+      emoji: String;
+    }>;
+  };
   badges?: Array<{
     name: string;
     url: string;
   }>;
-  points?: number;                    // Any type or specify a more detailed type if known
+  points?: number; // Any type or specify a more detailed type if known
   subscription: {
-    type?: string;                    // Any type or specify a more detailed type if known
+    type?: string; // Any type or specify a more detailed type if known
     id?: string;
-    status?: string                    // Any type or specify a more detailed type if known
+    status?: string; // Any type or specify a more detailed type if known
   };
   refund: {
-    type?: string,
-    subscriptionType?: string
-    status?: string,
-    amount?: string
+    type?: string;
+    subscriptionType?: string;
+    status?: string;
+    amount?: string;
   };
   quiz?: {
-    minor?: any[];                    // Any type or specify a more detailed type if known
-    major?: any[];                    // Any type or specify a more detailed type if known
+    minor?: any[]; // Any type or specify a more detailed type if known
+    major?: any[]; // Any type or specify a more detailed type if known
   };
   resetPasswordToken?: string | null;
-  resetTokenExpiry?: string | null,
-  createdAt?: Date;                   // Optional as it has a default value
+  resetTokenExpiry?: string | null;
+  createdAt?: Date; // Optional as it has a default value
   comparePassword(candidatePassword: string): Promise<boolean>;
   getToken(): Promise<string>;
 }

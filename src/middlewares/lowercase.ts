@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 
-const convertToLowercase = (req: Request, res: Response, next: NextFunction) => {
+const convertToLowercase = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const convertToLowerCase = (obj: any): void => {
     for (let key in obj) {
       if (typeof obj[key] === "string") {

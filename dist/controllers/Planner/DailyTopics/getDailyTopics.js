@@ -2,29 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDailyTopics = void 0;
 const getDailyTopics = (continuousRevisionTopics, backRevisionTopics) => {
-    const dailyTopics = [];
-    // Add 3 continuous revision topics
-    if (continuousRevisionTopics.length > 0) {
-        const topic = continuousRevisionTopics.shift();
-        if (topic) {
-            dailyTopics.push(topic);
-        }
-        // Add 2 back revision topics
-        for (let i = 0; i < 2; i++) {
-            const backTopic = backRevisionTopics.shift();
-            if (backTopic) {
-                dailyTopics.push(backTopic);
-            }
-        }
+  const dailyTopics = [];
+  // Add 3 continuous revision topics
+  if (continuousRevisionTopics.length > 0) {
+    const topic = continuousRevisionTopics.shift();
+    if (topic) {
+      dailyTopics.push(topic);
     }
-    else {
-        for (let i = 0; i < 3; i++) {
-            const backTopic = backRevisionTopics.shift();
-            if (backTopic) {
-                dailyTopics.push(backTopic);
-            }
-        }
+    // Add 2 back revision topics
+    for (let i = 0; i < 2; i++) {
+      const backTopic = backRevisionTopics.shift();
+      if (backTopic) {
+        dailyTopics.push(backTopic);
+      }
     }
-    return dailyTopics;
+  } else {
+    for (let i = 0; i < 3; i++) {
+      const backTopic = backRevisionTopics.shift();
+      if (backTopic) {
+        dailyTopics.push(backTopic);
+      }
+    }
+  }
+  return dailyTopics;
 };
 exports.getDailyTopics = getDailyTopics;

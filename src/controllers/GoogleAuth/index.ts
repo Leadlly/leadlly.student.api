@@ -7,20 +7,26 @@ import setCookie from "../../utils/setCookie";
 export const googleAuth = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { access_token } = req.body;
-    if (!access_token) return next(new CustomError("No access token provided", 400));
+    if (!access_token)
+      return next(new CustomError("No access token provided", 400));
 
     // Verify the access token with Google
-    const tokenInfoResponse = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`);
-    const userInfoResponse = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`);
+    const tokenInfoResponse = await axios.get(
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`,
+    );
+    const userInfoResponse = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`,
+    );
 
     const tokenInfo = tokenInfoResponse.data;
     const userData = userInfoResponse.data;
 
-    if (!tokenInfo || !userData) return next(new CustomError("Invalid token", 401));
+    if (!tokenInfo || !userData)
+      return next(new CustomError("Invalid token", 401));
 
     const { email, name } = userData;
 

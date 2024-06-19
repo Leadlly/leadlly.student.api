@@ -12,7 +12,7 @@ const ConnectToDB = async () => {
   // }
   try {
     await mongoose.connect(DatabaseUrl);
-    db = mongoose.connection
+    db = mongoose.connection;
     console.log("Leadlly_DB Connected.");
   } catch (error) {
     console.log(error);
@@ -22,7 +22,7 @@ const ConnectToDB = async () => {
 //question_db_connection
 let questions_db: mongoose.Connection;
 const questions_db_url = process.env.LEADLLY_QUESTIONS_DB_URL as string;
-  questions_db = mongoose.createConnection(questions_db_url);
+questions_db = mongoose.createConnection(questions_db_url);
 
 export { questions_db, db };
 export default ConnectToDB;

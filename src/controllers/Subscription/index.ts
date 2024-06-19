@@ -9,7 +9,7 @@ import Payment from "../../models/paymentModel";
 export const buySubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -27,13 +27,13 @@ export const buySubscription = async (
       return next(
         new CustomError(
           "RAZORPAY_PLAN_ID is not defined in the environment variables.",
-          400
-        )
+          400,
+        ),
       );
     }
 
     const duration = Number(req.query.duration);
-  
+
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
       customer_notify: 1,
@@ -60,7 +60,7 @@ export const buySubscription = async (
 export const verifySubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const {
@@ -91,7 +91,7 @@ export const verifySubscription = async (
       razorpay_payment_id,
       razorpay_subscription_id,
       razorpay_signature,
-      user: user._id
+      user: user._id,
     });
 
     user.subscription.status = "active";
@@ -107,7 +107,7 @@ export const verifySubscription = async (
     });
 
     res.redirect(
-      `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
+      `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`,
     );
   } catch (error: any) {
     next(new CustomError(error.message, 500));
@@ -117,7 +117,7 @@ export const verifySubscription = async (
 export const cancelSubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -145,7 +145,7 @@ export const cancelSubscription = async (
     // Check if the gap is less than 7 days
     if (gap > refundTime) {
       return next(
-        new CustomError("Cannot cancel subscription after 7 days.", 400)
+        new CustomError("Cannot cancel subscription after 7 days.", 400),
       );
     } else {
       // Cancel the subscription goes here
@@ -156,7 +156,7 @@ export const cancelSubscription = async (
         payment.razorpay_payment_id,
         {
           speed: "normal",
-        }
+        },
       );
 
       await payment.deleteOne();
@@ -176,8 +176,8 @@ export const cancelSubscription = async (
           email: user.email,
           subject: "Leadlly Subscription",
           message: `Hello ${user.name}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
-        }
-        })
+        },
+      });
 
       res.status(200).json({
         success: true,

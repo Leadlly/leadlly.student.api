@@ -1,5 +1,5 @@
 // ITopic.ts
-import { Document, ObjectId } from 'mongoose';
+import { Document, ObjectId } from "mongoose";
 
 interface ITopicDetail {
   subject: string;
