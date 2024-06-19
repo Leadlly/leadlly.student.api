@@ -1,41 +1,39 @@
 "use strict";
-var __importDefault =
-  (this && this.__importDefault) ||
-  function (mod) {
-    return mod && mod.__esModule ? mod : { default: mod };
-  };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const daySchema = new mongoose_1.default.Schema({
-  date: {
-    type: Date,
-    required: true,
-  },
-  day: {
-    type: String,
-    required: true,
-  },
-  topics: Array,
+    date: {
+        type: Date,
+        required: true,
+    },
+    day: {
+        type: String,
+        required: true,
+    },
+    topics: Array,
 });
 const plannerSchema = new mongoose_1.default.Schema({
-  student: {
-    type: mongoose_1.default.Schema.Types.ObjectId,
-    required: true,
-    ref: "Student",
-  },
-  startDate: {
-    type: Date,
-    required: true,
-  },
-  endDate: {
-    type: Date,
-    required: true,
-  },
-  days: [daySchema],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+    student: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        required: true,
+        ref: "Student",
+    },
+    startDate: {
+        type: Date,
+        required: true,
+    },
+    endDate: {
+        type: Date,
+        required: true,
+    },
+    days: [daySchema],
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
 const Planner = mongoose_1.default.model("Planner", plannerSchema);
 exports.default = Planner;

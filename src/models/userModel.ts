@@ -14,11 +14,7 @@ const userSchema = new Schema({
     unique: true,
   },
   phone: {
-    personal: {
-      type: Number,
-      unique: true,
-    },
-    other: Number,
+    type: Number,
   },
   password: {
     type: String,
@@ -35,9 +31,7 @@ const userSchema = new Schema({
     },
   },
   about: {
-    standard: {
-      type: Number,
-    },
+    standard: Number,
     school: String,
     dob: String,
     schedule: {
@@ -75,6 +69,7 @@ const userSchema = new Schema({
     type: String,
     id: String,
     status: String,
+    dateOfActivation: Number
   },
   refund: {
     type: String,

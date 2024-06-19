@@ -1,9 +1,7 @@
 "use strict";
-var __importDefault =
-  (this && this.__importDefault) ||
-  function (mod) {
-    return mod && mod.__esModule ? mod : { default: mod };
-  };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const razorpay_1 = __importDefault(require("razorpay"));
 const dotenv_1 = require("dotenv");
@@ -14,7 +12,7 @@ const key_secret = process.env.RAZORPAY_API_SECRET;
 //   throw new Error("Razorpay API key or secret is missing");
 // }
 const razorpay = new razorpay_1.default({
-  key_id: key_id,
-  key_secret: key_secret,
+    key_id: key_id,
+    key_secret: key_secret,
 });
 exports.default = razorpay;

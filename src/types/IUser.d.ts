@@ -37,6 +37,7 @@ interface IUser extends Document {
     type?: string; // Any type or specify a more detailed type if known
     id?: string;
     status?: string; // Any type or specify a more detailed type if known
+    dateOfActivation?: Date
   };
   refund: {
     type?: string;
