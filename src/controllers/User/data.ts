@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
 import { StudyData } from "../../models/studentData";
 import { CustomError } from "../../middlewares/error";
 
@@ -16,11 +15,18 @@ export const storeBackRevisionData = async (
       throw new CustomError("Topics must be a non-empty array");
     }
 
+    const topicNames = new Set();
+    for (let topic of topics) {
+      if (topicNames.has(topic.name)) {
+        throw new CustomError(`Duplicate topic found: "${topic.name}"`);
+      }
+      topicNames.add(topic.name);
+    }
+
     const createdDocuments = [];
 
-    // Iterate over each topic and create a document if it doesn't exist
     for (let topic of topics) {
-      const existingDocument = await StudyData.findOne({ topic, tag });
+      const existingDocument = await StudyData.findOne({ "topic.name": topic.name, tag });
 
       if (existingDocument) {
         // If a document with the same topic and tag exists, skip the creation
@@ -35,7 +41,7 @@ export const storeBackRevisionData = async (
         ...restBody,
         topic,
         tag,
-        user: new mongoose.Types.ObjectId("666a01a69461d46dc3c7b5fb"),
+        user: req.user._id,
       });
 
       createdDocuments.push(data);

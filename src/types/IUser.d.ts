@@ -1,13 +1,13 @@
 import { Document } from "mongoose";
 
 interface IUser extends Document {
-  name: string; // required in the schema
-  email: string; // required and unique in the schema
+  name: string; 
+  email: string;
   phone?: {
-    personal?: number; // optional and unique in the schema
-    other?: number; // optional in the schema
+    personal?: number; 
+    other?: number; 
   };
-  password: string; // required in the schema but not selected by default
+  password: string; 
   avatar?: {
     public_id?: string;
     url?: string;
@@ -32,11 +32,11 @@ interface IUser extends Document {
     name: string;
     url: string;
   }>;
-  points?: number; // Any type or specify a more detailed type if known
+  points?: number; 
   subscription: {
-    type?: string; // Any type or specify a more detailed type if known
+    type?: string; 
     id?: string;
-    status?: string; // Any type or specify a more detailed type if known
+    status?: string; 
     dateOfActivation?: Date
   };
   refund: {
@@ -46,8 +46,8 @@ interface IUser extends Document {
     amount?: string;
   };
   quiz?: {
-    minor?: any[]; // Any type or specify a more detailed type if known
-    major?: any[]; // Any type or specify a more detailed type if known
+    minor?: any[]; 
+    major?: any[]; 
   };
   resetPasswordToken?: string | null;
   resetTokenExpiry?: string | null;

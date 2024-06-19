@@ -1,10 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.storeBackRevisionData = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
 const studentData_1 = require("../../models/studentData");
 const error_1 = require("../../middlewares/error");
 const storeBackRevisionData = async (req, res, next) => {
@@ -14,10 +10,16 @@ const storeBackRevisionData = async (req, res, next) => {
         if (!Array.isArray(topics) || topics.length === 0) {
             throw new error_1.CustomError("Topics must be a non-empty array");
         }
-        const createdDocuments = [];
-        // Iterate over each topic and create a document if it doesn't exist
+        const topicNames = new Set();
         for (let topic of topics) {
-            const existingDocument = await studentData_1.StudyData.findOne({ topic, tag });
+            if (topicNames.has(topic.name)) {
+                throw new error_1.CustomError(`Duplicate topic found: "${topic.name}"`);
+            }
+            topicNames.add(topic.name);
+        }
+        const createdDocuments = [];
+        for (let topic of topics) {
+            const existingDocument = await studentData_1.StudyData.findOne({ "topic.name": topic.name, tag });
             if (existingDocument) {
                 // If a document with the same topic and tag exists, skip the creation
                 console.log(`Document with topic "${topic}" and tag "${tag}" already exists. Skipping...`);
@@ -28,7 +30,7 @@ const storeBackRevisionData = async (req, res, next) => {
                 ...restBody,
                 topic,
                 tag,
-                user: new mongoose_1.default.Types.ObjectId("666a01a69461d46dc3c7b5fb"),
+                user: req.user._id,
             });
             createdDocuments.push(data);
         }

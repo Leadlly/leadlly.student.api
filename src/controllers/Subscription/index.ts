@@ -18,9 +18,9 @@ export const buySubscription = async (
       return next(new CustomError("User not found", 404));
     }
 
-    if (user.role === "admin" || user.role === "mentor") {
-      return next(new CustomError("Subscription is only for students", 400));
-    }
+    // if (user.role === "admin" || user.role === "mentor") {
+    //   return next(new CustomError("Subscription is only for students", 400));
+    // }
 
     const planId = process.env.RAZORPAY_PLAN_ID;
     if (!planId) {

@@ -32,7 +32,7 @@ const getBackRevistionTopics = async (studentId, dateOfSubscription) => {
     else {
         // For Week 3 onwards:
         // Determine the reference week to fetch topics from
-        const referenceWeek = currentWeek - 2; // Fetch topics from the previous week
+        const referenceWeek = currentWeek - 2; // Fetch topics from the one week before previous week
         // Filter topics based on the reference week
         const filteredContinuousLowEfficiency = continuousLowEfficiency.filter(data => getWeekNumber(data.updatedAt, new Date()) === referenceWeek);
         const filteredUnrevisedLowEfficiency = unrevisedLowEfficiency.filter(data => getWeekNumber(data.updatedAt, new Date()) === referenceWeek);

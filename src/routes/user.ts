@@ -5,6 +5,6 @@ import convertToLowercase from "../middlewares/lowercase";
 
 const router = express.Router();
 
-router.post("/progress/save", convertToLowercase, storeBackRevisionData);
+router.post("/progress/save", checkAuth, convertToLowercase, storeBackRevisionData);
 
 export default router;
