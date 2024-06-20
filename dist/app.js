@@ -48,22 +48,22 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use((0, express_1.urlencoded)({ extended: true }));
 const corsOptions = {
-    origin: (origin, callback) => {
-        const allowedOrigins = [
-            process.env.FRONTEND_URL,
-            "http://localhost:3000",
-            "https://accounts.google.com"
-        ];
-        const vercelRegex = /^https?:\/\/(.*\.)?vercel\.app$/;
-        if (allowedOrigins.includes(origin) || (origin && vercelRegex.test(origin))) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
+    // origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    //   const allowedOrigins = [
+    //     process.env.FRONTEND_URL,
+    //     "http://localhost:3000",
+    //     "https://accounts.google.com" 
+    //   ];
+    //   const vercelRegex = /^https?:\/\/(.*\.)?vercel\.app$/;
+    //   if (allowedOrigins.includes(origin!) || (origin && vercelRegex.test(origin))) {
+    //     callback(null, true);
+    //   } else {
+    //     callback(new Error("Not allowed by CORS"));
+    //   }
+    // },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
+    origin: "*"
 };
 app.use((0, cors_1.default)(corsOptions));
 // routes
