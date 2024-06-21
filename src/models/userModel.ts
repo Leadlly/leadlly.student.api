@@ -81,6 +81,8 @@ details: {
     type: String,
     id: String,
     status: String,
+    dateOfActivation: Number
+
   },
   refund: {
     type: String,
