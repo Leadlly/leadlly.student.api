@@ -20,6 +20,18 @@ const userSchema = new Schema({
     },
     other: Number,
   },
+  parentName: String,
+  parentPhone: Number,
+  country: String,
+  address: String,
+  pincode: Number,
+  academic: {
+    examName: String,
+    schedule: String,
+    schoolOrCollegeName: String,
+    coachingMode: String,
+    coachingName: String,
+  },
   password: {
     type: String,
     select: false,
@@ -34,21 +46,15 @@ const userSchema = new Schema({
       default: "",
     },
   },
-  about: {
-    standard: {
-      type: Number,
-    },
-    school: String,
-    dob: String,
-    schedule: {
-      type: String,
-    },
-  },
   role: {
     type: String,
     default: "user",
   },
-  details: {
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+details: {
     level: Number,
     points: Number,
     streak: Number,
@@ -91,10 +97,6 @@ const userSchema = new Schema({
   },
   resetPasswordToken: String,
   resetTokenExpiry: String,
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
 });
 
 // Pre-save hook for email validation
