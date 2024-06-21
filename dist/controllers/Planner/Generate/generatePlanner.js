@@ -8,6 +8,7 @@ const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const plannerModel_1 = __importDefault(require("../../../models/plannerModel"));
 const studentData_1 = require("../../../models/studentData"); // Import the model
 const getDailyTopics_1 = require("../DailyTopics/getDailyTopics");
+const getDailyQuestions_1 = require("../DailyQuestions/getDailyQuestions");
 const daysOfWeek = [
     "Monday",
     "Tuesday",
@@ -31,7 +32,8 @@ const generateWeeklyPlanner = async (user, backRevisionTopics) => {
     //   user: studentId,
     //   tag: "unrevised_topic",
     // }).exec()) as IDataSchema[];
-    const days = daysOfWeek.map((day, index) => {
+    let dailyQuestions;
+    const days = daysOfWeek.map(async (day, index) => {
         const date = (0, moment_timezone_1.default)(startDate).add(index, "days").tz(timezone).toDate();
         const dailyTopics = (0, getDailyTopics_1.getDailyTopics)(continuousRevisionTopics, backRevisionTopics, user);
         dailyTopics.forEach(data => {
@@ -40,7 +42,8 @@ const generateWeeklyPlanner = async (user, backRevisionTopics) => {
             }
             data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
         });
-        return { day, date, topics: dailyTopics };
+        dailyQuestions = await (0, getDailyQuestions_1.getDailyQuestions)(day, date, dailyTopics);
+        return { day, date, topics: dailyTopics, questions: dailyQuestions };
     });
     const generatedPlanner = new plannerModel_1.default({
         student: user._id,

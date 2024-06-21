@@ -6,6 +6,7 @@ import { db } from "../../../db/db";
 import IDataSchema, { Topic } from "../../../types/IDataSchema"; // Import the interface
 import { getDailyTopics } from "../DailyTopics/getDailyTopics";
 import IUser from "../../../types/IUser";
+import { getDailyQuestions } from "../DailyQuestions/getDailyQuestions";
 
 const daysOfWeek = [
   "Monday",
@@ -35,7 +36,8 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
   //   tag: "unrevised_topic",
   // }).exec()) as IDataSchema[];
 
-  const days = daysOfWeek.map((day, index) => {
+  let dailyQuestions;
+  const days = daysOfWeek.map(async(day, index) => {
     const date = moment(startDate).add(index, "days").tz(timezone).toDate();
 
     const dailyTopics = getDailyTopics(
@@ -51,7 +53,8 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
       data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
     });
 
-    return { day, date, topics: dailyTopics };
+    dailyQuestions = await getDailyQuestions(day, date, dailyTopics)
+    return { day, date, topics: dailyTopics, questions: dailyQuestions };
   });
 
   const generatedPlanner = new Planner({

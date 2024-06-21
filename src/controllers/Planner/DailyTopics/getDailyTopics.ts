@@ -1,5 +1,4 @@
 import IDataSchema from "../../../types/IDataSchema";
-import { IDay } from "../../../types/IPlanner";
 import IUser from "../../../types/IUser";
 
 export const getDailyTopics = (

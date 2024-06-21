@@ -14,6 +14,7 @@ const daySchema = new mongoose_1.default.Schema({
         required: true,
     },
     topics: Array,
+    questions: Array
 });
 const plannerSchema = new mongoose_1.default.Schema({
     student: {

@@ -10,6 +10,7 @@ const daySchema = new mongoose.Schema({
     required: true,
   },
   topics: Array,
+  questions: Array
 });
 
 const plannerSchema = new mongoose.Schema({

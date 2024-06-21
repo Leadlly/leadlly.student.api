@@ -59,7 +59,6 @@ const userSchema = new mongoose_1.Schema({
     },
     about: {
         standard: Number,
-        school: String,
         dob: String,
         schedule: {
             type: String,
