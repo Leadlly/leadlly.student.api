@@ -13,13 +13,11 @@ const googleAuth = async (req, res, next) => {
         const { access_token } = req.body;
         if (!access_token)
             return next(new error_1.CustomError("No access token provided", 400));
-        console.log(access_token, "hello");
         // Verify the access token with Google
         const tokenInfoResponse = await axios_1.default.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`);
         const userInfoResponse = await axios_1.default.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`);
         const tokenInfo = tokenInfoResponse.data;
         const userData = userInfoResponse.data;
-        console.log(userData, "heelo");
         if (!tokenInfo || !userData)
             return next(new error_1.CustomError("Invalid token", 401));
         const { email, name } = userData;
@@ -50,7 +48,6 @@ const googleAuth = async (req, res, next) => {
                 statusCode: 201,
             });
         }
-        console.log("everyhtins sucess");
     }
     catch (error) {
         console.error(error);
