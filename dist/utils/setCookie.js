@@ -11,6 +11,7 @@ const setCookie = async ({ user, res, next, message, statusCode }) => {
         if (!secret)
             return next(new error_1.CustomError("Jwt Secret not defined", 400));
         const token = jsonwebtoken_1.default.sign({ id: user._id }, secret);
+        console.log(token, "klsdjflkdsjfkldjsf");
         res
             .status(statusCode)
             .cookie("token", token, {
