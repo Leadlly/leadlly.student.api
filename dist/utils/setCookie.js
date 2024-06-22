@@ -16,7 +16,7 @@ const setCookie = async ({ user, res, next, message, statusCode }) => {
             .cookie("token", token, {
             httpOnly: true,
             maxAge: 30 * 24 * 60 * 60 * 1000,
-            sameSite: "none",
+            sameSite: "strict",
             secure: true,
         })
             .json({

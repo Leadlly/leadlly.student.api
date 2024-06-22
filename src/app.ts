@@ -23,7 +23,7 @@ app.use(urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL!],
+    origin: [process.env.FRONTEND_URL!, 'https://education.leadlly.in', "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),

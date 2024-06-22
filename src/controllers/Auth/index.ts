@@ -204,3 +204,24 @@ export const logout = async (req: Request, res: Response) => {
       message: "Logged out",
     });
 };
+
+export const getUser = async( 
+  req: Request,
+  res: Response,
+  next: NextFunction) => {
+
+    try {
+      const user = await User.findById(req.user._id)
+      if (!user)
+        return next(new CustomError("User not found", 400));
+
+      res.status(200).json({
+        success: true,
+        user
+      });
+
+    } catch (error: any) {
+      next(new CustomError(error.message));
+    }
+  
+}
