@@ -31,5 +31,4 @@ jobs:
     - run: |
         touch .env
         echo "${{ secrets.ENV_PRODUCTION }}" > .env
-    - run: pm2 restart student-api
       
