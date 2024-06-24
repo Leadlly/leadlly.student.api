@@ -12,6 +12,18 @@ interface IUser extends Document {
     public_id?: string;
     url?: string;
   };
+  parentName:string;
+  parentPhone:number;
+  country:string;
+  address:string;
+  pincode:number;
+  academic:{
+    examName: string;
+    schedule: string;
+    school: string;
+    coachingMode: string;
+    coachingName: string;
+  }
   about: {
     standard: number;
     school?: string;
