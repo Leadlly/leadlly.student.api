@@ -7,98 +7,69 @@ const userSchema = new Schema({
   name: {
     type: String,
     required: [true, "Please enter your name"],
+    default: null,
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+  email: { type: String, required: true, unique: true, default: null },
   phone: {
-    personal: {
-      type: Number,
-      unique: true,
-    },
-    other: Number,
+    personal: { type: Number, default: null },
+    other: { type: Number, default: null },
   },
-  parentName: String,
-  parentPhone: Number,
-  country: String,
-  address: String,
-  pincode: Number,
+  parentName: { type: String, default: null },
+  parentPhone: { type: Number, default: null },
+  country: { type: String, default: null },
+  address: { type: String, default: null },
+  pincode: { type: Number, default: null },
   academic: {
-    examName: String,
-    schedule: String,
-    schoolOrCollegeName: String,
-    coachingMode: String,
-    coachingName: String,
+    examName: { type: String, default: null },
+    schedule: { type: String, default: null },
+    schoolOrCollegeName: { type: String, default: null },
+    coachingMode: { type: String, default: null },
+    coachingName: { type: String, default: null },
   },
-  password: {
-    type: String,
-    select: false,
-  },
+  password: { type: String, select: false, default: null },
   avatar: {
-    public_id: {
-      type: String,
-      default: "",
-    },
-    url: {
-      type: String,
-      default: "",
-    },
+    public_id: { type: String, default: null },
+    url: { type: String, default: null },
   },
-  role: {
-    type: String,
-    default: "user",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-details: {
-    level: Number,
-    points: Number,
-    streak: Number,
+  details: {
+    level: { type: Number, default: null },
+    points: { type: Number, default: null },
+    streak: { type: Number, default: null },
     mood: [
       {
-        day: String,
-        emoji: String,
+        day: { type: String, default: null },
+        emoji: { type: String, default: null },
       },
     ],
   },
   badges: [
     {
-      name: {
-        type: String,
-        default: "Beginner",
-      },
-      url: {
-        type: String,
-        default: "default_url",
-      },
+      name: { type: String, default: "Beginner" },
+      url: { type: String, default: "default_url" },
     },
   ],
   subscription: {
-    type: String,
-    id: String,
-    status: String,
-    dateOfActivation: Number
-
+    id: { type: String, default: null },
+    status: { type: String, default: null },
+    dateOfActivation: { type: Number, default: null },
   },
   refund: {
-    type: String,
-    subscriptionType: String,
-    status: String,
-    amount: Number,
+    subscriptionType: { type: String, default: null },
+    status: { type: String, default: null },
+    amount: { type: Number, default: null },
   },
   quiz: {
-    daily: [],
-    weekly: [],
-    monthly: [],
-    QOTD: [], // question of the day
-    others: [],
+    daily: { type: Array, default: [] },
+    weekly: { type: Array, default: [] },
+    monthly: { type: Array, default: [] },
+    QOTD: { type: Array, default: [] },
+    others: { type: Array, default: [] },
   },
-  resetPasswordToken: String,
-  resetTokenExpiry: String,
+  resetPasswordToken: { type: String, default: null },
+  resetTokenExpiry: { type: String, default: null },
+
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // Pre-save hook for email validation
@@ -122,7 +93,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.comparePassword = async function (
-  candidatePassword: string,
+  candidatePassword: string
 ): Promise<boolean> {
   try {
     return await bcrypt.compare(candidatePassword, this.password);

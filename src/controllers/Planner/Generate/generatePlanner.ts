@@ -46,12 +46,12 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
       user
     );
 
-    dailyTopics.forEach(data => {
-      if (!data.topic.studiedAt) {
-        data.topic.studiedAt = [];
-      }
-      data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
-    });
+      dailyTopics.forEach(data => {
+        if (!data.topic.studiedAt) {
+          data.topic.studiedAt = [];
+        }
+        data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
+      });
 
     dailyQuestions = await getDailyQuestions(day, date, dailyTopics)
     return { day, date, topics: dailyTopics, questions: dailyQuestions };
