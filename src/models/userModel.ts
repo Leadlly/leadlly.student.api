@@ -4,27 +4,44 @@ import IUser from "../types/IUser";
 import crypto from "crypto";
 
 const userSchema = new Schema({
-  name: {
+  firstname: {
     type: String,
     required: [true, "Please enter your name"],
     default: null,
   },
+  lastname: {
+    type: String,
+    default: null,
+  },
   email: { type: String, required: true, unique: true, default: null },
+ 
   phone: {
     personal: { type: Number, default: null },
     other: { type: Number, default: null },
   },
-  parentName: { type: String, default: null },
-  parentPhone: { type: Number, default: null },
+  parent:{
+    name: { type: String, default: null },
+    phone: { type: Number, default: null },
+  },
+ 
+ address: {
   country: { type: String, default: null },
-  address: { type: String, default: null },
+  addressLine: { type: String, default: null },
   pincode: { type: Number, default: null },
+ },
   academic: {
     examName: { type: String, default: null },
     schedule: { type: String, default: null },
-    schoolOrCollegeName: { type: String, default: null },
     coachingMode: { type: String, default: null },
     coachingName: { type: String, default: null },
+    coachingAddress: { type: String, default: null },
+    schoolOrCollegeName: { type: String, default: null },
+    schoolOrCollegeAddress: { type: String, default: null },
+  },
+  about: {
+    standard: Number,
+    dateOfBirth: String,
+    gender: { type: String, default: null },
   },
   password: { type: String, select: false, default: null },
   avatar: {

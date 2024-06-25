@@ -1,57 +1,95 @@
 import { Request, Response } from 'express';
 import User from '../../models/userModel';
-
+import IUser from '../../types/IUser';
 export const studentPersonalInfo = async (req: Request, res: Response) => {
   try {
-    const {
-      name,
-      class: studentClass,
-      phone,
-      parentName,
-      parentPhone,
-      country,
-      address,
-      pincode,
-      examName,
-      schedule,
-      school,
-      coachingMode,
-      coachingName,
-    } = req.body;
+    const bodyData = req.body;
+    const user = await User.findById(req.user._id) as IUser;
 
-    const userId = req.user._id;
-
-    // Check if user exists
-    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update the user's personal and academic information
-    user.name = name;
-    user.about = user.about || {};
-    user.about.standard = studentClass;
-    user.phone = user.phone || {};
-    user.phone.personal = phone.personal;
-    user.phone.other = phone.other;
-    user.parentName = parentName;
-    user.parentPhone = parentPhone;
-    user.country = country;
-    user.address = address;
-    user.pincode = pincode;
-    user.academic = user.academic || {};
-    user.academic.examName = examName;
-    user.academic.schedule = schedule;
-    user.academic.school = school;
-    user.academic.coachingMode = coachingMode;
-    user.academic.coachingName = coachingName;
+    if (bodyData.firstName) {
+      user.firstname = bodyData.firstName;
+    }
 
-    // Save the updated user to the database
+    if (bodyData.lastName) {
+      user.lastname = bodyData.lastName;
+    }
+
+    if (bodyData.class) {
+      user.about.standard = bodyData.class;
+    }
+
+    if (bodyData.dateOfBirth) {
+      user.about.dateOfBirth = bodyData.dateOfBirth;
+    }
+
+    if (bodyData.phone) {
+      user.phone = bodyData.phone;
+    }
+
+    if (bodyData.gender) {
+      user.about.gender = bodyData.gender;
+    }
+
+    if (bodyData.parentName) {
+      user.parent.name = bodyData.parentName;
+    }
+
+    if (bodyData.parentsPhone) {
+      user.parent.phone = bodyData.parentsPhone;
+    }
+
+    if (bodyData.address) {
+      user.address.addressLine = bodyData.address;
+    }
+
+    if (bodyData.pinCode) {
+      user.address.pincode = bodyData.pinCode;
+    }
+
+    if (bodyData.country) {
+      user.address.country = bodyData.country;
+    }
+
+    if (bodyData.competitiveExam) {
+      user.academic.competitiveExam = bodyData.competitiveExam;
+    }
+
+    if (bodyData.studentSchedule) {
+      user.academic.schedule = bodyData.studentSchedule;
+    }
+
+    if (bodyData.schoolOrCollegeName) {
+      user.academic.schoolOrCollegeName = bodyData.schoolOrCollegeName;
+    }
+
+    if (bodyData.schoolOrCollegeAddress) {
+      user.academic.schoolOrCollegeAddress = bodyData.schoolOrCollegeAddress;
+    }
+
+    if (bodyData.coachingType) {
+      user.academic.coachingMode = bodyData.coachingType;
+    }
+
+    if (bodyData.coachingName) {
+      user.academic.coachingName = bodyData.coachingName;
+    }
+
+    if (bodyData.coachingAddress) {
+      user.academic.coachingAddress = bodyData.coachingAddress;
+    }
+
     await user.save();
 
-    // Return a success response
-    res.status(200).json({ message: "Personal information updated successfully", user });
+    res.status(200).json({
+      message: "Personal information updated successfully",
+      user
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error"});
+    console.error("Error updating personal info:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };

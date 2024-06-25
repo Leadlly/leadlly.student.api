@@ -28,9 +28,10 @@ export const register = async (
       },
     });
 
+    const nameArray = name.split(" ");
     newUser = new User({
-      name: name,
-      email: email,
+      firstname: nameArray[0],
+      lastname: nameArray.length > 1 ? nameArray[1] : null,
       password,
     });
 

@@ -31,7 +31,7 @@ export const googleAuth = async (
     const { email, name } = userData;
 
     if (!email) return next(new CustomError("Email not found", 404));
-
+    const nameArray = name.split(" ");
     const user = await User.findOne({ email });
     if (user) {
       // If user already exists then log in the user
@@ -45,7 +45,8 @@ export const googleAuth = async (
     } else {
       // If user not found then create a new user
       const newUser = await User.create({
-        name,
+        firstname: nameArray[0],
+        lastname: nameArray.length > 1 ? nameArray[1] : null,
         email,
       });
 

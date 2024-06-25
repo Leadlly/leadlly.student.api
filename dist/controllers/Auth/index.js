@@ -25,9 +25,10 @@ const register = async (req, res, next) => {
                 message: `You verification otp for registration is ${OTP}`,
             },
         });
+        const nameArray = name.split(" ");
         newUser = new userModel_1.default({
-            name: name,
-            email: email,
+            firstname: nameArray[0],
+            lastname: nameArray.length > 1 ? nameArray[1] : null,
             password,
         });
         res.status(200).json({

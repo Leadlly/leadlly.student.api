@@ -1,34 +1,41 @@
 import { Document } from "mongoose";
 
 interface IUser extends Document {
-  name: string; 
+  firstname: string; 
+  lastname?: string; 
   email: string;
   phone?: {
     personal?: number; 
     other?: number; 
   };
+ 
   password: string; 
   avatar?: {
     public_id?: string;
     url?: string;
   };
-  parentName:string;
-  parentPhone:number;
-  country:string;
-  address:string;
-  pincode:number;
+  parent: {
+    name?: string;
+    phone?: string;
+  }
+  address:{
+    country?:string;
+    addressLine?:string;
+    pincode?:number;
+  },
   academic:{
-    examName: string;
-    schedule: string;
-    school: string;
-    coachingMode: string;
-    coachingName: string;
+    competitiveExam?: string;
+    schedule?: string;
+    coachingMode?: string;
+    coachingName?: string;
+    coachingAddress?: string;
+    schoolOrCollegeName?: string;
+    schoolOrCollegeAddress?: string
   }
   about: {
     standard: number;
-    school?: string;
-    dob?: string;
-    schedule: string;
+    dateOfBirth?: string;
+    gender: string;
   };
   role?: string;
   details?: {
