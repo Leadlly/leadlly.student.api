@@ -3,20 +3,21 @@ import { Document } from "mongoose";
 interface IUser extends Document {
   name: string; 
   email: string;
-  phone?: {
-    personal?: number; 
-    other?: number; 
-  };
+  phone?: number;
   password: string; 
   avatar?: {
     public_id?: string;
     url?: string;
   };
-  parentName:string;
-  parentPhone:number;
+  parent: {
+    parentName:string;
+    parentPhone:number;
+  };
+ address: {
   country:string;
   address:string;
   pincode:number;
+ };
   academic:{
     examName: string;
     schedule: string;

@@ -40,8 +40,24 @@ const userSchema = new mongoose_1.Schema({
         unique: true,
     },
     phone: {
-        personal: Number,
-        others: Number
+        type: Number,
+        unique: true,
+    },
+    parent: {
+        parentName: String,
+        parentPhone: Number,
+    },
+    address: {
+        country: String,
+        address: String,
+        pincode: Number,
+    },
+    academic: {
+        examName: String,
+        schedule: String,
+        schoolOrCollegeName: String,
+        coachingMode: String,
+        coachingName: String,
     },
     password: {
         type: String,
@@ -57,17 +73,13 @@ const userSchema = new mongoose_1.Schema({
             default: "",
         },
     },
-    about: {
-        standard: Number,
-        school: String,
-        dob: String,
-        schedule: {
-            type: String,
-        },
-    },
     role: {
         type: String,
         default: "user",
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
     },
     details: {
         level: Number,
@@ -113,10 +125,6 @@ const userSchema = new mongoose_1.Schema({
     },
     resetPasswordToken: String,
     resetTokenExpiry: String,
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
 });
 // Pre-save hook for email validation
 userSchema.pre("save", function (next) {

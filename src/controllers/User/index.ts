@@ -7,11 +7,8 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
       name,
       class: studentClass,
       phone,
-      parentName,
-      parentPhone,
-      country,
+      parent,
       address,
-      pincode,
       examName,
       schedule,
       school,
@@ -19,39 +16,56 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
       coachingName,
     } = req.body;
 
-    const userId = req.user._id;
+    console.log("rwq", req.body);
 
-    // Check if user exists
+    console.log("parent", parent)
+    console.log("parent", address)
+    console.log("parent", examName)
+    console.log("parent",schedule)
+    console.log("parent", school)
+    console.log("parent", coachingMode)
+    // Ensure req.user exists and has _id
+    const userId = req.user ? req.user._id : null;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update the user's personal and academic information
     user.name = name;
     user.about = user.about || {};
     user.about.standard = studentClass;
-    user.phone = user.phone || {};
-    user.phone.personal = phone.personal;
-    user.phone.other = phone.other;
-    user.parentName = parentName;
-    user.parentPhone = parentPhone;
-    user.country = country;
-    user.address = address;
-    user.pincode = pincode;
-    user.academic = user.academic || {};
-    user.academic.examName = examName;
-    user.academic.schedule = schedule;
-    user.academic.school = school;
-    user.academic.coachingMode = coachingMode;
-    user.academic.coachingName = coachingName;
+    user.phone = phone || user.phone;
+    user.parent = {
+      parentName: parent,
+      parentPhone: parent,
+    };
 
-    // Save the updated user to the database
+    user.address = {
+      country: address?.country,
+      address: address?.address,
+      pincode: address?.pincode,
+    };
+
+    user.academic = {
+      examName: examName,
+      schedule: schedule,
+      school: school,
+      coachingMode: coachingMode,
+      coachingName: coachingName,
+    };
     await user.save();
 
-    // Return a success response
-    res.status(200).json({ message: "Personal information updated successfully", user });
+    res.status(200).json({
+      message: "Personal information updated successfully",
+      user
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error"});
+    console.error("Error updating personal info:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };

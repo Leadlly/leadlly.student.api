@@ -14,17 +14,18 @@ const userSchema = new Schema({
     unique: true,
   },
   phone: {
-    personal: {
       type: Number,
       unique: true,
-    },
-    other: Number,
   },
-  parentName: String,
-  parentPhone: Number,
+  parent: {
+    parentName: String,
+    parentPhone: Number,
+  },
+ address: {
   country: String,
   address: String,
   pincode: Number,
+ },
   academic: {
     examName: String,
     schedule: String,
