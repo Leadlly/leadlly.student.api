@@ -16,9 +16,6 @@ const buySubscription = async (req, res, next) => {
         if (!user) {
             return next(new error_1.CustomError("User not found", 404));
         }
-        // if (user.role === "admin" || user.role === "mentor") {
-        //   return next(new CustomError("Subscription is only for students", 400));
-        // }
         const planId = process.env.RAZORPAY_PLAN_ID;
         if (!planId) {
             return next(new error_1.CustomError("RAZORPAY_PLAN_ID is not defined in the environment variables.", 400));
@@ -30,7 +27,9 @@ const buySubscription = async (req, res, next) => {
             quantity: duration, // Use the converted duration here
             total_count: 12,
         });
+        console.log(subscription, "Hello");
         user.subscription.id = subscription.id;
+        console.log("idseeted");
         user.subscription.status = subscription.status;
         user.subscription.type = "1";
         // Assuming you want to save the updated user document
