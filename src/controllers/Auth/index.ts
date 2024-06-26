@@ -13,7 +13,6 @@ export const register = async (
   next: NextFunction,
 ) => {
   try {
-    console.log(OTP, newUser)
     const { name, email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -36,7 +35,7 @@ export const register = async (
       email,
       password,
     });
-console.log(OTP, newUser, "2nd");
+    
     res.status(200).json({
       success: true,
       message: `Verfication OTP send to ${email}`,
@@ -85,7 +84,7 @@ export const otpVerification = async (
     if (otp !== OTP) return next(new CustomError("Wrong Otp", 400));
 
     await newUser.save();
-    console.log(newUser)
+
     setCookie({
       user: newUser,
       res,

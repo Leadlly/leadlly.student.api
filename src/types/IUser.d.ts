@@ -1,4 +1,3 @@
-import { neutralEmoji } from './../../../leadlly.mentor.web/src/helpers/constants/moodEmojis';
 import { Document } from "mongoose";
 
 interface IUser extends Document {
