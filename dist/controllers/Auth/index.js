@@ -29,6 +29,7 @@ const register = async (req, res, next) => {
         newUser = new userModel_1.default({
             firstname: nameArray[0],
             lastname: nameArray.length > 1 ? nameArray[1] : null,
+            email,
             password,
         });
         res.status(200).json({

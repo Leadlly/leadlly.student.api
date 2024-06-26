@@ -174,7 +174,7 @@ export const cancelSubscription = async (
         options: {
           email: user.email,
           subject: "Leadlly Subscription",
-          message: `Hello ${user.name}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
+          message: `Hello ${user.firstname}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
         },
       });
 

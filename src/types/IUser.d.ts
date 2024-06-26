@@ -75,4 +75,5 @@ interface IUser extends Document {
   getToken(): Promise<string>;
 }
 
+
 export default IUser;

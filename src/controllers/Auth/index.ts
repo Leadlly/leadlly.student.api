@@ -32,9 +32,10 @@ export const register = async (
     newUser = new User({
       firstname: nameArray[0],
       lastname: nameArray.length > 1 ? nameArray[1] : null,
+      email,
       password,
     });
-
+    
     res.status(200).json({
       success: true,
       message: `Verfication OTP send to ${email}`,
@@ -83,6 +84,7 @@ export const otpVerification = async (
     if (otp !== OTP) return next(new CustomError("Wrong Otp", 400));
 
     await newUser.save();
+
     setCookie({
       user: newUser,
       res,

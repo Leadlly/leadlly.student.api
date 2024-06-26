@@ -30,7 +30,8 @@
     "nodemailer": "^6.9.13",
     "razorpay": "^2.9.3",
     "serverless-http": "^3.2.0",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
