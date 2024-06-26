@@ -3,14 +3,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.studentPersonalInfo = void 0;
+exports.setTodaysVibe = exports.studentPersonalInfo = void 0;
 const userModel_1 = __importDefault(require("../../models/userModel"));
+const user_schema_1 = require("../../Schemas/user.schema");
 const studentPersonalInfo = async (req, res) => {
     try {
         const bodyData = req.body;
-        const user = await userModel_1.default.findById(req.user._id);
+        const user = (await userModel_1.default.findById(req.user._id));
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: 'User not found' });
         }
         if (bodyData.firstName) {
             user.firstname = bodyData.firstName;
@@ -68,13 +69,50 @@ const studentPersonalInfo = async (req, res) => {
         }
         await user.save();
         res.status(200).json({
-            message: "Personal information updated successfully",
-            user
+            message: 'Personal information updated successfully',
+            user,
         });
     }
     catch (error) {
-        console.error("Error updating personal info:", error);
-        res.status(500).json({ message: "Server error", error });
+        console.error('Error updating personal info:', error);
+        res.status(500).json({ message: 'Server error', error });
     }
 };
 exports.studentPersonalInfo = studentPersonalInfo;
+const setTodaysVibe = async (req, res) => {
+    const parsedResult = user_schema_1.todaysVibeSchema.safeParse(req.body);
+    if (!parsedResult.success) {
+        return res
+            .status(400)
+            .json({ message: 'Invalid TodaysVibe value' });
+    }
+    const { todaysVibe } = parsedResult.data;
+    const user = (await userModel_1.default.findById(req.user._id));
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+    const today = new Date().toISOString().split('T')[0];
+    if (!user.details) {
+        user.details = { mood: [] };
+    }
+    if (!user.details.mood) {
+        user.details.mood = [];
+    }
+    const todaysMoodIndex = user.details.mood.findIndex((moodEntry) => moodEntry.day === today);
+    if (todaysMoodIndex >= 0) {
+        user.details.mood[todaysMoodIndex].emoji = todaysVibe;
+    }
+    else {
+        user.details.mood.push({ day: today, emoji: todaysVibe });
+    }
+    try {
+        await user.save();
+        return res
+            .status(200)
+            .json({ message: 'todays Vibe updated successfully', todaysVibe: todaysVibe });
+    }
+    catch (error) {
+        return res.status(500).json({ message: 'Error updating TodayVibe', error });
+    }
+};
+exports.setTodaysVibe = setTodaysVibe;

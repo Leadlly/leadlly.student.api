@@ -6,15 +6,17 @@ dotenv.config();
 let db: mongoose.Connection;
 const ConnectToDB = async () => {
   const DatabaseUrl = process.env.LEADLLY_DB_URL as string;
+  console.log(process.env.LEADLLY_DB_URL)
   // if (!DatabaseUrl) {
   //   console.log("Leadlly_DB url is undefined");
   //   return;
   // }
   try {
+   
     await mongoose.connect(DatabaseUrl);
-    db = mongoose.connection;
+    db = mongoose.connection; 
     console.log("Leadlly_DB Connected.");
-  } catch (error) {
+  } catch (error) { console.log('hi');
     console.log(error);
   }
 };

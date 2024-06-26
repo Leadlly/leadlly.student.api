@@ -13,6 +13,7 @@ const crypto_1 = __importDefault(require("crypto"));
 let OTP, newUser;
 const register = async (req, res, next) => {
     try {
+        console.log(OTP, newUser);
         const { name, email, password } = req.body;
         const user = await userModel_1.default.findOne({ email });
         if (user)
@@ -29,8 +30,10 @@ const register = async (req, res, next) => {
         newUser = new userModel_1.default({
             firstname: nameArray[0],
             lastname: nameArray.length > 1 ? nameArray[1] : null,
+            email,
             password,
         });
+        console.log(OTP, newUser, "2nd");
         res.status(200).json({
             success: true,
             message: `Verfication OTP send to ${email}`,
@@ -70,6 +73,7 @@ const otpVerification = async (req, res, next) => {
         if (otp !== OTP)
             return next(new error_1.CustomError("Wrong Otp", 400));
         await newUser.save();
+        console.log(newUser);
         (0, setCookie_1.default)({
             user: newUser,
             res,

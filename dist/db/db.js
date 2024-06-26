@@ -10,6 +10,7 @@ dotenv_1.default.config();
 let db;
 const ConnectToDB = async () => {
     const DatabaseUrl = process.env.LEADLLY_DB_URL;
+    console.log(process.env.LEADLLY_DB_URL);
     // if (!DatabaseUrl) {
     //   console.log("Leadlly_DB url is undefined");
     //   return;
@@ -20,6 +21,7 @@ const ConnectToDB = async () => {
         console.log("Leadlly_DB Connected.");
     }
     catch (error) {
+        console.log('hi');
         console.log(error);
     }
 };

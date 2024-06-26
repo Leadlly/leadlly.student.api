@@ -1,3 +1,4 @@
+import { neutralEmoji } from './../../../leadlly.mentor.web/src/helpers/constants/moodEmojis';
 import { Document } from "mongoose";
 
 interface IUser extends Document {
@@ -74,5 +75,6 @@ interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
   getToken(): Promise<string>;
 }
+
 
 export default IUser;
