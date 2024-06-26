@@ -92,7 +92,7 @@ const userSchema = new mongoose_1.Schema({
     subscription: {
         id: { type: String, default: null },
         status: { type: String, default: null },
-        dateOfActivation: { type: Number, default: null },
+        dateOfActivation: { type: Date, default: null },
     },
     refund: {
         subscriptionType: { type: String, default: null },

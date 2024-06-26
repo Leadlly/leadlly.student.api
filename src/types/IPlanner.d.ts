@@ -1,27 +1,17 @@
-import mongoose from "mongoose";
+import { Document } from "mongoose";
 
-export interface ITopicDetails {
-  subject: string;
-  chapter: string;
-  topic: string;
-  subtopic: string;
-}
-
-export interface ITopic {
-  name: string;
-  additionalDetails: ITopicDetails;
-}
-
-export interface IDay {
+interface IDay {
   date: Date;
   day: string;
-  topics: ITopic[];
+  continuousRevisionTopics: any[];
+  backRevisionTopics: any[];
+  questions: any[];
 }
 
-export interface IPlanner extends mongoose.Document {
+interface IPlanner extends Document {
   student: mongoose.Schema.Types.ObjectId;
   startDate: Date;
   endDate: Date;
   days: IDay[];
-  createdAt?: Date;
+  createdAt: Date;
 }

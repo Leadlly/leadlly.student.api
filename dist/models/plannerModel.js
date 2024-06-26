@@ -13,7 +13,8 @@ const daySchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
     },
-    topics: Array,
+    continuousRevisionTopics: Array,
+    backRevisionTopics: Array,
     questions: Array
 });
 const plannerSchema = new mongoose_1.default.Schema({

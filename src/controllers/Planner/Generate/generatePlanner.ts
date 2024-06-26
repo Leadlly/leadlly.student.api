@@ -1,9 +1,7 @@
-import { Request, Response, NextFunction } from "express";
 import moment from "moment-timezone";
 import Planner from "../../../models/plannerModel";
-import { StudyData } from "../../../models/studentData"; // Import the model
-import { db } from "../../../db/db";
-import IDataSchema, { Topic } from "../../../types/IDataSchema"; // Import the interface
+import { StudyData } from "../../../models/studentData"; 
+import IDataSchema, { Topic } from "../../../types/IDataSchema"; 
 import { getDailyTopics } from "../DailyTopics/getDailyTopics";
 import IUser from "../../../types/IUser";
 import { getDailyQuestions } from "../DailyQuestions/getDailyQuestions";
@@ -20,9 +18,15 @@ const daysOfWeek = [
 const timezone = "Asia/Kolkata";
 
 export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDataSchema[]) => {
-  const startDate = moment().tz(timezone).startOf("isoWeek").toDate();
-  const endDate = moment().tz(timezone).endOf("isoWeek").toDate();
+  const today = moment().tz(timezone).startOf("day").toDate();
+  const activationDate = moment(user.subscription.dateOfActivation).tz(timezone).startOf("day");
+  
+  // Determine the start date of the planner
+  const startDate = activationDate.isSameOrAfter(moment().startOf("isoWeek")) 
+    ? activationDate.toDate()
+    : moment().tz(timezone).startOf("isoWeek").toDate();
 
+  const endDate = moment(startDate).endOf("isoWeek").toDate();
   const yesterday = moment().tz(timezone).subtract(1, 'days').startOf("day").toDate();
 
   const continuousRevisionTopics = (await StudyData.find({
@@ -31,31 +35,34 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
     createdAt: { $gte: yesterday },
   }).exec()) as IDataSchema[];
 
-  // const backRevisionTopics = (await StudyData.find({
-  //   user: studentId,
-  //   tag: "unrevised_topic",
-  // }).exec()) as IDataSchema[];
-
   let dailyQuestions;
-  const days = daysOfWeek.map(async(day, index) => {
+  const days = await Promise.all(daysOfWeek.map(async (day, index) => {
     const date = moment(startDate).add(index, "days").tz(timezone).toDate();
 
-    const dailyTopics = getDailyTopics(
+    const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
       continuousRevisionTopics,
       backRevisionTopics,
       user
     );
 
-      dailyTopics.forEach(data => {
-        if (!data.topic.studiedAt) {
-          data.topic.studiedAt = [];
-        }
-        data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
-      });
+    const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
 
-    dailyQuestions = await getDailyQuestions(day, date, dailyTopics)
-    return { day, date, topics: dailyTopics, questions: dailyQuestions };
-  });
+    dailyTopics.forEach(data => {
+      if (!data.topic.studiedAt) {
+        data.topic.studiedAt = [];
+      }
+      data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
+    });
+
+    dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
+    return {
+      day,
+      date,
+      continuousRevisionTopics: dailyContinuousTopics,
+      backRevisionTopics: dailyBackTopics,
+      questions: dailyQuestions
+    };
+  }));
 
   const generatedPlanner = new Planner({
     student: user._id,

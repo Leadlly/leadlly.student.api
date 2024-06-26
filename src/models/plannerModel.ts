@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { IDay, IPlanner } from "../types/IPlanner";
 
-const daySchema = new mongoose.Schema({
+const daySchema = new mongoose.Schema<IDay>({
   date: {
     type: Date,
     required: true,
@@ -9,11 +10,12 @@ const daySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  topics: Array,
+  continuousRevisionTopics: Array,
+  backRevisionTopics: Array,
   questions: Array
 });
 
-const plannerSchema = new mongoose.Schema({
+const plannerSchema = new mongoose.Schema<IPlanner>({
   student: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -34,6 +36,6 @@ const plannerSchema = new mongoose.Schema({
   },
 });
 
-const Planner = mongoose.model("Planner", plannerSchema);
+const Planner = mongoose.model<IPlanner>("Planner", plannerSchema);
 
 export default Planner;
