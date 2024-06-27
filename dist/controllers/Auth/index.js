@@ -10,31 +10,52 @@ const setCookie_1 = __importDefault(require("../../utils/setCookie"));
 const generateOTP_1 = __importDefault(require("../../utils/generateOTP"));
 const producer_1 = require("../../services/bullmq/producer");
 const crypto_1 = __importDefault(require("crypto"));
-let OTP, newUser;
+const otpModal_1 = __importDefault(require("../../models/otpModal"));
 const register = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
         const user = await userModel_1.default.findOne({ email });
         if (user)
             return next(new error_1.CustomError("User already exists", 400));
-        OTP = (0, generateOTP_1.default)();
+        const OTP = (0, generateOTP_1.default)();
         await producer_1.otpQueue.add("otpVerify", {
             options: {
                 email,
                 subject: "Verification",
-                message: `You verification otp for registration is ${OTP}`,
+                message: `Your verification OTP for registration is ${OTP}`,
             },
         });
         const nameArray = name.split(" ");
-        newUser = new userModel_1.default({
+        const newUser = {
             firstname: nameArray[0],
-            lastname: nameArray.length > 1 ? nameArray[1] : null,
+            lastname: nameArray.length > 1 ? nameArray.slice(1).join(' ') : null,
             email,
             password,
-        });
-        res.status(200).json({
+        };
+        // Save OTP and newUser data in the OTP model
+        const hashedOTP = crypto_1.default.createHash('sha256').update(OTP).digest('hex');
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        const existingOtpRecord = await otpModal_1.default.findOne({ email });
+        if (existingOtpRecord) {
+            existingOtpRecord.otp = hashedOTP;
+            existingOtpRecord.expiresAt = expiresAt;
+            existingOtpRecord.newUser = newUser;
+            await existingOtpRecord.save();
+        }
+        else {
+            const otpRecord = new otpModal_1.default({
+                email,
+                otp: hashedOTP,
+                expiresAt,
+                newUser,
+            });
+            await otpRecord.save();
+        }
+        res.status(200)
+            .cookie('email', email)
+            .json({
             success: true,
-            message: `Verfication OTP send to ${email}`,
+            message: `Verification OTP sent to ${email}`,
         });
     }
     catch (error) {
@@ -44,19 +65,27 @@ const register = async (req, res, next) => {
 };
 exports.register = register;
 const resentOtp = async (req, res, next) => {
+    console.log("inside resent otp");
     try {
-        OTP = "";
-        OTP = (0, generateOTP_1.default)();
+        const { email } = req.body;
+        console.log(email);
+        const otpRecord = await otpModal_1.default.findOne({ email });
+        if (!otpRecord)
+            return next(new error_1.CustomError("User not found", 404));
+        const OTP = (0, generateOTP_1.default)();
         await producer_1.otpQueue.add("otpVerify", {
             options: {
-                email: newUser.email,
+                email,
                 subject: "Verification",
-                message: `You verification otp for registration is ${OTP}`,
+                message: `Your verification OTP for registration is ${OTP}`,
             },
         });
+        otpRecord.otp = crypto_1.default.createHash('sha256').update(OTP).digest('hex');
+        otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
+        await otpRecord.save();
         res.status(200).json({
             success: true,
-            message: `Otp resend success on ${newUser.email}`,
+            message: `OTP resent successfully to ${email}`,
         });
     }
     catch (error) {
@@ -67,15 +96,22 @@ const resentOtp = async (req, res, next) => {
 exports.resentOtp = resentOtp;
 const otpVerification = async (req, res, next) => {
     try {
-        const { otp } = req.body;
-        if (otp !== OTP)
-            return next(new error_1.CustomError("Wrong Otp", 400));
-        await newUser.save();
+        const { otp, email } = req.body;
+        const otpRecord = await otpModal_1.default.findOne({ email });
+        if (!otpRecord)
+            return next(new error_1.CustomError("OTP not found", 404));
+        const hashedOtp = crypto_1.default.createHash('sha256').update(otp).digest('hex');
+        if (hashedOtp !== otpRecord.otp || otpRecord.expiresAt < new Date(Date.now())) {
+            return next(new error_1.CustomError("Invalid or expired OTP", 400));
+        }
+        const newUser = otpRecord.newUser;
+        const user = await userModel_1.default.create(newUser);
+        await otpModal_1.default.deleteOne({ email });
         (0, setCookie_1.default)({
-            user: newUser,
+            user,
             res,
             next,
-            message: "Verification Sucess",
+            message: "Verification Success",
             statusCode: 200,
         });
     }

@@ -39,8 +39,8 @@ const userSchema = new Schema({
     schoolOrCollegeAddress: { type: String, default: null },
   },
   about: {
-    standard: Number,
-    dateOfBirth: String,
+    standard: { type: Number, default: null },
+    dateOfBirth: { type: String, default: null },
     gender: { type: String, default: null },
   },
   password: { type: String, select: false, default: null },
@@ -99,15 +99,15 @@ userSchema.pre("save", function (next) {
 });
 
 // Pre-save hook for password hashing
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+// userSchema.pre("save", async function (next) {
+//   if (!this.isModified("password")) return next();
 
-  const salt = await bcrypt.genSalt(10);
-  if (!this.password) return;
-  this.password = await bcrypt.hash(this.password, salt);
+//   const salt = await bcrypt.genSalt(10);
+//   if (!this.password) return;
+//   this.password = await bcrypt.hash(this.password, salt);
 
-  next();
-});
+//   next();
+// });
 
 userSchema.methods.comparePassword = async function (
   candidatePassword: string
