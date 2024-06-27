@@ -26,7 +26,7 @@ const studentPersonalInfo = async (req, res) => {
             user.about.dateOfBirth = bodyData.dateOfBirth;
         }
         if (bodyData.phone) {
-            user.phone = bodyData.phone;
+            user.phone.personal = bodyData.phone;
         }
         if (bodyData.gender) {
             user.about.gender = bodyData.gender;

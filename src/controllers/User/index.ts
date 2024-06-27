@@ -28,7 +28,7 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
 		}
 
 		if (bodyData.phone) {
-			user.phone = bodyData.phone;
+			user.phone.personal = bodyData.phone;
 		}
 
 		if (bodyData.gender) {

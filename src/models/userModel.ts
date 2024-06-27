@@ -30,7 +30,7 @@ const userSchema = new Schema({
   pincode: { type: Number, default: null },
  },
   academic: {
-    examName: { type: String, default: null },
+    competitiveExam: { type: String, default: null },
     schedule: { type: String, default: null },
     coachingMode: { type: String, default: null },
     coachingName: { type: String, default: null },
