@@ -95,27 +95,41 @@ export const getTopic = async (req: Request, res: Response, next: NextFunction) 
 
 
 
-export const getAllQuestion = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const queryObject: any = {};
+export const getStreakQuestion = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+      const subjects = ['maths', 'physics', 'chemistry', 'biology'];
+      const level = 'jeemains';
 
-        if (req.query.standard) queryObject.standard = parseInt(req.query.standard as string, 10);
-        if (req.query.subject) queryObject.subject = req.query.subject as string;
-        if (req.query.chapter) queryObject.chapter = req.query.chapter as string;
-        if (req.query.topics) queryObject.topics = req.query.topics as string;
+      const selectedQuestions: any = {};
 
-        console.log('Query Object:', queryObject); 
+      for (const subject of subjects) {
+          const queryObject: any = {
+              subject,
+              level
+          };
 
-        const questions = await questions_db.collection('questionbanks').find(queryObject).toArray();
-        console.log('Questions found:', questions); 
+          console.log(`Query Object for ${subject}:`, queryObject);
 
-        if (!questions || questions.length === 0) {
-            return res.status(404).json({ success: false, message: "Question not found" });
-        }
+          const questions = await questions_db.collection('questionbanks').aggregate([
+              { $match: queryObject },
+              { $sample: { size: 1 } }
+          ]).toArray();
 
-        return res.status(200).json({ success: true, questions });
-    } catch (error: any) {
-        console.error('Error in getAllQuestion:', error);
-        next(new CustomError(error.message));
-    }
+          console.log(`Questions found for ${subject}:`, questions);
+
+          if (questions && questions.length > 0) {
+              selectedQuestions[subject] = questions[0];
+          }
+      }
+
+      if (Object.keys(selectedQuestions).length === 0) {
+          return res.status(404).json({ success: false, message: "Questions not found" });
+      }
+
+      return res.status(200).json({ success: true, questions: selectedQuestions });
+  } catch (error: any) {
+      console.error('Error in getStreakQuestion:', error);
+      next(new CustomError(error.message));
+  }
 };
+
