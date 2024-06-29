@@ -4,8 +4,8 @@ import { createPlanner, getPlanner, updateDailyPlanner } from '../controllers/Pl
 
 const router = express.Router();
 
-router.post('/create', checkAuth, createPlanner);
-router.post('/update', checkAuth, updateDailyPlanner);
+router.get('/create', checkAuth, createPlanner);
+router.get('/update', checkAuth, updateDailyPlanner);
 router.get('/get', checkAuth, getPlanner);
 
 export default router;

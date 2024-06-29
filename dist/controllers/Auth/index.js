@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUser = exports.logout = exports.resetpassword = exports.forgotPassword = exports.login = exports.otpVerification = exports.resentOtp = exports.register = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const userModel_1 = __importDefault(require("../../models/userModel"));
 const error_1 = require("../../middlewares/error");
 const setCookie_1 = __importDefault(require("../../utils/setCookie"));
@@ -188,7 +189,8 @@ const resetpassword = async (req, res, next) => {
         });
         if (!user)
             return next(new error_1.CustomError("Your link is expired! Try again", 400));
-        user.password = req.body.password;
+        const hashedPassword = await bcrypt_1.default.hash(req.body.password, 10);
+        user.password = hashedPassword;
         user.resetPasswordToken = null;
         user.resetTokenExpiry = null;
         await user.save();

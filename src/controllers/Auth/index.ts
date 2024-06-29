@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import bcrypt from 'bcrypt'
 import User from "../../models/userModel";
 import { CustomError } from "../../middlewares/error";
 import setCookie from "../../utils/setCookie";
@@ -222,7 +223,9 @@ export const resetpassword = async (
     if (!user)
       return next(new CustomError("Your link is expired! Try again", 400));
 
-    user.password = req.body.password;
+    const hashedPassword = await bcrypt.hash(req.body.password, 10)
+
+    user.password = hashedPassword;
     user.resetPasswordToken = null;
     user.resetTokenExpiry = null;
 

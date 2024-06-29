@@ -96,7 +96,6 @@ export const updateDailyPlanner = async (
     planner,
   });
 };
-
 export const getPlanner = async (
   req: Request,
   res: Response,

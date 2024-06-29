@@ -4,9 +4,9 @@ interface Topic {
   name: string;
   level?: string;
   overall_efficiency?: number;
-  studiedAt?: {
-    date: Date;
-    efficiency: number;
+  studiedAt: {
+    date?: Date;
+    efficiency?: number;
   }[];
 }
 
@@ -14,9 +14,9 @@ interface Chapter {
   name: string;
   level?: string;
   overall_efficiency?: number;
-  studiedAt?: {
-    date: Date;
-    efficiency: number;
+  studiedAt: {
+    date?: Date;
+    efficiency?: number;
   }[];
 }
 
