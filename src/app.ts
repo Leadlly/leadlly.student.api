@@ -3,6 +3,8 @@ import { config } from "dotenv";
 import serverless from "serverless-http";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import expressWinston from 'express-winston'
+import winston from "winston";
 import errorMiddleware from "./middlewares/error";
 import authRoutes from "./routes/auth";
 import googleRoutes from "./routes/googleAuth";
@@ -12,11 +14,25 @@ import userRoutes from "./routes/user";
 import plannerRoutes from './routes/planner'
 import questionRoutes from "./routes/question";
 
+
 config({
   path: "./.env",
 });
 
 const app = express();
+
+app.use(expressWinston.logger({
+    transports: [
+        new winston.transports.Console(),
+    ],
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.cli()
+    ),
+    meta: true,
+    expressFormat: true,
+    colorize: true,
+}));
 
 app.use(cookieParser());
 app.use(express.json());

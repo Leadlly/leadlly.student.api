@@ -9,4 +9,5 @@ const Planner_1 = require("../controllers/Planner");
 const router = express_1.default.Router();
 router.post('/create', checkAuth_1.checkAuth, Planner_1.createPlanner);
 router.post('/update', checkAuth_1.checkAuth, Planner_1.updateDailyPlanner);
+router.get('/get', checkAuth_1.checkAuth, Planner_1.getPlanner);
 exports.default = router;
