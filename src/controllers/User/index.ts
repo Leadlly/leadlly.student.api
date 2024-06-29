@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../../models/userModel';
 import IUser from '../../types/IUser';
 import { todaysVibeSchema } from '../../Schemas/user.schema';
+import { getSubjectList } from '../../utils/getSubjectList';
 export const studentPersonalInfo = async (req: Request, res: Response) => {
 	try {
 		const bodyData = req.body;
@@ -17,10 +18,6 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
 
 		if (bodyData.lastName) {
 			user.lastname = bodyData.lastName;
-		}
-
-		if (bodyData.class) {
-			user.about.standard = bodyData.class;
 		}
 
 		if (bodyData.dateOfBirth) {
@@ -55,8 +52,13 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
 			user.address.country = bodyData.country;
 		}
 
+		if (bodyData.class) {
+			user.academic.standard = bodyData.class;
+		}
+
 		if (bodyData.competitiveExam) {
 			user.academic.competitiveExam = bodyData.competitiveExam;
+			user.academic.subjects = getSubjectList(bodyData.competitiveExam);
 		}
 
 		if (bodyData.studentSchedule) {
@@ -94,6 +96,7 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
 		res.status(500).json({ message: 'Server error', error });
 	}
 };
+
 export const setTodaysVibe = async (req: Request, res: Response) => {
 	const parsedResult = todaysVibeSchema.safeParse(req.body);
 

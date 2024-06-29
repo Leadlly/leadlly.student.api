@@ -2,6 +2,7 @@ import { app } from "./app";
 import ConnectToDB from "./db/db";
 import { questions_db } from "./db/db";
 import { otpWorker, subWorker } from "./services/bullmq/worker";
+import './controllers/Planner/scheduler';
 
 // import razorpay from "./services/payment/Razorpay";
 

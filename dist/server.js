@@ -7,6 +7,7 @@ const app_1 = require("./app");
 const db_1 = __importDefault(require("./db/db"));
 const db_2 = require("./db/db");
 const worker_1 = require("./services/bullmq/worker");
+require("./controllers/Planner/scheduler");
 // import razorpay from "./services/payment/Razorpay";
 const port = process.env.PORT || 4000;
 //Database

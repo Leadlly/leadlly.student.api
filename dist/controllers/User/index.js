@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setTodaysVibe = exports.studentPersonalInfo = void 0;
 const userModel_1 = __importDefault(require("../../models/userModel"));
 const user_schema_1 = require("../../Schemas/user.schema");
+const getSubjectList_1 = require("../../utils/getSubjectList");
 const studentPersonalInfo = async (req, res) => {
     try {
         const bodyData = req.body;
@@ -18,9 +19,6 @@ const studentPersonalInfo = async (req, res) => {
         }
         if (bodyData.lastName) {
             user.lastname = bodyData.lastName;
-        }
-        if (bodyData.class) {
-            user.about.standard = bodyData.class;
         }
         if (bodyData.dateOfBirth) {
             user.about.dateOfBirth = bodyData.dateOfBirth;
@@ -46,8 +44,12 @@ const studentPersonalInfo = async (req, res) => {
         if (bodyData.country) {
             user.address.country = bodyData.country;
         }
+        if (bodyData.class) {
+            user.academic.standard = bodyData.class;
+        }
         if (bodyData.competitiveExam) {
             user.academic.competitiveExam = bodyData.competitiveExam;
+            user.academic.subjects = (0, getSubjectList_1.getSubjectList)(bodyData.competitiveExam);
         }
         if (bodyData.studentSchedule) {
             user.academic.schedule = bodyData.studentSchedule;

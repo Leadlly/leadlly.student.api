@@ -54,7 +54,9 @@ const userSchema = new mongoose_1.Schema({
         pincode: { type: Number, default: null },
     },
     academic: {
+        standard: { type: Number, default: null },
         competitiveExam: { type: String, default: null },
+        subjects: { type: Array, default: null },
         schedule: { type: String, default: null },
         coachingMode: { type: String, default: null },
         coachingName: { type: String, default: null },
@@ -63,7 +65,6 @@ const userSchema = new mongoose_1.Schema({
         schoolOrCollegeAddress: { type: String, default: null },
     },
     about: {
-        standard: { type: Number, default: null },
         dateOfBirth: { type: String, default: null },
         gender: { type: String, default: null },
     },
@@ -93,6 +94,7 @@ const userSchema = new mongoose_1.Schema({
         id: { type: String, default: null },
         status: { type: String, default: null },
         dateOfActivation: { type: Date, default: null },
+        freeTrialAvailed: { type: Boolean, default: false },
     },
     refund: {
         subscriptionType: { type: String, default: null },

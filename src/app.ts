@@ -9,6 +9,7 @@ import googleRoutes from "./routes/googleAuth";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import courseRoutes from "./routes/courseRoutes";
 import userRoutes from "./routes/user";
+import plannerRoutes from './routes/planner'
 import questionRoutes from "./routes/question";
 
 config({
@@ -35,6 +36,7 @@ app.use("/api/google", googleRoutes);
 app.use("/api/subscribe", subscriptionRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/planner", plannerRoutes);
 app.use("/api/questionbank", questionRoutes);
 
 app.get("/", (req, res) => {

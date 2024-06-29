@@ -24,7 +24,9 @@ interface IUser extends Document {
     pincode?:number;
   },
   academic:{
+    standard: number;
     competitiveExam?: string;
+    subjects?: Array;
     schedule?: string;
     coachingMode?: string;
     coachingName?: string;
@@ -33,7 +35,6 @@ interface IUser extends Document {
     schoolOrCollegeAddress?: string
   }
   about: {
-    standard: number;
     dateOfBirth?: string;
     gender: string;
   };
@@ -56,7 +57,8 @@ interface IUser extends Document {
     type?: string; 
     id?: string;
     status?: string; 
-    dateOfActivation?: Date
+    dateOfActivation?: Date;
+    freeTrialAvailed?: boolean;
   };
   refund: {
     type?: string;

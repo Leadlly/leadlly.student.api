@@ -38,6 +38,7 @@ const googleAuth_1 = __importDefault(require("./routes/googleAuth"));
 const subscriptionRoutes_1 = __importDefault(require("./routes/subscriptionRoutes"));
 const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 const user_1 = __importDefault(require("./routes/user"));
+const planner_1 = __importDefault(require("./routes/planner"));
 const question_1 = __importDefault(require("./routes/question"));
 (0, dotenv_1.config)({
     path: "./.env",
@@ -58,6 +59,7 @@ app.use("/api/google", googleAuth_1.default);
 app.use("/api/subscribe", subscriptionRoutes_1.default);
 app.use("/api/course", courseRoutes_1.default);
 app.use("/api/user", user_1.default);
+app.use("/api/planner", planner_1.default);
 app.use("/api/questionbank", question_1.default);
 app.get("/", (req, res) => {
     res.send("Hello, world!");
