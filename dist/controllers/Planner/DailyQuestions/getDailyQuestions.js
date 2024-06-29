@@ -6,11 +6,24 @@ const getDailyQuestions = async (day, date, dailyTopics) => {
     try {
         const questions = db_1.questions_db.collection("questions");
         const results = {};
-        const query = { topics: { $in: dailyTopics }, level: { $in: ["jeemains", "jeemains_easy"] } };
-        const allTopicQuestions = await questions.find(query).toArray();
+        const categories = ["jeemains_easy", "neet", "boards", "jeemains", "jeeadvance"];
         for (let topic of dailyTopics) {
-            const filteredQuestions = allTopicQuestions.filter(question => question.topics.includes(topic));
-            results[topic] = filteredQuestions.slice(0, 3);
+            results[topic] = [];
+            let remainingQuestions = 3;
+            for (let category of categories) {
+                if (remainingQuestions > 0) {
+                    const query = { topics: topic, level: category };
+                    const topicQuestions = await questions.aggregate([
+                        { $match: query },
+                        { $sample: { size: remainingQuestions } }
+                    ]).toArray();
+                    results[topic].push(...topicQuestions);
+                    remainingQuestions -= topicQuestions.length;
+                }
+                else {
+                    break;
+                }
+            }
         }
         return results;
     }

@@ -32,18 +32,30 @@ const dotenv_1 = require("dotenv");
 const serverless_http_1 = __importDefault(require("serverless-http"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
+const express_winston_1 = __importDefault(require("express-winston"));
+const winston_1 = __importDefault(require("winston"));
 const error_1 = __importDefault(require("./middlewares/error"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const googleAuth_1 = __importDefault(require("./routes/googleAuth"));
 const subscriptionRoutes_1 = __importDefault(require("./routes/subscriptionRoutes"));
 const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 const user_1 = __importDefault(require("./routes/user"));
+const planner_1 = __importDefault(require("./routes/planner"));
 const question_1 = __importDefault(require("./routes/question"));
 (0, dotenv_1.config)({
     path: "./.env",
 });
 const app = (0, express_1.default)();
 exports.app = app;
+app.use(express_winston_1.default.logger({
+    transports: [
+        new winston_1.default.transports.Console(),
+    ],
+    format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.cli()),
+    meta: true,
+    expressFormat: true,
+    colorize: true,
+}));
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use((0, express_1.urlencoded)({ extended: true }));
@@ -58,6 +70,7 @@ app.use("/api/google", googleAuth_1.default);
 app.use("/api/subscribe", subscriptionRoutes_1.default);
 app.use("/api/course", courseRoutes_1.default);
 app.use("/api/user", user_1.default);
+app.use("/api/planner", planner_1.default);
 app.use("/api/questionbank", question_1.default);
 app.get("/", (req, res) => {
     res.send("Hello, world!");

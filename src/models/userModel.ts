@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import IUser from "../types/IUser";
 import crypto from "crypto";
+import { array, boolean } from "zod";
 
 const userSchema = new Schema({
   firstname: {
@@ -14,23 +15,25 @@ const userSchema = new Schema({
     default: null,
   },
   email: { type: String, required: true, unique: true, default: null },
- 
+
   phone: {
     personal: { type: Number, default: null },
     other: { type: Number, default: null },
   },
-  parent:{
+  parent: {
     name: { type: String, default: null },
     phone: { type: Number, default: null },
   },
- 
- address: {
-  country: { type: String, default: null },
-  addressLine: { type: String, default: null },
-  pincode: { type: Number, default: null },
- },
+
+  address: {
+    country: { type: String, default: null },
+    addressLine: { type: String, default: null },
+    pincode: { type: Number, default: null },
+  },
   academic: {
+    standard: { type: Number, default: null },
     competitiveExam: { type: String, default: null },
+    subjects: {type: Array, default: null},
     schedule: { type: String, default: null },
     coachingMode: { type: String, default: null },
     coachingName: { type: String, default: null },
@@ -39,7 +42,6 @@ const userSchema = new Schema({
     schoolOrCollegeAddress: { type: String, default: null },
   },
   about: {
-    standard: { type: Number, default: null },
     dateOfBirth: { type: String, default: null },
     gender: { type: String, default: null },
   },
@@ -69,6 +71,7 @@ const userSchema = new Schema({
     id: { type: String, default: null },
     status: { type: String, default: null },
     dateOfActivation: { type: Date, default: null },
+    freeTrialAvailed: { type: Boolean, default: false },
   },
   refund: {
     subscriptionType: { type: String, default: null },

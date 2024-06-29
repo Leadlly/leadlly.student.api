@@ -27,6 +27,14 @@ const generateWeeklyPlanner = async (user, backRevisionTopics) => {
         ? activationDate.toDate()
         : (0, moment_timezone_1.default)().tz(timezone).startOf("isoWeek").toDate();
     const endDate = (0, moment_timezone_1.default)(startDate).endOf("isoWeek").toDate();
+    const existingPlanner = await plannerModel_1.default.findOne({
+        student: user._id,
+        startDate,
+        endDate
+    });
+    if (existingPlanner) {
+        return { message: "Planner already exists", planner: existingPlanner };
+    }
     const yesterday = (0, moment_timezone_1.default)().tz(timezone).subtract(1, 'days').startOf("day").toDate();
     const continuousRevisionTopics = (await studentData_1.StudyData.find({
         user: user._id,
@@ -36,7 +44,7 @@ const generateWeeklyPlanner = async (user, backRevisionTopics) => {
     let dailyQuestions;
     const days = await Promise.all(daysOfWeek.map(async (day, index) => {
         const date = (0, moment_timezone_1.default)(startDate).add(index, "days").tz(timezone).toDate();
-        const { dailyContinuousTopics, dailyBackTopics } = (0, getDailyTopics_1.getDailyTopics)(continuousRevisionTopics, backRevisionTopics, user);
+        const { dailyContinuousTopics, dailyBackTopics } = (0, getDailyTopics_1.getDailyTopics)([], backRevisionTopics, user);
         const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
         dailyTopics.forEach(data => {
             if (!data.topic.studiedAt) {

@@ -71,19 +71,28 @@ const updateDailyPlanner = async (req, res, next) => {
 exports.updateDailyPlanner = updateDailyPlanner;
 const getPlanner = async (req, res, next) => {
     try {
-        const { date } = req.query;
-        const today = new Date().toISOString().split("T")[0];
-        const query = { user: req.user, date: today };
-        if (date)
-            query.date = date.toString();
-        const data = await plannerModel_1.default.find(query);
+        const today = (0, moment_1.default)().tz("Asia/Kolkata");
+        const startOfWeek = today.clone().startOf('isoWeek');
+        const endOfWeek = today.clone().endOf('isoWeek');
+        const userId = req.user._id;
+        const planner = await plannerModel_1.default.findOne({
+            student: userId,
+            startDate: { $gte: startOfWeek.toDate() },
+            endDate: { $lte: endOfWeek.toDate() },
+        });
+        if (!planner) {
+            return res.status(404).json({
+                success: false,
+                message: 'Planner not found for the current week',
+            });
+        }
         res.status(200).json({
             success: true,
-            data,
+            data: planner,
         });
     }
     catch (error) {
-        console.log(error);
+        console.error(error);
         next(new error_1.CustomError(error.message));
     }
 };

@@ -2,6 +2,8 @@ import { app } from "./app";
 import ConnectToDB from "./db/db";
 import { questions_db } from "./db/db";
 import { otpWorker, subWorker } from "./services/bullmq/worker";
+import './controllers/Planner/scheduler';
+import { logger } from './utils/winstonLogger'
 
 // import razorpay from "./services/payment/Razorpay";
 
@@ -11,7 +13,7 @@ const port = process.env.PORT || 4000;
 ConnectToDB(); //main db
 questions_db.on("connected", () => {
   console.log("Question_DB connected");
-}); //question db
+}); 
 
 // Redis
 // export const redis = new Redis()
@@ -25,4 +27,4 @@ questions_db.on("connected", () => {
 otpWorker; // for otps related emails
 subWorker; // for subscription related emails
 
-app.listen(port, () => console.log(`Server is listening at port ${port}`));
+app.listen(port, () => logger.info(`Server is running on port ${port}`));

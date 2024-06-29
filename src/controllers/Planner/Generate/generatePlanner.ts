@@ -27,6 +27,17 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
     : moment().tz(timezone).startOf("isoWeek").toDate();
 
   const endDate = moment(startDate).endOf("isoWeek").toDate();
+
+  const existingPlanner = await Planner.findOne({
+    student: user._id,
+    startDate,
+    endDate
+  });
+
+  if (existingPlanner) {
+    return {message: "Planner already exists", planner: existingPlanner};
+  }
+
   const yesterday = moment().tz(timezone).subtract(1, 'days').startOf("day").toDate();
 
   const continuousRevisionTopics = (await StudyData.find({
@@ -40,7 +51,7 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
     const date = moment(startDate).add(index, "days").tz(timezone).toDate();
 
     const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
-      continuousRevisionTopics,
+      [],
       backRevisionTopics,
       user
     );

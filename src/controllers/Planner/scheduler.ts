@@ -1,36 +1,46 @@
 import cron from 'node-cron';
-import IUser from '../../types/IUser';
-import User from '../../models/userModel';
-import { createPlanner } from '.';
-import { Request, Response, NextFunction } from 'express';
+import axios from 'axios';
 
-const maxRetries = 3;
-const retryDelay = 1000; // 1 second delay between retries
-
-const runJobWithRetries = async (retries: number) => {
-  try {
-    const users: IUser[] = await User.find({
-      'subscription.status': 'active',
-      'subscription.dateOfActivation': { $exists: true }
-    });
-
-    for (const user of users) {
-      if (user.subscription && user.subscription.dateOfActivation) {
-        await createPlanner({ user } as Request, {} as Response, {} as NextFunction);
+// Retry function
+const retry = async (fn: () => Promise<void>, retries: number, delay: number): Promise<void> => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await fn();
+      return;
+    } catch (error) {
+      if (i === retries - 1) {
+        throw error;
       }
-    }
-    console.log('Scheduled createPlanner job completed successfully.');
-  } catch (error) {
-    if (retries > 0) {
-      console.warn(`Error running scheduled createPlanner, retrying... (${retries} retries left)`, error);
-      setTimeout(() => runJobWithRetries(retries - 1), retryDelay);
-    } else {
-      console.error('Error running scheduled createPlanner after multiple retries:', error);
+      await new Promise(res => setTimeout(res, delay));
     }
   }
 };
 
-// Schedule the task to run every Sunday at 11:59 PM
-cron.schedule('59 23 * * 0', () => {
-  runJobWithRetries(maxRetries);
+// Function to call createPlanner API
+const callCreatePlannerAPI = async (): Promise<void> => {
+  await axios.post(`${process.env.BACKEND_SERVER}/api/planner/create`);
+  console.log('Create planner API executed');
+};
+
+const callUpdatePlannerAPI = async (): Promise<void> => {
+  await axios.post(`${process.env.BACKEND_SERVER}/api/planner/update`);
+  console.log('Update planner API executed');
+};
+
+cron.schedule('0 0 * * 0', async () => {
+  try {
+    await retry(callCreatePlannerAPI, 3, 120000); 
+  } catch (error) {
+    console.error('Error executing create planner API', error);
+  }
 });
+
+cron.schedule('0 0 * * *', async () => {
+  try {
+    await retry(callUpdatePlannerAPI, 3, 120000); 
+  } catch (error) {
+    console.error('Error executing update planner API', error);
+  }
+});
+
+// console.log('Schedulers are set up');
