@@ -29,6 +29,3 @@ functions:
     handler: dist/server.handler
     events:
       - httpApi: "*"
-      - http:
-          path: /
-          method: any

@@ -10,7 +10,6 @@ export const getDailyQuestions = async (day: string, date: Date, dailyTopics: ID
 
     for (let topicData of dailyTopics) {
       const topic = topicData.topic.name;
-      console.log(topic)
       results[topic] = [];
       let remainingQuestions = 3;
 

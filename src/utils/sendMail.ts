@@ -1,6 +1,4 @@
-import { NextFunction } from "express";
 import nodemailer from "nodemailer";
-import { CustomError } from "../middlewares/error";
 
 export type Options = {
   email: string;

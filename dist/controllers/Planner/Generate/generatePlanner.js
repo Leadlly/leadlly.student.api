@@ -70,7 +70,6 @@ const generateWeeklyPlanner = async (user, backRevisionTopics) => {
     const planner = await plannerModel_1.default.create(generatedPlanner);
     continuousRevisionTopics.forEach(data => data.tag = "active_continuous_revision");
     await Promise.all(continuousRevisionTopics.map(data => data.save()));
-    console.log(planner);
     return { message: "Planner created", planner };
 };
 exports.generateWeeklyPlanner = generateWeeklyPlanner;

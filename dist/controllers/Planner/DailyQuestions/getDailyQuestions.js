@@ -9,7 +9,6 @@ const getDailyQuestions = async (day, date, dailyTopics) => {
         const categories = ["jeemains_easy", "neet", "boards", "jeemains", "jeeadvance"];
         for (let topicData of dailyTopics) {
             const topic = topicData.topic.name;
-            console.log(topic);
             results[topic] = [];
             let remainingQuestions = 3;
             for (let category of categories) {

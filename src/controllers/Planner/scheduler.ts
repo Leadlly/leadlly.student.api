@@ -1,46 +1,62 @@
 import cron from 'node-cron';
-import axios from 'axios';
+import IUser from '../../types/IUser';
+import User from '../../models/userModel';
+import { createPlanner, updateDailyPlanner } from '.';
+import { Request, Response, NextFunction } from 'express';
 
-// Retry function
-const retry = async (fn: () => Promise<void>, retries: number, delay: number): Promise<void> => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      await fn();
-      return;
-    } catch (error) {
-      if (i === retries - 1) {
-        throw error;
+const maxRetries = 3;
+const retryDelay = 180000; // 3-minute delay between retries
+
+const mockResponse = () => {
+  const res = {} as Response;
+  res.status = (code: number) => {
+    console.log(`Status: ${code}`);
+    return res;
+  };
+  res.json = (data: any) => {
+    console.log('JSON Response:', data);
+    return res;
+  };
+  return res;
+};
+
+const mockNext: NextFunction = (error?: any) => {
+  if (error) {
+    console.error('Error:', error);
+  }
+};
+
+const runJobWithRetries = async (jobFunction: Function, retries: number) => {
+  try {
+    const users: IUser[] = await User.find({
+      'subscription.status': 'active',
+      'subscription.dateOfActivation': { $exists: true }
+    });
+
+    for (const user of users) {
+      if (user.subscription && user.subscription.dateOfActivation) {
+        const req = { user } as Request;
+        const res = mockResponse();
+        await jobFunction(req, res, mockNext);
       }
-      await new Promise(res => setTimeout(res, delay));
+    }
+    console.log(`Scheduled ${jobFunction.name} job completed successfully.`);
+  } catch (error) {
+    if (retries > 0) {
+      console.warn(`Error running scheduled ${jobFunction.name}, retrying... (${retries} retries left)`, error);
+      setTimeout(() => runJobWithRetries(jobFunction, retries - 1), retryDelay);
+    } else {
+      console.error(`Error running scheduled ${jobFunction.name} after multiple retries:`, error);
     }
   }
 };
 
-// Function to call createPlanner API
-const callCreatePlannerAPI = async (): Promise<void> => {
-  await axios.post(`${process.env.BACKEND_SERVER}/api/planner/create`);
-  console.log('Create planner API executed');
-};
-
-const callUpdatePlannerAPI = async (): Promise<void> => {
-  await axios.post(`${process.env.BACKEND_SERVER}/api/planner/update`);
-  console.log('Update planner API executed');
-};
-
-cron.schedule('0 0 * * 0', async () => {
-  try {
-    await retry(callCreatePlannerAPI, 3, 120000); 
-  } catch (error) {
-    console.error('Error executing create planner API', error);
-  }
+// Schedule the createPlanner task to run every Monday at 12:15 AM
+cron.schedule('24 2 * * 1', () => {
+  runJobWithRetries(createPlanner, maxRetries);
 });
 
-cron.schedule('0 0 * * *', async () => {
-  try {
-    await retry(callUpdatePlannerAPI, 3, 120000); 
-  } catch (error) {
-    console.error('Error executing update planner API', error);
-  }
+// Schedule the updateDailyPlanner task to run every day at 12:30 AM
+cron.schedule('25 2 * * *', () => {
+  runJobWithRetries(updateDailyPlanner, maxRetries);
 });
-
-// console.log('Schedulers are set up');
