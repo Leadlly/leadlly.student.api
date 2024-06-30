@@ -27,7 +27,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
 const crypto_1 = __importDefault(require("crypto"));
 const userSchema = new mongoose_1.Schema({
     firstname: {
@@ -69,6 +68,7 @@ const userSchema = new mongoose_1.Schema({
         gender: { type: String, default: null },
     },
     password: { type: String, select: false, default: null },
+    salt: { type: String, default: null },
     avatar: {
         public_id: { type: String, default: null },
         url: { type: String, default: null },
@@ -131,7 +131,14 @@ userSchema.pre("save", function (next) {
 // });
 userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
-        return await bcrypt_1.default.compare(candidatePassword, this.password);
+        const hashedPassword = await new Promise((resolve, reject) => {
+            crypto_1.default.pbkdf2(candidatePassword, this.salt, 1000, 64, 'sha512', (err, derivedKey) => {
+                if (err)
+                    reject(err);
+                resolve(derivedKey.toString('hex'));
+            });
+        });
+        return hashedPassword === this.password;
     }
     catch (error) {
         throw new Error("Error comparing password.");

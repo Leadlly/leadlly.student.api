@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import bcrypt from 'bcrypt'
 import User from "../../models/userModel";
 import { CustomError } from "../../middlewares/error";
 import setCookie from "../../utils/setCookie";
@@ -223,17 +222,24 @@ export const resetpassword = async (
     if (!user)
       return next(new CustomError("Your link is expired! Try again", 400));
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10)
 
-    user.password = hashedPassword;
-    user.resetPasswordToken = null;
-    user.resetTokenExpiry = null;
+    const salt = crypto.randomBytes(16).toString('hex');
+    crypto.pbkdf2(req.body.password, salt, 1000, 64, 'sha512', async (err, derivedKey) => {
+      if (err) return next(new CustomError(err.message, 500));
 
-    await user.save();
-    res.status(200).json({
-      success: true,
-      message: "You password has been changed",
+      user.password = derivedKey.toString('hex');
+      user.salt = salt
+      user.resetPasswordToken = null;
+      user.resetTokenExpiry = null;
+
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: "You password has been changed",
+      });
     });
+
   } catch (error: any) {
     next(new CustomError(error.message));
   }

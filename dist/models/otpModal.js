@@ -27,7 +27,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const crypto_1 = __importDefault(require("crypto"));
+const util_1 = require("util");
+const pbkdf2Async = (0, util_1.promisify)(crypto_1.default.pbkdf2);
 const OTPSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -59,17 +61,25 @@ const OTPSchema = new mongoose_1.Schema({
             type: String,
             required: true,
         },
+        salt: {
+            type: String,
+        },
     },
 });
 // Pre-save hook for password hashing
 OTPSchema.pre("save", async function (next) {
     if (!this.isModified("newUser.password"))
         return next();
-    const salt = await bcrypt_1.default.genSalt(10);
-    if (!this.newUser.password)
-        return;
-    this.newUser.password = await bcrypt_1.default.hash(this.newUser.password, salt);
-    next();
+    try {
+        const salt = crypto_1.default.randomBytes(16).toString("hex");
+        this.newUser.salt = salt;
+        const derivedKey = await pbkdf2Async(this.newUser.password, salt, 1000, 64, "sha512");
+        this.newUser.password = derivedKey.toString("hex");
+        next();
+    }
+    catch (err) {
+        next(err);
+    }
 });
 const OTPModel = mongoose_1.default.model("OTP", OTPSchema);
 exports.default = OTPModel;

@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUser = exports.logout = exports.resetpassword = exports.forgotPassword = exports.login = exports.otpVerification = exports.resentOtp = exports.register = void 0;
-const bcrypt_1 = __importDefault(require("bcrypt"));
 const userModel_1 = __importDefault(require("../../models/userModel"));
 const error_1 = require("../../middlewares/error");
 const setCookie_1 = __importDefault(require("../../utils/setCookie"));
@@ -189,14 +188,19 @@ const resetpassword = async (req, res, next) => {
         });
         if (!user)
             return next(new error_1.CustomError("Your link is expired! Try again", 400));
-        const hashedPassword = await bcrypt_1.default.hash(req.body.password, 10);
-        user.password = hashedPassword;
-        user.resetPasswordToken = null;
-        user.resetTokenExpiry = null;
-        await user.save();
-        res.status(200).json({
-            success: true,
-            message: "You password has been changed",
+        const salt = crypto_1.default.randomBytes(16).toString('hex');
+        crypto_1.default.pbkdf2(req.body.password, salt, 1000, 64, 'sha512', async (err, derivedKey) => {
+            if (err)
+                return next(new error_1.CustomError(err.message, 500));
+            user.password = derivedKey.toString('hex');
+            user.salt = salt;
+            user.resetPasswordToken = null;
+            user.resetTokenExpiry = null;
+            await user.save();
+            res.status(200).json({
+                success: true,
+                message: "You password has been changed",
+            });
         });
     }
     catch (error) {

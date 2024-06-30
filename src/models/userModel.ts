@@ -1,8 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import bcrypt from "bcrypt";
 import IUser from "../types/IUser";
 import crypto from "crypto";
-import { array, boolean } from "zod";
 
 const userSchema = new Schema({
   firstname: {
@@ -46,6 +44,7 @@ const userSchema = new Schema({
     gender: { type: String, default: null },
   },
   password: { type: String, select: false, default: null },
+  salt: { type: String, default: null },
   avatar: {
     public_id: { type: String, default: null },
     url: { type: String, default: null },
@@ -116,11 +115,19 @@ userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
   try {
-    return await bcrypt.compare(candidatePassword, this.password);
+    const hashedPassword = await new Promise((resolve, reject) => {
+      crypto.pbkdf2(candidatePassword, this.salt, 1000, 64, 'sha512', (err, derivedKey) => {
+        if (err) reject(err);
+        resolve(derivedKey.toString('hex'));
+      });
+    });
+    
+    return hashedPassword === this.password;
   } catch (error) {
     throw new Error("Error comparing password.");
   }
 };
+
 
 userSchema.methods.getToken = async function (): Promise<string> {
   const resetToken = crypto.randomBytes(20).toString("hex");

@@ -10,6 +10,7 @@ interface IUser extends Document {
   };
  
   password: string; 
+  salt: string; 
   avatar?: {
     public_id?: string;
     url?: string;

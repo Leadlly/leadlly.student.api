@@ -1,5 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
-import bcrypt from 'bcrypt';
+import crypto from "crypto";
+import { promisify } from "util";
+
+const pbkdf2Async = promisify(crypto.pbkdf2);
 
 interface IOTP extends Document {
   email: string;
@@ -10,6 +13,7 @@ interface IOTP extends Document {
     lastname?: string;
     email: string;
     password: string;
+    salt?: string;
   };
 }
 
@@ -44,6 +48,9 @@ const OTPSchema: Schema = new Schema({
       type: String,
       required: true,
     },
+    salt: {
+      type: String,
+    },
   },
 });
 
@@ -51,11 +58,17 @@ const OTPSchema: Schema = new Schema({
 OTPSchema.pre<IOTP>("save", async function (next) {
   if (!this.isModified("newUser.password")) return next();
 
-  const salt = await bcrypt.genSalt(10);
-  if (!this.newUser.password) return;
-  this.newUser.password = await bcrypt.hash(this.newUser.password, salt);
+  try {
+    const salt = crypto.randomBytes(16).toString("hex");
+    this.newUser.salt = salt;
 
-  next();
+    const derivedKey = await pbkdf2Async(this.newUser.password, salt, 1000, 64, "sha512");
+    this.newUser.password = derivedKey.toString("hex");
+
+    next();
+  } catch (err:any) {
+    next(err);
+  }
 });
 
 const OTPModel = mongoose.model<IOTP>("OTP", OTPSchema);

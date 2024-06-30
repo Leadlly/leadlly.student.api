@@ -31,4 +31,5 @@ subWorker; // for subscription related emails
 
 // Wrapping express app with serverless-http
 export const handler = serverless(app);
+
 app.listen(port, () => logger.info(`Server is running on port ${port}`));
