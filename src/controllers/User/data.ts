@@ -26,7 +26,10 @@ export const storeBackRevisionData = async (
     const createdDocuments = [];
 
     for (let topic of topics) {
-      const existingDocument = await StudyData.findOne({ "topic.name": topic.name, tag });
+      const existingDocument = await StudyData.findOne({
+        "topic.name": topic.name,
+        tag,
+      });
 
       if (existingDocument) {
         // If a document with the same topic and tag exists, skip the creation

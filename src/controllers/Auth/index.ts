@@ -31,13 +31,13 @@ export const register = async (
     const nameArray = name.split(" ");
     const newUser = {
       firstname: nameArray[0],
-      lastname: nameArray.length > 1 ? nameArray.slice(1).join(' ') : null,
+      lastname: nameArray.length > 1 ? nameArray.slice(1).join(" ") : null,
       email,
       password,
     };
 
     // Save OTP and newUser data in the OTP model
-    const hashedOTP = crypto.createHash('sha256').update(OTP).digest('hex');
+    const hashedOTP = crypto.createHash("sha256").update(OTP).digest("hex");
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const existingOtpRecord = await OTPModel.findOne({ email });
@@ -56,12 +56,13 @@ export const register = async (
       await otpRecord.save();
     }
 
-    res.status(200)
-    .cookie('email', email)
-    .json({
-      success: true,
-      message: `Verification OTP sent to ${email}`,
-    });
+    res
+      .status(200)
+      .cookie("email", email)
+      .json({
+        success: true,
+        message: `Verification OTP sent to ${email}`,
+      });
   } catch (error: any) {
     console.log(error);
     next(new CustomError(error.message));
@@ -73,10 +74,10 @@ export const resentOtp = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log("inside resent otp")
+  console.log("inside resent otp");
   try {
-    const {email} = req.body;
-    console.log(email)
+    const { email } = req.body;
+    console.log(email);
 
     const otpRecord = await OTPModel.findOne({ email });
     if (!otpRecord) return next(new CustomError("User not found", 404));
@@ -91,8 +92,8 @@ export const resentOtp = async (
       },
     });
 
-    otpRecord.otp = crypto.createHash('sha256').update(OTP).digest('hex');
-    otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000) // OTP valid for 10 minutes
+    otpRecord.otp = crypto.createHash("sha256").update(OTP).digest("hex");
+    otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
     await otpRecord.save();
 
     res.status(200).json({
@@ -116,14 +117,17 @@ export const otpVerification = async (
     const otpRecord = await OTPModel.findOne({ email });
     if (!otpRecord) return next(new CustomError("OTP not found", 404));
 
-    const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
-    if (hashedOtp !== otpRecord.otp || otpRecord.expiresAt < new Date (Date.now())) {
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+    if (
+      hashedOtp !== otpRecord.otp ||
+      otpRecord.expiresAt < new Date(Date.now())
+    ) {
       return next(new CustomError("Invalid or expired OTP", 400));
     }
 
     const newUser = otpRecord.newUser;
-    const user = await User.create(newUser)
-    await OTPModel.deleteOne({ email }); 
+    const user = await User.create(newUser);
+    await OTPModel.deleteOne({ email });
 
     setCookie({
       user,
@@ -222,24 +226,29 @@ export const resetpassword = async (
     if (!user)
       return next(new CustomError("Your link is expired! Try again", 400));
 
+    const salt = crypto.randomBytes(16).toString("hex");
+    crypto.pbkdf2(
+      req.body.password,
+      salt,
+      1000,
+      64,
+      "sha512",
+      async (err, derivedKey) => {
+        if (err) return next(new CustomError(err.message, 500));
 
-    const salt = crypto.randomBytes(16).toString('hex');
-    crypto.pbkdf2(req.body.password, salt, 1000, 64, 'sha512', async (err, derivedKey) => {
-      if (err) return next(new CustomError(err.message, 500));
+        user.password = derivedKey.toString("hex");
+        user.salt = salt;
+        user.resetPasswordToken = null;
+        user.resetTokenExpiry = null;
 
-      user.password = derivedKey.toString('hex');
-      user.salt = salt
-      user.resetPasswordToken = null;
-      user.resetTokenExpiry = null;
+        await user.save();
 
-      await user.save();
-
-      res.status(200).json({
-        success: true,
-        message: "You password has been changed",
-      });
-    });
-
+        res.status(200).json({
+          success: true,
+          message: "You password has been changed",
+        });
+      },
+    );
   } catch (error: any) {
     next(new CustomError(error.message));
   }
@@ -257,23 +266,20 @@ export const logout = async (req: Request, res: Response) => {
     });
 };
 
-export const getUser = async( 
+export const getUser = async (
   req: Request,
   res: Response,
-  next: NextFunction) => {
+  next: NextFunction,
+) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return next(new CustomError("User not found", 400));
 
-    try {
-      const user = await User.findById(req.user._id)
-      if (!user)
-        return next(new CustomError("User not found", 400));
-
-      res.status(200).json({
-        success: true,
-        user
-      });
-
-    } catch (error: any) {
-      next(new CustomError(error.message));
-    }
-  
-}
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};

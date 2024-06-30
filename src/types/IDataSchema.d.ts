@@ -34,5 +34,5 @@ interface IDataSchema extends mongoose.Document {
   weeklyTestScore?: number;
 }
 
-export {Topic, Chapter}
+export { Topic, Chapter };
 export default IDataSchema;

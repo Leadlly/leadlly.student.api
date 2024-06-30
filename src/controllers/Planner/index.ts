@@ -19,18 +19,18 @@ export const createPlanner = async (
   try {
     const user: IUser = req.user;
 
-    const backRevisionTopics = await getBackRevistionTopics(user._id, user.subscription.dateOfActivation!)
-
-    const result = await generateWeeklyPlanner(
-      user, backRevisionTopics
+    const backRevisionTopics = await getBackRevistionTopics(
+      user._id,
+      user.subscription.dateOfActivation!,
     );
+
+    const result = await generateWeeklyPlanner(user, backRevisionTopics);
 
     res.status(200).json({
       success: true,
       message: result.message,
       planner: result.planner,
     });
-
   } catch (error: any) {
     next(new CustomError(error.message));
   }
@@ -39,13 +39,13 @@ export const createPlanner = async (
 export const updateDailyPlanner = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const timezone = "Asia/Kolkata";
 
   // Get today and yesterday in IST
   const todayIST = moment().tz(timezone).startOf("day");
-  const yesterdayIST = moment().tz(timezone).subtract(1, 'days').startOf("day");
+  const yesterdayIST = moment().tz(timezone).subtract(1, "days").startOf("day");
 
   // Convert today and yesterday to UTC
   const todayUTC = todayIST.clone().utc().toDate();
@@ -63,20 +63,22 @@ export const updateDailyPlanner = async (
 
   const planner = await Planner.findOne({
     student: user._id,
-    "days.date": todayUTC
+    "days.date": todayUTC,
   });
 
   if (!planner) {
-    throw new Error(`Planner not found for user ${user._id} and date ${yesterdayUTC}`);
+    throw new Error(
+      `Planner not found for user ${user._id} and date ${yesterdayUTC}`,
+    );
   }
 
   const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
     continuousRevisionTopics,
     [],
-    user
+    user,
   );
 
-  dailyContinuousTopics.forEach(data => {
+  dailyContinuousTopics.forEach((data) => {
     if (!data.topic.studiedAt) {
       data.topic.studiedAt = [];
     }
@@ -85,21 +87,26 @@ export const updateDailyPlanner = async (
 
   const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
 
-  const dailyQuestions = await getDailyQuestions(moment(todayUTC).format('dddd'), todayUTC, dailyTopics);
-
+  const dailyQuestions = await getDailyQuestions(
+    moment(todayUTC).format("dddd"),
+    todayUTC,
+    dailyTopics,
+  );
 
   await Planner.updateOne(
     { student: user._id, "days.date": todayUTC },
     {
       $set: {
         "days.$.continuousRevisionTopics": dailyContinuousTopics,
-        "days.$.questions": dailyQuestions
-      }
-    }
+        "days.$.questions": dailyQuestions,
+      },
+    },
   );
 
-  continuousRevisionTopics.forEach(data => data.tag = "active_continuous_revision");
-  await Promise.all(continuousRevisionTopics.map(data => data.save()));
+  continuousRevisionTopics.forEach(
+    (data) => (data.tag = "active_continuous_revision"),
+  );
+  await Promise.all(continuousRevisionTopics.map((data) => data.save()));
 
   res.status(200).json({
     success: true,
@@ -114,8 +121,8 @@ export const getPlanner = async (
 ) => {
   try {
     const today = moment().tz("Asia/Kolkata");
-    const startOfWeek = today.clone().startOf('isoWeek'); 
-    const endOfWeek = today.clone().endOf('isoWeek'); 
+    const startOfWeek = today.clone().startOf("isoWeek");
+    const endOfWeek = today.clone().endOf("isoWeek");
     const userId = req.user._id;
 
     const planner = await Planner.findOne({
@@ -127,7 +134,7 @@ export const getPlanner = async (
     if (!planner) {
       return res.status(404).json({
         success: false,
-        message: 'Planner not found for the current week',
+        message: "Planner not found for the current week",
       });
     }
 

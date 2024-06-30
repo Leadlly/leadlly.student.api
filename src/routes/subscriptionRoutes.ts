@@ -18,5 +18,5 @@ router.post("/verify", checkAuth, verifySubscription);
 //cancel subscripiton
 router.post("/cancel", checkAuth, cancelSubscription);
 
-router.get("/freetrial", checkAuth, getFreeTrialActive)
+router.get("/freetrial", checkAuth, getFreeTrialActive);
 export default router;

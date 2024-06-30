@@ -31,7 +31,7 @@ const userSchema = new Schema({
   academic: {
     standard: { type: Number, default: null },
     competitiveExam: { type: String, default: null },
-    subjects: {type: Array, default: null},
+    subjects: { type: Array, default: null },
     schedule: { type: String, default: null },
     coachingMode: { type: String, default: null },
     coachingName: { type: String, default: null },
@@ -112,22 +112,28 @@ userSchema.pre("save", function (next) {
 // });
 
 userSchema.methods.comparePassword = async function (
-  candidatePassword: string
+  candidatePassword: string,
 ): Promise<boolean> {
   try {
     const hashedPassword = await new Promise((resolve, reject) => {
-      crypto.pbkdf2(candidatePassword, this.salt, 1000, 64, 'sha512', (err, derivedKey) => {
-        if (err) reject(err);
-        resolve(derivedKey.toString('hex'));
-      });
+      crypto.pbkdf2(
+        candidatePassword,
+        this.salt,
+        1000,
+        64,
+        "sha512",
+        (err, derivedKey) => {
+          if (err) reject(err);
+          resolve(derivedKey.toString("hex"));
+        },
+      );
     });
-    
+
     return hashedPassword === this.password;
   } catch (error) {
     throw new Error("Error comparing password.");
   }
 };
-
 
 userSchema.methods.getToken = async function (): Promise<string> {
   const resetToken = crypto.randomBytes(20).toString("hex");

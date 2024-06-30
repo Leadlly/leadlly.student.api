@@ -17,10 +17,12 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     },
     level: String,
     overall_efficiency: Number,
-    studiedAt: [{
-      date: Date,
-      efficieny: Number
-    }]
+    studiedAt: [
+      {
+        date: Date,
+        efficieny: Number,
+      },
+    ],
   },
   chapter: {
     name: {
@@ -29,10 +31,12 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     },
     level: String,
     overall_efficiency: Number,
-    studiedAt: [{
-      date: Date,
-      efficieny: Number
-    }]
+    studiedAt: [
+      {
+        date: Date,
+        efficieny: Number,
+      },
+    ],
   },
   subject: {
     type: String,

@@ -1,5 +1,9 @@
 import express from "express";
-import { getChapter, getTopic, getStreakQuestion } from "../controllers/QuestionBank";
+import {
+  getChapter,
+  getTopic,
+  getStreakQuestion,
+} from "../controllers/QuestionBank";
 import { checkAuth } from "../middlewares/checkAuth";
 
 const router = express.Router();

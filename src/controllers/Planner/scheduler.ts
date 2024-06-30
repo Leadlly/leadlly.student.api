@@ -1,8 +1,8 @@
-import cron from 'node-cron';
-import IUser from '../../types/IUser';
-import User from '../../models/userModel';
-import { createPlanner, updateDailyPlanner } from '.';
-import { Request, Response, NextFunction } from 'express';
+import cron from "node-cron";
+import IUser from "../../types/IUser";
+import User from "../../models/userModel";
+import { createPlanner, updateDailyPlanner } from ".";
+import { Request, Response, NextFunction } from "express";
 
 const maxRetries = 3;
 const retryDelay = 180000; // 3-minute delay between retries
@@ -14,7 +14,7 @@ const mockResponse = () => {
     return res;
   };
   res.json = (data: any) => {
-    console.log('JSON Response:', data);
+    console.log("JSON Response:", data);
     return res;
   };
   return res;
@@ -22,15 +22,15 @@ const mockResponse = () => {
 
 const mockNext: NextFunction = (error?: any) => {
   if (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 };
 
 const runJobWithRetries = async (jobFunction: Function, retries: number) => {
   try {
     const users: IUser[] = await User.find({
-      'subscription.status': 'active',
-      'subscription.dateOfActivation': { $exists: true }
+      "subscription.status": "active",
+      "subscription.dateOfActivation": { $exists: true },
     });
 
     for (const user of users) {
@@ -43,20 +43,26 @@ const runJobWithRetries = async (jobFunction: Function, retries: number) => {
     console.log(`Scheduled ${jobFunction.name} job completed successfully.`);
   } catch (error) {
     if (retries > 0) {
-      console.warn(`Error running scheduled ${jobFunction.name}, retrying... (${retries} retries left)`, error);
+      console.warn(
+        `Error running scheduled ${jobFunction.name}, retrying... (${retries} retries left)`,
+        error,
+      );
       setTimeout(() => runJobWithRetries(jobFunction, retries - 1), retryDelay);
     } else {
-      console.error(`Error running scheduled ${jobFunction.name} after multiple retries:`, error);
+      console.error(
+        `Error running scheduled ${jobFunction.name} after multiple retries:`,
+        error,
+      );
     }
   }
 };
 
 // Schedule the createPlanner task to run every Monday at 12:15 AM
-cron.schedule('24 2 * * 1', () => {
+cron.schedule("24 2 * * 1", () => {
   runJobWithRetries(createPlanner, maxRetries);
 });
 
 // Schedule the updateDailyPlanner task to run every day at 12:30 AM
-cron.schedule('25 2 * * *', () => {
+cron.schedule("25 2 * * *", () => {
   runJobWithRetries(updateDailyPlanner, maxRetries);
 });

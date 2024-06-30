@@ -5,7 +5,6 @@ config();
 
 const redisUri = process.env.REDIS_URI as string;
 
-
 const otpConnection = new Redis(redisUri);
 const subConnection = new Redis(redisUri);
 // Reuse the ioredis instance

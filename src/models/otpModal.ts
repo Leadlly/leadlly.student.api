@@ -62,11 +62,17 @@ OTPSchema.pre<IOTP>("save", async function (next) {
     const salt = crypto.randomBytes(16).toString("hex");
     this.newUser.salt = salt;
 
-    const derivedKey = await pbkdf2Async(this.newUser.password, salt, 1000, 64, "sha512");
+    const derivedKey = await pbkdf2Async(
+      this.newUser.password,
+      salt,
+      1000,
+      64,
+      "sha512",
+    );
     this.newUser.password = derivedKey.toString("hex");
 
     next();
-  } catch (err:any) {
+  } catch (err: any) {
     next(err);
   }
 });

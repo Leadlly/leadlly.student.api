@@ -1,16 +1,16 @@
 import { Document } from "mongoose";
 
 interface IUser extends Document {
-  firstname: string; 
-  lastname?: string; 
+  firstname: string;
+  lastname?: string;
   email: string;
   phone: {
-    personal?: number; 
-    other?: number; 
+    personal?: number;
+    other?: number;
   };
- 
-  password: string; 
-  salt: string; 
+
+  password: string;
+  salt: string;
   avatar?: {
     public_id?: string;
     url?: string;
@@ -18,13 +18,13 @@ interface IUser extends Document {
   parent: {
     name?: string;
     phone?: string;
-  }
-  address:{
-    country?:string;
-    addressLine?:string;
-    pincode?:number;
-  },
-  academic:{
+  };
+  address: {
+    country?: string;
+    addressLine?: string;
+    pincode?: number;
+  };
+  academic: {
     standard: number;
     competitiveExam?: string;
     subjects?: Array;
@@ -33,8 +33,8 @@ interface IUser extends Document {
     coachingName?: string;
     coachingAddress?: string;
     schoolOrCollegeName?: string;
-    schoolOrCollegeAddress?: string
-  }
+    schoolOrCollegeAddress?: string;
+  };
   about: {
     dateOfBirth?: string;
     gender: string;
@@ -53,11 +53,11 @@ interface IUser extends Document {
     name: string;
     url: string;
   }>;
-  points?: number; 
+  points?: number;
   subscription: {
-    type?: string; 
+    type?: string;
     id?: string;
-    status?: string; 
+    status?: string;
     dateOfActivation?: Date;
     freeTrialAvailed?: boolean;
   };
@@ -68,8 +68,8 @@ interface IUser extends Document {
     amount?: string;
   };
   quiz?: {
-    minor?: any[]; 
-    major?: any[]; 
+    minor?: any[];
+    major?: any[];
   };
   resetPasswordToken?: string | null;
   resetTokenExpiry?: string | null;
@@ -77,6 +77,5 @@ interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
   getToken(): Promise<string>;
 }
-
 
 export default IUser;
