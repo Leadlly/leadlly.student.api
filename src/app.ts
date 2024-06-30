@@ -1,6 +1,5 @@
 import express, { urlencoded } from "express";
 import { config } from "dotenv";
-import serverless from "serverless-http";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import expressWinston from 'express-winston'
@@ -61,7 +60,4 @@ app.get("/", (req, res) => {
 
 app.use(errorMiddleware);
 
-// Wrapping express app with serverless-http
-const handler = serverless(app);
-
-export { app, handler };
+export { app };

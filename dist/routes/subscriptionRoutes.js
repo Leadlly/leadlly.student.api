@@ -13,4 +13,5 @@ router.post("/create", checkAuth_1.checkAuth, Subscription_1.buySubscription);
 router.post("/verify", checkAuth_1.checkAuth, Subscription_1.verifySubscription);
 //cancel subscripiton
 router.post("/cancel", checkAuth_1.checkAuth, Subscription_1.cancelSubscription);
+router.get("/freetrial", checkAuth_1.checkAuth, Subscription_1.getFreeTrialActive);
 exports.default = router;

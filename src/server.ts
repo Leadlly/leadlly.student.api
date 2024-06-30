@@ -4,6 +4,7 @@ import { questions_db } from "./db/db";
 import { otpWorker, subWorker } from "./services/bullmq/worker";
 import './controllers/Planner/scheduler';
 import { logger } from './utils/winstonLogger'
+import serverless from "serverless-http";
 
 // import razorpay from "./services/payment/Razorpay";
 
@@ -27,4 +28,7 @@ questions_db.on("connected", () => {
 otpWorker; // for otps related emails
 subWorker; // for subscription related emails
 
+
+// Wrapping express app with serverless-http
+export const handler = serverless(app);
 app.listen(port, () => logger.info(`Server is running on port ${port}`));

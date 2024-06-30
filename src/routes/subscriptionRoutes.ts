@@ -3,6 +3,7 @@ import { checkAuth } from "../middlewares/checkAuth";
 import {
   buySubscription,
   cancelSubscription,
+  getFreeTrialActive,
   verifySubscription,
 } from "../controllers/Subscription";
 
@@ -17,4 +18,5 @@ router.post("/verify", checkAuth, verifySubscription);
 //cancel subscripiton
 router.post("/cancel", checkAuth, cancelSubscription);
 
+router.get("/freetrial", checkAuth, getFreeTrialActive)
 export default router;

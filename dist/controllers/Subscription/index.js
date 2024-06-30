@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelSubscription = exports.verifySubscription = exports.buySubscription = void 0;
+exports.getFreeTrialActive = exports.cancelSubscription = exports.verifySubscription = exports.buySubscription = void 0;
 const error_1 = require("../../middlewares/error");
 const Razorpay_1 = __importDefault(require("../../services/payment/Razorpay"));
 const userModel_1 = __importDefault(require("../../models/userModel"));
@@ -140,3 +140,20 @@ const cancelSubscription = async (req, res, next) => {
     }
 };
 exports.cancelSubscription = cancelSubscription;
+const getFreeTrialActive = async (req, res, next) => {
+    try {
+        const user = await userModel_1.default.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        user.subscription.status = 'active';
+        user.subscription.dateOfActivation = new Date();
+        user.subscription.freeTrialAvailed = true;
+        await user.save();
+        return res.status(200).json({ message: 'Free trial activated successfully', user });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getFreeTrialActive = getFreeTrialActive;

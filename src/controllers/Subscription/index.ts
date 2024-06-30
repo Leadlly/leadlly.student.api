@@ -187,3 +187,23 @@ export const cancelSubscription = async (
     next(new CustomError(error.message, 500));
   }
 };
+
+export const getFreeTrialActive = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.subscription.status = 'active';
+    user.subscription.dateOfActivation = new Date();
+    user.subscription.freeTrialAvailed = true;
+
+    await user.save();
+
+    return res.status(200).json({ message: 'Free trial activated successfully', user });
+  } catch (error) {
+    next(error);
+  }
+};
