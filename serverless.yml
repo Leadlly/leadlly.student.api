@@ -1,14 +1,34 @@
-org: shivang16
-app: aws-node-express-api-project
-service: aws-node-express-api-project
+org: leadlly
+app: leadlly-student-api
+service: leadlly-student-api
 frameworkVersion: "3"
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
+  stage: dev
+  region: ap-south-1
+  environment:
+    FRONTEND_URL: https://education.leadlly.in
+    BACKEND_SERVER: http://localhost:4000
+    JWT_SECRET: ${ssm:/leadlly/JWT_SECRET}
+    REDIS_URI: ${ssm:/leadlly/REDIS_URI}
+    LEADLLY_DB_URL: ${ssm:/leadlly/LEADLLY_DB_URL}
+    LEADLLY_QUESTIONS_DB_URL: ${ssm:/leadlly/LEADLLY_QUESTIONS_DB_URL}
+    SMTP_HOST: smtp.gmail.com
+    SMTP_PORT: 465
+    SMTP_SERVICE: gmail
+    SMTP_USER: ${ssm:/leadlly/SMTP_USER}
+    SMTP_PASS: ${ssm:/leadlly/SMTP_PASS}
+    RAZORPAY_PLAN_ID: ${ssm:/leadlly/RAZORPAY_PLAN_ID}
+    RAZORPAY_API_KEY: ${ssm:/leadlly/RAZORPAY_API_KEY}
+    RAZORPAY_API_SECRET: ${ssm:/leadlly/RAZORPAY_API_SECRET}
 
 functions:
   api:
-    handler: index.handler
+    handler: dist/server.handler
     events:
       - httpApi: "*"
+      - http:
+          path: /
+          method: any
