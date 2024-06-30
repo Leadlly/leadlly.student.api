@@ -6,15 +6,10 @@ export const getDailyTopics = (
   backRevisionTopics: IDataSchema[],
   user: IUser
 ) => {
-  const dailyContinuousTopics: IDataSchema[] = [];
   const dailyBackTopics: IDataSchema[] = [];
 
-  // Add 3 continuous revision topics
+  // If continuous revision topics are available
   if (continuousRevisionTopics.length > 0) {
-    const topic = continuousRevisionTopics.shift();
-    if (topic) {
-      dailyContinuousTopics.push(topic);
-    }
 
     // Add 2 back revision topics
     for (let i = 0; i < 2; i++) {
@@ -24,6 +19,7 @@ export const getDailyTopics = (
       }
     }
   } else {
+    // If no continuous revision topics, add 3 back revision topics
     for (let i = 0; i < 3; i++) {
       const backTopic = backRevisionTopics.shift();
       if (backTopic) {
@@ -33,7 +29,7 @@ export const getDailyTopics = (
   }
 
   return {
-    dailyContinuousTopics,
+    dailyContinuousTopics: continuousRevisionTopics,
     dailyBackTopics
   };
 };

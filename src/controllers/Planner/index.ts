@@ -6,7 +6,7 @@ import { generateWeeklyPlanner } from "./Generate/generatePlanner";
 import IUser from "../../types/IUser";
 import { getBackRevistionTopics } from "./BackTopics/getBackTopics";
 import { getDailyQuestions } from "./DailyQuestions/getDailyQuestions";
-import moment from "moment";
+import moment from "moment-timezone";
 import { getDailyTopics } from "./DailyTopics/getDailyTopics";
 import IDataSchema from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
@@ -21,43 +21,53 @@ export const createPlanner = async (
 
     const backRevisionTopics = await getBackRevistionTopics(user._id, user.subscription.dateOfActivation!)
 
-    const generatedPlanner = await generateWeeklyPlanner(
+    const result = await generateWeeklyPlanner(
       user, backRevisionTopics
     );
-    const planner = await Planner.create(generatedPlanner);
 
     res.status(200).json({
       success: true,
-      message: "Done",
-      planner,
+      message: result.message,
+      planner: result.planner,
     });
+
   } catch (error: any) {
     next(new CustomError(error.message));
   }
 };
 
-export const updateDailyPlanner = async (  
+export const updateDailyPlanner = async (
   req: Request,
   res: Response,
-  next: NextFunction) => {
-  const today = moment().tz("Asia/Kolkata").startOf("day").toDate();
-  const yesterday = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf("day").toDate();
+  next: NextFunction
+) => {
+  const timezone = "Asia/Kolkata";
 
-  const user: IUser = req.user
+  // Get today and yesterday in IST
+  const todayIST = moment().tz(timezone).startOf("day");
+  const yesterdayIST = moment().tz(timezone).subtract(1, 'days').startOf("day");
+
+  // Convert today and yesterday to UTC
+  const todayUTC = todayIST.clone().utc().toDate();
+  const yesterdayUTC = yesterdayIST.clone().utc().toDate();
+
+  console.log(yesterdayUTC, "hello", todayUTC);
+
+  const user: IUser = req.user;
 
   const continuousRevisionTopics = (await StudyData.find({
     user: user._id,
     tag: "continuous_revision",
-    createdAt: { $gte: yesterday },
+    createdAt: { $gte: todayUTC },
   }).exec()) as IDataSchema[];
 
   const planner = await Planner.findOne({
     student: user._id,
-    "days.date": today
+    "days.date": todayUTC
   });
 
   if (!planner) {
-    throw new Error(`Planner not found for user ${user._id} and date ${today}`);
+    throw new Error(`Planner not found for user ${user._id} and date ${yesterdayUTC}`);
   }
 
   const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
@@ -70,15 +80,16 @@ export const updateDailyPlanner = async (
     if (!data.topic.studiedAt) {
       data.topic.studiedAt = [];
     }
-    data.topic.studiedAt.push({ date: today, efficiency: 0 });
+    data.topic.studiedAt.push({ date: todayUTC, efficiency: 0 });
   });
 
   const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
 
-  const dailyQuestions = await getDailyQuestions(moment(today).format('dddd'), today, dailyTopics);
+  const dailyQuestions = await getDailyQuestions(moment(todayUTC).format('dddd'), todayUTC, dailyTopics);
+
 
   await Planner.updateOne(
-    { student: user._id, "days.date": today },
+    { student: user._id, "days.date": todayUTC },
     {
       $set: {
         "days.$.continuousRevisionTopics": dailyContinuousTopics,
@@ -92,7 +103,7 @@ export const updateDailyPlanner = async (
 
   res.status(200).json({
     success: true,
-    message: `Updated planner for user ${user._id} for date ${today}`,
+    message: `Updated planner for user ${user._id} for date ${todayUTC}`,
     planner,
   });
 };

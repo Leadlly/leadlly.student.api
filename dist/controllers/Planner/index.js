@@ -9,19 +9,18 @@ const plannerModel_1 = __importDefault(require("../../models/plannerModel"));
 const generatePlanner_1 = require("./Generate/generatePlanner");
 const getBackTopics_1 = require("./BackTopics/getBackTopics");
 const getDailyQuestions_1 = require("./DailyQuestions/getDailyQuestions");
-const moment_1 = __importDefault(require("moment"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const getDailyTopics_1 = require("./DailyTopics/getDailyTopics");
 const studentData_1 = require("../../models/studentData");
 const createPlanner = async (req, res, next) => {
     try {
         const user = req.user;
         const backRevisionTopics = await (0, getBackTopics_1.getBackRevistionTopics)(user._id, user.subscription.dateOfActivation);
-        const generatedPlanner = await (0, generatePlanner_1.generateWeeklyPlanner)(user, backRevisionTopics);
-        const planner = await plannerModel_1.default.create(generatedPlanner);
+        const result = await (0, generatePlanner_1.generateWeeklyPlanner)(user, backRevisionTopics);
         res.status(200).json({
             success: true,
-            message: "Done",
-            planner,
+            message: result.message,
+            planner: result.planner,
         });
     }
     catch (error) {
@@ -30,31 +29,37 @@ const createPlanner = async (req, res, next) => {
 };
 exports.createPlanner = createPlanner;
 const updateDailyPlanner = async (req, res, next) => {
-    const today = (0, moment_1.default)().tz("Asia/Kolkata").startOf("day").toDate();
-    const yesterday = (0, moment_1.default)().tz("Asia/Kolkata").subtract(1, 'days').startOf("day").toDate();
+    const timezone = "Asia/Kolkata";
+    // Get today and yesterday in IST
+    const todayIST = (0, moment_timezone_1.default)().tz(timezone).startOf("day");
+    const yesterdayIST = (0, moment_timezone_1.default)().tz(timezone).subtract(1, 'days').startOf("day");
+    // Convert today and yesterday to UTC
+    const todayUTC = todayIST.clone().utc().toDate();
+    const yesterdayUTC = yesterdayIST.clone().utc().toDate();
+    console.log(yesterdayUTC, "hello", todayUTC);
     const user = req.user;
     const continuousRevisionTopics = (await studentData_1.StudyData.find({
         user: user._id,
         tag: "continuous_revision",
-        createdAt: { $gte: yesterday },
+        createdAt: { $gte: todayUTC },
     }).exec());
     const planner = await plannerModel_1.default.findOne({
         student: user._id,
-        "days.date": today
+        "days.date": todayUTC
     });
     if (!planner) {
-        throw new Error(`Planner not found for user ${user._id} and date ${today}`);
+        throw new Error(`Planner not found for user ${user._id} and date ${yesterdayUTC}`);
     }
     const { dailyContinuousTopics, dailyBackTopics } = (0, getDailyTopics_1.getDailyTopics)(continuousRevisionTopics, [], user);
     dailyContinuousTopics.forEach(data => {
         if (!data.topic.studiedAt) {
             data.topic.studiedAt = [];
         }
-        data.topic.studiedAt.push({ date: today, efficiency: 0 });
+        data.topic.studiedAt.push({ date: todayUTC, efficiency: 0 });
     });
     const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
-    const dailyQuestions = await (0, getDailyQuestions_1.getDailyQuestions)((0, moment_1.default)(today).format('dddd'), today, dailyTopics);
-    await plannerModel_1.default.updateOne({ student: user._id, "days.date": today }, {
+    const dailyQuestions = await (0, getDailyQuestions_1.getDailyQuestions)((0, moment_timezone_1.default)(todayUTC).format('dddd'), todayUTC, dailyTopics);
+    await plannerModel_1.default.updateOne({ student: user._id, "days.date": todayUTC }, {
         $set: {
             "days.$.continuousRevisionTopics": dailyContinuousTopics,
             "days.$.questions": dailyQuestions
@@ -64,14 +69,14 @@ const updateDailyPlanner = async (req, res, next) => {
     await Promise.all(continuousRevisionTopics.map(data => data.save()));
     res.status(200).json({
         success: true,
-        message: `Updated planner for user ${user._id} for date ${today}`,
+        message: `Updated planner for user ${user._id} for date ${todayUTC}`,
         planner,
     });
 };
 exports.updateDailyPlanner = updateDailyPlanner;
 const getPlanner = async (req, res, next) => {
     try {
-        const today = (0, moment_1.default)().tz("Asia/Kolkata");
+        const today = (0, moment_timezone_1.default)().tz("Asia/Kolkata");
         const startOfWeek = today.clone().startOf('isoWeek');
         const endOfWeek = today.clone().endOf('isoWeek');
         const userId = req.user._id;

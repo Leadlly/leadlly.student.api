@@ -4,10 +4,12 @@ exports.getDailyQuestions = void 0;
 const db_1 = require("../../../db/db");
 const getDailyQuestions = async (day, date, dailyTopics) => {
     try {
-        const questions = db_1.questions_db.collection("questions");
+        const questions = db_1.questions_db.collection("questionbanks");
         const results = {};
         const categories = ["jeemains_easy", "neet", "boards", "jeemains", "jeeadvance"];
-        for (let topic of dailyTopics) {
+        for (let topicData of dailyTopics) {
+            const topic = topicData.topic.name;
+            console.log(topic);
             results[topic] = [];
             let remainingQuestions = 3;
             for (let category of categories) {

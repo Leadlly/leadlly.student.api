@@ -1,4 +1,4 @@
-import moment from "moment-timezone";
+import moment from "moment";
 import Planner from "../../../models/plannerModel";
 import { StudyData } from "../../../models/studentData"; 
 import IDataSchema, { Topic } from "../../../types/IDataSchema"; 
@@ -15,16 +15,15 @@ const daysOfWeek = [
   "Saturday",
   "Sunday",
 ];
-const timezone = "Asia/Kolkata";
 
 export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDataSchema[]) => {
-  const today = moment().tz(timezone).startOf("day").toDate();
-  const activationDate = moment(user.subscription.dateOfActivation).tz(timezone).startOf("day");
+  const today = moment().startOf("day").toDate();
+  const activationDate = moment(user.subscription.dateOfActivation).startOf("day");
   
   // Determine the start date of the planner
   const startDate = activationDate.isSameOrAfter(moment().startOf("isoWeek")) 
     ? activationDate.toDate()
-    : moment().tz(timezone).startOf("isoWeek").toDate();
+    : moment().startOf("isoWeek").toDate();
 
   const endDate = moment(startDate).endOf("isoWeek").toDate();
 
@@ -35,10 +34,11 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
   });
 
   if (existingPlanner) {
+    console.log("Planner already exists")
     return {message: "Planner already exists", planner: existingPlanner};
   }
 
-  const yesterday = moment().tz(timezone).subtract(1, 'days').startOf("day").toDate();
+  const yesterday = moment().subtract(1, 'days').startOf("day").toDate();
 
   const continuousRevisionTopics = (await StudyData.find({
     user: user._id,
@@ -48,7 +48,7 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
 
   let dailyQuestions;
   const days = await Promise.all(daysOfWeek.map(async (day, index) => {
-    const date = moment(startDate).add(index, "days").tz(timezone).toDate();
+    const date = moment(startDate).add(index, "days").toDate();
 
     const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
       [],
@@ -87,5 +87,5 @@ export const generateWeeklyPlanner = async (user: IUser, backRevisionTopics: IDa
   await Promise.all(continuousRevisionTopics.map(data => data.save())); 
 
   console.log(planner);
-  return planner;
+  return {message: "Planner created", planner};
 };
