@@ -1,4 +1,4 @@
-name: leadlly.student.api CI/CD
+name: leadlly.student.api
 
 on:
   push:
