@@ -55,7 +55,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/planner", plannerRoutes);
 app.use("/api/questionbank", questionRoutes);
 
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("Hello, world!");
 });
 

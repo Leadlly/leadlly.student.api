@@ -66,7 +66,6 @@ const register = async (req, res, next) => {
 };
 exports.register = register;
 const resentOtp = async (req, res, next) => {
-    console.log("inside resent otp");
     try {
         const { email } = req.body;
         console.log(email);

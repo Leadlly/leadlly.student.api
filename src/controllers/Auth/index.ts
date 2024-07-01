@@ -74,7 +74,7 @@ export const resentOtp = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log("inside resent otp");
+
   try {
     const { email } = req.body;
     console.log(email);

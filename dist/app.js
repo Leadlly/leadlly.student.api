@@ -70,7 +70,7 @@ app.use("/api/course", courseRoutes_1.default);
 app.use("/api/user", user_1.default);
 app.use("/api/planner", planner_1.default);
 app.use("/api/questionbank", question_1.default);
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
     res.send("Hello, world!");
 });
 app.use(error_1.default);
