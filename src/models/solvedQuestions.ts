@@ -8,6 +8,7 @@ const questionSchema: Schema = new mongoose.Schema({
   question: {},
   studentAnswer: {},
   isCorrect: Boolean,
+  tag: String,
   createdAt: {
     type: Date,
     default: Date.now,

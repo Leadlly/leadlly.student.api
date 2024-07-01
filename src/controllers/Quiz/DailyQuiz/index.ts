@@ -8,7 +8,7 @@ export const saveDailQuiz = async (
   next: NextFunction,
 ) => {
   try {
-    const { topic, questions, studentAnswer, isCorrect } = req.body;
+    const { topic, questions, studentAnswer, isCorrect, tag } = req.body;
 
     const topics = [];
     topics.push(topic);
@@ -17,6 +17,7 @@ export const saveDailQuiz = async (
         question,
         studentAnswer,
         isCorrect,
+        tag
       });
     }
 

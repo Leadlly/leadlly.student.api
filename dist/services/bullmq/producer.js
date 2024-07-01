@@ -9,9 +9,7 @@ const redisUri = process.env.REDIS_URI;
 const otpConnection = new ioredis_1.Redis(redisUri);
 const subConnection = new ioredis_1.Redis(redisUri);
 // Reuse the ioredis instance
-exports.otpQueue = new bullmq_1.Queue("otp-queue", {
-  connection: otpConnection,
-});
+exports.otpQueue = new bullmq_1.Queue("otp-queue", { connection: otpConnection });
 exports.subQueue = new bullmq_1.Queue("subscription-queue", {
-  connection: subConnection,
+    connection: subConnection,
 });
