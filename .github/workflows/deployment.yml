@@ -42,4 +42,4 @@ jobs:
       - name: Deploy with Serverless
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        run: serverless deploy --stage ${{ steps.set_stage.outputs.stage }}
+        run: serverless deploy --stage ${{ steps.set_stage.outputs.stage }} --debug
