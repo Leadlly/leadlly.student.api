@@ -17,7 +17,7 @@ questions_db.on("connected", () => {
 });
 
 // Redis
-// export const redis = new Redis()
+// const redis = new Redis(process.env.REDIS_URI!)
 // redis.on("connect", () => console.log("Redis Connected."));
 // redis.on("error", (err: any) => {
 //   console.log("Redis Client Error", err);
@@ -30,5 +30,8 @@ subWorker; // for subscription related emails
 
 // Wrapping express app with serverless-http
 
+const handler = serverless(app);
 
 app.listen(port, () => logger.info(`Server is running on port ${port}`));
+
+export {handler}

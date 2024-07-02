@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.app = exports.handler = void 0;
+exports.app = void 0;
 const express_1 = __importStar(require("express"));
 const dotenv_1 = require("dotenv");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -41,7 +41,6 @@ const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 const user_1 = __importDefault(require("./routes/user"));
 const planner_1 = __importDefault(require("./routes/planner"));
 const question_1 = __importDefault(require("./routes/question"));
-const serverless_http_1 = __importDefault(require("serverless-http"));
 (0, dotenv_1.config)({
     path: "./.env",
 });
@@ -74,4 +73,3 @@ app.get("/api", (req, res) => {
     res.send("Hello, world!");
 });
 app.use(error_1.default);
-exports.handler = (0, serverless_http_1.default)(app);

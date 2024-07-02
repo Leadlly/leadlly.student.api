@@ -12,7 +12,7 @@ import courseRoutes from "./routes/courseRoutes";
 import userRoutes from "./routes/user";
 import plannerRoutes from "./routes/planner";
 import questionRoutes from "./routes/question";
-import serverless from "serverless-http";
+
 
 
 config({
@@ -61,5 +61,5 @@ app.get("/api", (req, res) => {
 
 app.use(errorMiddleware);
 
-export const handler = serverless(app);
+
 export { app };
