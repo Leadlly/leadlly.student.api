@@ -1,7 +1,6 @@
 org: leadlly
 app: leadlly-student-api
 service: leadlly-student-api
-frameworkVersion: "3"
 
 provider:
   name: aws
