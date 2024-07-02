@@ -53,7 +53,11 @@ const register = async (req, res, next) => {
         }
         res
             .status(200)
-            .cookie("email", email)
+            .cookie('email', email, {
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+        })
             .json({
             success: true,
             message: `Verification OTP sent to ${email}`,
@@ -214,6 +218,8 @@ const logout = async (req, res) => {
         .status(200)
         .cookie("token", null, {
         expires: new Date(Date.now()),
+        sameSite: "none",
+        secure: true,
     })
         .json({
         success: true,
