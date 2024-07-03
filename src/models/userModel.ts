@@ -22,6 +22,9 @@ const userSchema = new Schema({
     name: { type: String, default: null },
     phone: { type: Number, default: null },
   },
+  mentor:{
+    type: mongoose.Schema.Types.ObjectId
+  },
 
   address: {
     country: { type: String, default: null },

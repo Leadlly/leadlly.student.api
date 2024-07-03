@@ -13,8 +13,6 @@ import userRoutes from "./routes/user";
 import plannerRoutes from "./routes/planner";
 import questionRoutes from "./routes/question";
 
-
-
 config({
   path: "./.env",
 });
