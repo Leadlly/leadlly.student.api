@@ -108,6 +108,9 @@ const userSchema = new mongoose_1.Schema({
         QOTD: { type: Array, default: [] },
         others: { type: Array, default: [] },
     },
+    mentor: {
+        type: mongoose_1.default.Schema.Types.ObjectId
+    },
     resetPasswordToken: { type: String, default: null },
     resetTokenExpiry: { type: String, default: null },
     createdAt: { type: Date, default: Date.now },

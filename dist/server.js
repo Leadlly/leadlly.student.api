@@ -29,5 +29,6 @@ db_2.questions_db.on("connected", () => {
 worker_1.otpWorker; // for otps related emails
 worker_1.subWorker; // for subscription related emails
 // Wrapping express app with serverless-http
-exports.handler = (0, serverless_http_1.default)(app_1.app);
+const handler = (0, serverless_http_1.default)(app_1.app);
+exports.handler = handler;
 app_1.app.listen(port, () => winstonLogger_1.logger.info(`Server is running on port ${port}`));

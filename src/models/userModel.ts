@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Mongoose, Schema } from "mongoose";
 import IUser from "../types/IUser";
 import crypto from "crypto";
 
@@ -83,6 +83,9 @@ const userSchema = new Schema({
     monthly: { type: Array, default: [] },
     QOTD: { type: Array, default: [] },
     others: { type: Array, default: [] },
+  },
+  mentor: {
+    type: mongoose.Schema.Types.ObjectId
   },
   resetPasswordToken: { type: String, default: null },
   resetTokenExpiry: { type: String, default: null },
