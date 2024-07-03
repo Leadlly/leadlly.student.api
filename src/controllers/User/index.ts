@@ -133,12 +133,10 @@ export const setTodaysVibe = async (req: Request, res: Response) => {
 
   try {
     await user.save();
-    return res
-      .status(200)
-      .json({
-        message: "todays Vibe updated successfully",
-        todaysVibe: todaysVibe,
-      });
+    return res.status(200).json({
+      message: "todays Vibe updated successfully",
+      todaysVibe: todaysVibe,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Error updating TodayVibe", error });
   }

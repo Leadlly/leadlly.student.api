@@ -58,10 +58,10 @@ export const register = async (
 
     res
       .status(200)
-      .cookie('email', email, {
+      .cookie("email", email, {
         httpOnly: true,
         sameSite: "none",
-        secure: true
+        secure: true,
       })
       .json({
         success: true,
@@ -78,7 +78,6 @@ export const resentOtp = async (
   res: Response,
   next: NextFunction,
 ) => {
-
   try {
     const { email } = req.body;
     console.log(email);
@@ -264,7 +263,7 @@ export const logout = async (req: Request, res: Response) => {
     .cookie("token", null, {
       expires: new Date(Date.now()),
       sameSite: "none",
-      secure: true, 
+      secure: true,
     })
     .json({
       success: true,
