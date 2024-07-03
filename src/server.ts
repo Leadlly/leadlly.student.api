@@ -34,4 +34,4 @@ const handler = serverless(app);
 
 app.listen(port, () => logger.info(`Server is running on port ${port}`));
 
-export {handler}
+export { handler };

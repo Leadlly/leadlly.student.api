@@ -22,10 +22,10 @@ const userSchema = new Schema({
     name: { type: String, default: null },
     phone: { type: Number, default: null },
   },
-  mentor:{
-    type: mongoose.Schema.Types.ObjectId
+  mentor: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null,
   },
-
   address: {
     country: { type: String, default: null },
     addressLine: { type: String, default: null },

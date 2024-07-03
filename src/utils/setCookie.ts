@@ -23,15 +23,14 @@ const setCookie = async ({ user, res, next, message, statusCode }: Cookie) => {
         httpOnly: true,
         expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         sameSite: "none",
-        secure: true, 
+        secure: true,
       })
       .json({
         success: true,
         message,
         token,
-        user
+        user,
       });
-
   } catch (error: any) {
     next(new CustomError(error.message));
   }

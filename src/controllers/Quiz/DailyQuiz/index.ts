@@ -17,7 +17,7 @@ export const saveDailQuiz = async (
         question,
         studentAnswer,
         isCorrect,
-        tag
+        tag,
       });
     }
 
