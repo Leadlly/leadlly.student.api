@@ -27,10 +27,8 @@ provider:
 package:
   exclude:
     - .git/**
-    - node_modules/**
     - .env
-  include:
-    - dist/**    
+    - src/**
 
 functions:
   api:
