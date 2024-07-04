@@ -1,7 +1,7 @@
 import moment from "moment";
 import Planner from "../../../models/plannerModel";
 import { StudyData } from "../../../models/studentData";
-import IDataSchema, { Topic } from "../../../types/IDataSchema";
+import IDataSchema from "../../../types/IDataSchema";
 import { getDailyTopics } from "../DailyTopics/getDailyTopics";
 import IUser from "../../../types/IUser";
 import { getDailyQuestions } from "../DailyQuestions/getDailyQuestions";
@@ -86,6 +86,14 @@ export const generateWeeklyPlanner = async (
   continuousRevisionTopics.forEach(
     (data) => (data.tag = "active_continuous_revision"),
   );
+
+  backRevisionTopics.forEach((data) => {
+    if (data.tag === "unrevised_topic") {
+      data.tag = "active_back_revision";
+    } else if (data.tag === "continuous_low_efficiency") {
+      data.tag = "active_continuous_low_efficiency";
+    }
+  });
   await Promise.all(continuousRevisionTopics.map((data) => data.save()));
 
   return { message: "Planner created", planner };
