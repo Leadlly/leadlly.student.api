@@ -199,9 +199,9 @@ export const getFreeTrialActive = async (
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.freeTrial.active = true;
-    user.freeTrial.dateOfActivation = new Date();
-    user.freeTrial.availed = true;
+    user.subscription.status = "active";
+    user.subscription.dateOfActivation = new Date();
+    user.subscription.freeTrialAvailed = true;
 
     await user.save();
 

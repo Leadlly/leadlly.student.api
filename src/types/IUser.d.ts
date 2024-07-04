@@ -60,13 +60,8 @@ interface IUser extends Document {
     id?: string;
     status?: string;
     dateOfActivation?: Date;
+    freeTrialAvailed?: boolean;
   };
-  freeTrial: {
-    availed: Boolean
-    active:  Boolean
-    dateOfActivation: Date,
-    dateOfDeactivation: Date,
-  },
   refund: {
     type?: string;
     subscriptionType?: string;
