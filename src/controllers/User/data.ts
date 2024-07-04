@@ -33,7 +33,7 @@ export const storeBackRevisionData = async (
       });
 
       if (existingDocument) {
-        // If a document with the same topic, tag, and user exists, skip the creation
+
         console.log(
           `Document with topic "${topic.name}" and tag "${tag}" already exists for user "${req.user._id}". Skipping...`
         );

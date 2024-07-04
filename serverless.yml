@@ -24,6 +24,12 @@ provider:
     RAZORPAY_API_KEY: ${ssm:/leadlly/RAZORPAY_API_KEY}
     RAZORPAY_API_SECRET: ${ssm:/leadlly/RAZORPAY_API_SECRET}
 
+package:
+  exclude:
+    - .git/**
+    - .env
+    - src/**
+
 functions:
   api:
     handler: dist/server.handler
