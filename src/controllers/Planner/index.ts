@@ -26,6 +26,9 @@ export const createPlanner = async (
 
     const result = await generateWeeklyPlanner(user, backRevisionTopics);
 
+    user.planner = true
+    await user.save()
+
     res.status(200).json({
       success: true,
       message: result.message,
