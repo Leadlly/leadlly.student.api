@@ -28,10 +28,6 @@ package:
   exclude:
     - .git/**
     - node_modules/**
-    - test/**
-    - docs/**
-    - src/**
-    - *.md
     - .env
   include:
     - dist/**    
