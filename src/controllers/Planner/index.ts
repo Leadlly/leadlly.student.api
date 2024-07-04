@@ -19,9 +19,14 @@ export const createPlanner = async (
   try {
     const user: IUser = req.user;
 
+    const activationDate = user.freeTrial.dateOfActivation || user.subscription.dateOfActivation;
+    if (!activationDate) {
+      return next(new CustomError("Not subscribed", 400));
+    }
+
     const backRevisionTopics = await getBackRevistionTopics(
       user._id,
-      user.subscription.dateOfActivation!,
+      activationDate,
     );
 
     const result = await generateWeeklyPlanner(user, backRevisionTopics);

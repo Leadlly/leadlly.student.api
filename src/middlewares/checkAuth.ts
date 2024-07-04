@@ -32,7 +32,7 @@ export const authoriseSubscriber = async (
   res: Response,
   next: NextFunction,
 ) => {
-  if (req.user.subscripiton.status !== "active")
+  if (req.user.subscripiton.status !== "active" || req.user.freeTrial.active !== true)
     return next(new CustomError("You are not subscribed", 400));
 
   next();

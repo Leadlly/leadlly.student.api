@@ -29,16 +29,16 @@ const mockNext: NextFunction = (error?: any) => {
 const runJobWithRetries = async (jobFunction: Function, retries: number) => {
   try {
     const users: IUser[] = await User.find({
-      "subscription.status": "active",
-      "subscription.dateOfActivation": { $exists: true },
+      $or: [
+        { "subscription.status": "active", "subscription.dateOfActivation": { $exists: true } },
+        { "freeTrial.active": true }
+      ]
     });
 
     for (const user of users) {
-      if (user.subscription && user.subscription.dateOfActivation) {
         const req = { user } as Request;
         const res = mockResponse();
         await jobFunction(req, res, mockNext);
-      }
     }
     console.log(`Scheduled ${jobFunction.name} job completed successfully.`);
   } catch (error) {
@@ -57,12 +57,12 @@ const runJobWithRetries = async (jobFunction: Function, retries: number) => {
   }
 };
 
-// Schedule the createPlanner task to run every Monday at 12:15 AM
-cron.schedule("24 2 * * 1", () => {
+// Schedule the createPlanner task to run every Monday at 12:30 AM
+cron.schedule("30 0 * * 1", () => {
   runJobWithRetries(createPlanner, maxRetries);
 });
 
-// Schedule the updateDailyPlanner task to run every day at 12:30 AM
-cron.schedule("25 2 * * *", () => {
+// Schedule the updateDailyPlanner task to run every day at 1:00 AM
+cron.schedule("0 1 * * *", () => {
   runJobWithRetries(updateDailyPlanner, maxRetries);
 });
