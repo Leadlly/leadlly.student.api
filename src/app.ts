@@ -12,6 +12,7 @@ import courseRoutes from "./routes/courseRoutes";
 import userRoutes from "./routes/user";
 import plannerRoutes from "./routes/planner";
 import questionRoutes from "./routes/question";
+import quizRoutes from './routes/quiz'
 
 config({
   path: "./.env",
@@ -65,6 +66,7 @@ app.use("/api/course", courseRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/planner", plannerRoutes);
 app.use("/api/questionbank", questionRoutes);
+app.use("/api/quiz", quizRoutes);
 
 app.get("/api", (req, res) => {
   res.send("Hello, world!");
