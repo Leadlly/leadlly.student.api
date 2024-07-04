@@ -26,6 +26,7 @@ const userSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     default: null,
   },
+  planner: Boolean,
   address: {
     country: { type: String, default: null },
     addressLine: { type: String, default: null },

@@ -15,6 +15,7 @@ interface IUser extends Document {
     public_id?: string;
     url?: string;
   };
+  planner: Boolean;
   parent: {
     name?: string;
     phone?: string;
