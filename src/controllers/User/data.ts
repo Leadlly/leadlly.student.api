@@ -29,14 +29,14 @@ export const storeBackRevisionData = async (
       const existingDocument = await StudyData.findOne({
         "topic.name": topic.name,
         tag,
+        user: req.user._id, 
       });
 
       if (existingDocument) {
-        // If a document with the same topic and tag exists, skip the creation
+        // If a document with the same topic, tag, and user exists, skip the creation
         console.log(
-          `Document with topic "${topic}" and tag "${tag}" already exists. Skipping...`,
+          `Document with topic "${topic.name}" and tag "${tag}" already exists for user "${req.user._id}". Skipping...`
         );
-        // return next(new CustomError(`"${topic.name}" with this "${tag}" already exists`, 400));
         continue;
       }
 
