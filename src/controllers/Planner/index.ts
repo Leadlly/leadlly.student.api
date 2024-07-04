@@ -137,7 +137,7 @@ export const getPlanner = async (
     if (!planner) {
       return res.status(404).json({
         success: false,
-        message: "Planner not found for the current week",
+        message: "Planner not exists for the current week",
       });
     }
 
