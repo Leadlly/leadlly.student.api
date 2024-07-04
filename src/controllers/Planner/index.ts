@@ -124,14 +124,15 @@ export const getPlanner = async (
 ) => {
   try {
     const today = moment().tz("Asia/Kolkata");
-    const startOfWeek = today.clone().startOf("isoWeek");
-    const endOfWeek = today.clone().endOf("isoWeek");
     const userId = req.user._id;
 
+    const startDate = moment().startOf("isoWeek").toDate();
+    const endDate = moment(startDate).endOf("isoWeek").toDate();
+    
     const planner = await Planner.findOne({
       student: userId,
-      startDate: { $gte: startOfWeek.toDate() },
-      endDate: { $lte: endOfWeek.toDate() },
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
     });
 
     if (!planner) {

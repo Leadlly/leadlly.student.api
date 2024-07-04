@@ -20,16 +20,9 @@ export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
 ) => {
-  const today = moment().startOf("day").toDate();
-  const activationDate = moment(user.subscription.dateOfActivation).startOf(
-    "day",
-  );
 
   // Determine the start date of the planner
-  const startDate = activationDate.isSameOrAfter(moment().startOf("isoWeek"))
-    ? activationDate.toDate()
-    : moment().startOf("isoWeek").toDate();
-
+  const startDate = moment().startOf("isoWeek").toDate();
   const endDate = moment(startDate).endOf("isoWeek").toDate();
 
   const existingPlanner = await Planner.findOne({
