@@ -30,7 +30,12 @@ jobs:
 
       - name: Determine Deployment Stage
         id: set_stage
-        run: echo "::set-output name=stage::$(if [[ ${{ github.event_name }} == 'pull_request' ]]; then echo 'dev'; else echo 'prod'; fi)"
+        run: |
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            echo "stage=dev" >> $GITHUB_ENV
+          else
+            echo "stage=prod" >> $GITHUB_ENV
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -42,4 +47,4 @@ jobs:
       - name: Deploy with Serverless
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        run: serverless deploy --stage ${{ steps.set_stage.outputs.stage }}
+        run: serverless deploy --stage ${{ env.stage }}

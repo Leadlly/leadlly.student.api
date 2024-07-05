@@ -1,9 +1,11 @@
 import nodemailer from "nodemailer";
+import { getTemplate } from "./getMailTemplates";
 
 export type Options = {
   email: string;
   subject: string;
   message: string;
+  tag: string
 };
 export const sendMail = async (options: Options) => {
   try {
@@ -22,7 +24,7 @@ export const sendMail = async (options: Options) => {
       from: process.env.SMTP_USER,
       to: options.email,
       subject: options.subject,
-      text: options.message,
+      html: getTemplate(options),
     };
 
     await transporter.sendMail(mailOptions);
