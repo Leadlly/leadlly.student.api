@@ -6,6 +6,7 @@ import generateOTP from "../../utils/generateOTP";
 import { otpQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import OTPModel from "../../models/otpModal";
+import { sendMail } from "../../utils/sendMail";
 
 export const register = async (
   req: Request,
@@ -20,13 +21,20 @@ export const register = async (
 
     const OTP = generateOTP();
 
-    await otpQueue.add("otpVerify", {
-      options: {
+    // await otpQueue.add("otpVerify", {
+    //   options: {
+    //     email,
+    //     subject: "Verification",
+    //     message: `Your verification OTP for registration is ${OTP}`,
+    //   },
+    // });
+
+    await sendMail({
         email,
         subject: "Verification",
-        message: `Your verification OTP for registration is ${OTP}`,
-      },
-    });
+        message: OTP,
+        tag: "otp"
+      })
 
     const nameArray = name.split(" ");
     const newUser = {
@@ -87,13 +95,20 @@ export const resentOtp = async (
 
     const OTP = generateOTP();
 
-    await otpQueue.add("otpVerify", {
-      options: {
-        email,
-        subject: "Verification",
-        message: `Your verification OTP for registration is ${OTP}`,
-      },
-    });
+    // await otpQueue.add("otpVerify", {
+    //   options: {
+    //     email,
+    //     subject: "Verification",
+    //     message: `Your verification OTP for registration is ${OTP}`,
+    //   },
+    // });
+    
+    await sendMail({
+      email,
+      subject: "Verification",
+      message: OTP,
+      tag: "otp"
+    })
 
     otpRecord.otp = crypto.createHash("sha256").update(OTP).digest("hex");
     otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
@@ -188,13 +203,20 @@ export const forgotPassword = async (
     await user.save(); //saving the token in user
 
     const url = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`;
-    await otpQueue.add("otpVerify", {
-      options: {
-        email: email,
-        subject: "Password Reset",
-        message: `You reset password link is here ${url}`,
-      },
-    });
+    // await otpQueue.add("otpVerify", {
+    //   options: {
+    //     email: email,
+    //     subject: "Password Reset",
+    //     message: `You reset password link is here ${url}`,
+    //   },
+    // });
+
+    await sendMail({
+      email,
+      subject: "Password Reset",
+      message: url,
+      tag: 'password_reset'
+    })
 
     res.status(200).json({
       success: true,
