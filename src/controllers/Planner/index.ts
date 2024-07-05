@@ -4,7 +4,7 @@ import { db } from "../../db/db";
 import Planner from "../../models/plannerModel";
 import { generateWeeklyPlanner } from "./Generate/generatePlanner";
 import IUser from "../../types/IUser";
-import { getBackRevistionTopics } from "./BackTopics/getBackTopics";
+import { getBackRevisionTopics } from "./BackTopics/getBackTopics";
 import { getDailyQuestions } from "./DailyQuestions/getDailyQuestions";
 import moment from "moment-timezone";
 import { getDailyTopics } from "./DailyTopics/getDailyTopics";
@@ -24,7 +24,7 @@ export const createPlanner = async (
       return next(new CustomError("Not subscribed", 400));
     }
 
-    const backRevisionTopics = await getBackRevistionTopics(
+    const backRevisionTopics = await getBackRevisionTopics(
       user._id,
       activationDate,
     );
@@ -115,6 +115,8 @@ export const updateDailyPlanner = async (
     (data) => (data.tag = "active_continuous_revision"),
   );
   await Promise.all(continuousRevisionTopics.map((data) => data.save()));
+
+  console.log("planner updated")
 
   res.status(200).json({
     success: true,
