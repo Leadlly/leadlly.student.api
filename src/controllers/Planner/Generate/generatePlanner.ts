@@ -20,7 +20,6 @@ export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
 ) => {
-
   // Determine the start date of the planner
   const startDate = moment().startOf("isoWeek").toDate();
   const endDate = moment(startDate).endOf("isoWeek").toDate();
@@ -49,6 +48,16 @@ export const generateWeeklyPlanner = async (
     daysOfWeek.map(async (day, index) => {
       const date = moment(startDate).add(index, "days").toDate();
 
+      if (day === "Sunday") {
+        return {
+          day,
+          date,
+          continuousRevisionTopics: [],
+          backRevisionTopics: [],
+          questions: [],
+        };
+      }
+
       const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
         [],
         backRevisionTopics,
@@ -61,7 +70,7 @@ export const generateWeeklyPlanner = async (
         if (!data.topic.studiedAt) {
           data.topic.studiedAt = [];
         }
-        data.topic.studiedAt.push({ date, efficiency: 0 }); // Add date with null efficiency for now
+       data.topic.studiedAt.push({ date, efficiency: 0 }); 
       });
 
       dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
@@ -86,6 +95,14 @@ export const generateWeeklyPlanner = async (
   continuousRevisionTopics.forEach(
     (data) => (data.tag = "active_continuous_revision"),
   );
+
+  backRevisionTopics.forEach((data) => {
+    if (data.tag === "unrevised_topic") {
+      data.tag = "active_back_revision";
+    } else if (data.tag === "continuous_low_efficiency") {
+      data.tag = "active_continuous_low_efficiency";
+    }
+  });
   await Promise.all(continuousRevisionTopics.map((data) => data.save()));
 
   return { message: "Planner created", planner };
