@@ -8,7 +8,10 @@ interface IUser extends Document {
     personal?: number;
     other?: number;
   };
-
+  studentId: string;
+  tag: 'JEE' | 'NEET';
+  mentorId: mongoose.Types.ObjectId | null;
+  
   password: string;
   salt: string;
   avatar?: {
