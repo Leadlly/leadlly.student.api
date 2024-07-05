@@ -20,7 +20,7 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     studiedAt: [
       {
         date: Date,
-        efficieny: Number,
+        efficiency: Number,
       },
     ],
   },
