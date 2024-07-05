@@ -1,6 +1,7 @@
 import SolvedQuestions from "../../models/solvedQuestions";
 import IUser from "../../types/IUser";
-import { Topic } from "../../types/IDataSchema";
+import IDataSchema, { Topic } from "../../types/IDataSchema";
+import { StudyData } from "../../models/studentData";
 
 export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
   try {
@@ -17,6 +18,18 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
     ]);
 
     for (let topic of topics) {
+
+      // Fetch studyData for the topic
+      const studyData = await StudyData.findOne({
+        user: user._id,
+        "topic.name": topic.name,
+      });
+
+      if (!studyData) {
+        console.log(`No study data found for topic: ${topic.name}`);
+        continue;
+      }
+
       let correctCount = 0;
       let totalCount = 0;
 
@@ -31,13 +44,18 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
 
       const efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
 
-      if (!topic.studiedAt) {
-        topic.studiedAt = [];
-      }
-      topic.studiedAt.push({
-        date: today,
-        efficiency: efficiency,
-      });
+      // Update the studyData topic's studiedAt array
+      await StudyData.updateOne(
+        { _id: studyData._id, "topic.name": topic.name },
+        {
+          $push: {
+            "topic.studiedAt": {
+              date: today,
+              efficiency: efficiency,
+            },
+          },
+        }
+      );
 
       // Calculate overall efficiency
       topic.overall_efficiency = await calculateOverallEfficiency(topic, user);
@@ -61,15 +79,19 @@ const calculateOverallEfficiency = async (topic: Topic, user: IUser) => {
     let correctCount = 0;
     let totalCount = solvedQuestions.length;
 
-    // Calculate correct count
     solvedQuestions.forEach((question) => {
       if (question.isCorrect) {
         correctCount++;
       }
     });
 
-    // Calculate efficiency
+  
     const efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+
+    await StudyData.updateOne(
+      { user: user._id, "topic.name": topic.name },
+      { $set: { "topic.overall_efficiency": efficiency } }
+    );
 
     return efficiency;
   } catch (error) {
