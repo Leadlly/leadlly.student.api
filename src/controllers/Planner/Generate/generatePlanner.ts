@@ -20,9 +20,28 @@ export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
 ) => {
-  // Determine the start date of the planner
-  const startDate = moment().startOf("isoWeek").toDate();
-  const endDate = moment(startDate).endOf("isoWeek").toDate();
+  // Determine the activation date
+  const activationDate =
+    user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
+
+  if (!activationDate) {
+    throw new Error("Activation date not found");
+  }
+
+  const activationMoment = moment(activationDate);
+  const currentMoment = moment();
+
+  // Determine the start and end dates of the planner
+  let startDate;
+  let endDate;
+
+  if (activationMoment.isSame(currentMoment, 'week')) {
+    startDate = activationMoment.startOf("day").toDate();
+    endDate = moment(startDate).endOf("isoWeek").toDate();
+  } else {
+    startDate = currentMoment.startOf("isoWeek").toDate();
+    endDate = moment(startDate).endOf("isoWeek").toDate();
+  }
 
   const existingPlanner = await Planner.findOne({
     student: user._id,
@@ -43,10 +62,16 @@ export const generateWeeklyPlanner = async (
     createdAt: { $gte: yesterday },
   }).exec()) as IDataSchema[];
 
+  const startDayIndex = activationMoment.isSame(currentMoment, 'week')
+    ? daysOfWeek.indexOf(activationMoment.format('dddd'))
+    : 0;
+
   let dailyQuestions;
   const days = await Promise.all(
-    daysOfWeek.map(async (day, index) => {
-      const date = moment(startDate).add(index, "days").toDate();
+    daysOfWeek.slice(startDayIndex).map(async (day, index) => {
+      const date = activationMoment.isSame(currentMoment, 'week')
+        ? moment(activationMoment).add(index, "days").toDate()
+        : moment(startDate).add(index, "days").toDate();
 
       if (day === "Sunday") {
         return {
@@ -70,7 +95,7 @@ export const generateWeeklyPlanner = async (
         if (!data.topic.studiedAt) {
           data.topic.studiedAt = [];
         }
-       data.topic.studiedAt.push({ date, efficiency: 0 }); 
+        data.topic.studiedAt.push({ date, efficiency: 0 });
       });
 
       dailyQuestions = await getDailyQuestions(day, date, dailyTopics);

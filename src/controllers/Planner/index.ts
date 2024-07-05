@@ -116,6 +116,8 @@ export const updateDailyPlanner = async (
   );
   await Promise.all(continuousRevisionTopics.map((data) => data.save()));
 
+  console.log("planner updated")
+
   res.status(200).json({
     success: true,
     message: `Updated planner for user ${user._id} for date ${todayUTC}`,
