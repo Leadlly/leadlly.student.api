@@ -91,6 +91,12 @@ export const updateDailyPlanner = async (
       data.topic.studiedAt = [];
     }
     data.topic.studiedAt.push({ date: todayUTC, efficiency: 0 });
+
+    if (!data.topic.plannerFrequency) {
+      data.topic.plannerFrequency = 0;
+    }
+    data.topic.plannerFrequency += 1;
+
   });
 
   const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];

@@ -96,6 +96,11 @@ export const generateWeeklyPlanner = async (
           data.topic.studiedAt = [];
         }
         data.topic.studiedAt.push({ date, efficiency: 0 });
+
+        if (!data.topic.plannerFrequency) {
+          data.topic.plannerFrequency = 0;
+        }
+        data.topic.plannerFrequency += 1;
       });
 
       dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
@@ -123,9 +128,7 @@ export const generateWeeklyPlanner = async (
 
   backRevisionTopics.forEach((data) => {
     if (data.tag === "unrevised_topic") {
-      data.tag = "active_back_revision";
-    } else if (data.tag === "continuous_low_efficiency") {
-      data.tag = "active_continuous_low_efficiency";
+      data.tag = "active_back_revision"
     }
   });
   await Promise.all(continuousRevisionTopics.map((data) => data.save()));
