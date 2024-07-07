@@ -54,8 +54,6 @@ export const updateDailyPlanner = async (
 
     // Get today in IST
     const todayIST = moment().tz(timezone).startOf("day");
-
-    // Convert today to UTC
     const todayUTC = todayIST.clone().utc().toDate();
 
     // Get next day in IST
@@ -64,21 +62,18 @@ export const updateDailyPlanner = async (
 
     const user: IUser = req.user;
 
-    // Find today's continuous revision topics
     const continuousRevisionTopics = (await StudyData.find({
       user: user._id,
       tag: "continuous_revision",
       createdAt: { $gte: todayUTC },
     }).exec()) as IDataSchema[];
 
-    console.log(continuousRevisionTopics, "hello");
 
     const planner = await Planner.findOne({
       student: user._id,
       "days.date": todayUTC,
     });
 
-    console.log("planner", planner);
     if (!planner) {
       throw new Error(
         `Planner not found for user ${user._id} and date ${todayUTC}`,
@@ -111,13 +106,10 @@ export const updateDailyPlanner = async (
       dailyTopics,
     );
 
-    console.log(dailyContinuousTopics, "hiii", dailyQuestions);
-
     // Merge existing questions with new dailyQuestions
     const existingQuestions = planner.days.find(day => day.date.toISOString() === todayUTC.toISOString())?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
 
-    // Update continuousRevisionTopics
     const updatePlanner = await Planner.updateOne(
       { student: user._id, "days.date": todayUTC },
       {
@@ -142,9 +134,8 @@ export const updateDailyPlanner = async (
       message: `Planner Updated`,
       planner: updatePlanner,
     });
-  } catch (error) {
-    console.log(error);
-    next(error);
+  } catch (error: any) {
+    next(new CustomError(error.message));
   }
 };
 

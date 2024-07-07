@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { StudyData } from "../../models/studentData";
 import { CustomError } from "../../middlewares/error";
 
-export const storeBackRevisionData = async (
+export const storeUnrevisedTopics = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -54,6 +54,45 @@ export const storeBackRevisionData = async (
       success: true,
       message: "Saved",
       data: createdDocuments,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};
+
+export const getUnrevisedTopics = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await StudyData.find({
+      user: req.user._id,
+      tag: { $in: ["unrevised_topic", "active_unrevised_topic"] }
+    });
+
+    res.status(200).json({
+      success: true,
+      data
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};
+
+export const deleteUnrevisedTopics = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { chapterName } = req.body;
+
+    const deleteResult = await StudyData.deleteMany({
+      user: req.user._id,
+      "chapter.name": chapterName
+    });
+
+    if (deleteResult.deletedCount === 0) {
+      return next(new CustomError("Failed to delete topics", 500));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Chapter deleted",
+      deletedCount: deleteResult.deletedCount
     });
   } catch (error: any) {
     next(new CustomError(error.message));
