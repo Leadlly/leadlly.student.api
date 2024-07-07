@@ -63,12 +63,6 @@ export const getTopic = async (
     const subjectNameStr = subjectName as string;
     const chapterNameStr = chapterName as string;
 
-    console.log("Query Parameters:", {
-      standardStr,
-      subjectNameStr,
-      chapterNameStr,
-    });
-
     // Build the query object
     const topicQuery = {
       standard: new RegExp(`^${standardStr}$`, "i"),
@@ -76,7 +70,6 @@ export const getTopic = async (
       chapterName: new RegExp(`^${chapterNameStr}$`, "i"),
     };
 
-    console.log("Topic Query:", JSON.stringify(topicQuery));
 
     // Fetch topics based on standard, subjectName, and chapterName
     const topics = await questions_db
@@ -85,11 +78,6 @@ export const getTopic = async (
       .toArray();
 
     if (topics.length === 0) {
-      console.log("No topics found for the specified criteria:", {
-        standardStr,
-        subjectNameStr,
-        chapterNameStr,
-      });
       return res.status(404).json({
         success: false,
         message:
@@ -126,14 +114,11 @@ export const getStreakQuestion = async (
         level,
       };
 
-      console.log(`Query Object for ${subject}:`, queryObject);
-
       const questions = await questions_db
         .collection("questionbanks")
         .aggregate([{ $match: queryObject }, { $sample: { size: 1 } }])
         .toArray();
 
-      console.log(`Questions found for ${subject}:`, questions);
 
       if (questions && questions.length > 0) {
         selectedQuestions[subject] = questions[0];
