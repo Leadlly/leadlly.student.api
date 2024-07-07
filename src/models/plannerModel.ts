@@ -12,7 +12,10 @@ const daySchema = new mongoose.Schema<IDay>({
   },
   continuousRevisionTopics: Array,
   backRevisionTopics: Array,
-  questions: Array,
+  questions: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
 });
 
 const plannerSchema = new mongoose.Schema<IPlanner>({

@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-
 import { StudyData } from '../../models/studentData';
 import IUser from '../../types/IUser';
+import { questions_db } from '../../db/db';
 export const calculateChapterEfficiency = async (chapterName: string, user: any) => {
 	try {
 		const studentData = await StudyData.aggregate([
