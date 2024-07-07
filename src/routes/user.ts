@@ -1,6 +1,6 @@
 import { setTodaysVibe } from "./../controllers/User/index";
-import express, { Request, Response, NextFunction } from "express";
-import { storeBackRevisionData } from "../controllers/User/data";
+import express from "express";
+import { deleteUnrevisedTopics, getUnrevisedTopics, storeUnrevisedTopics } from "../controllers/User/data";
 import { checkAuth } from "../middlewares/checkAuth";
 import convertToLowercase from "../middlewares/lowercase";
 import { studentPersonalInfo } from "../controllers/User";
@@ -11,7 +11,17 @@ router.post(
   "/progress/save",
   checkAuth,
   convertToLowercase,
-  storeBackRevisionData,
+  storeUnrevisedTopics,
+);
+router.get(
+  "/topics/get",
+  checkAuth,
+  getUnrevisedTopics,
+);
+router.delete(
+  "/topics/delete",
+  checkAuth,
+  deleteUnrevisedTopics
 );
 router.post("/profile/save", checkAuth, studentPersonalInfo);
 router.post("/todaysVibe/save", checkAuth, setTodaysVibe);
