@@ -15,12 +15,13 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
       type: String,
       required: true,
     },
+    plannerFrequency: {type: Number, default: 0},
     level: String,
-    overall_efficiency: Number,
+    overall_efficiency: {type: Number, default: 0},
     studiedAt: [
       {
         date: Date,
-        efficiency: Number,
+        efficiency: {type: Number, default: 0},
       },
     ],
   },
@@ -29,12 +30,13 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
       type: String,
       required: true,
     },
+    plannerFrequency: {type: Number, default: 0},
     level: String,
-    overall_efficiency: Number,
+    overall_efficiency: {type: Number, default: 0},
     studiedAt: [
       {
         date: Date,
-        efficieny: Number,
+        efficieny: {type: Number, default: 0},
       },
     ],
   },

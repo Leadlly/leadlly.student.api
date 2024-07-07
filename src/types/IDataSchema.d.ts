@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 interface Topic {
   name: string;
+  plannerFrequency?: number;
   level?: string;
   overall_efficiency?: number;
   studiedAt: {
@@ -12,6 +13,7 @@ interface Topic {
 
 interface Chapter {
   name: string;
+  plannerFrequency?: number;
   level?: string;
   overall_efficiency?: number;
   studiedAt: {

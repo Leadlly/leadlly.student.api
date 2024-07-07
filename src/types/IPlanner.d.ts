@@ -5,7 +5,7 @@ interface IDay {
   day: string;
   continuousRevisionTopics: any[];
   backRevisionTopics: any[];
-  questions: any[];
+  questions: { [key: string]: any };
 }
 
 interface IPlanner extends Document {

@@ -61,8 +61,3 @@ const runJobWithRetries = async (jobFunction: Function, retries: number) => {
 cron.schedule("30 0 * * 1", () => {
   runJobWithRetries(createPlanner, maxRetries);
 });
-
-// Schedule the updateDailyPlanner task to run every day at 1:00 AM
-cron.schedule("0 1 * * *", () => {
-  runJobWithRetries(updateDailyPlanner, maxRetries);
-});

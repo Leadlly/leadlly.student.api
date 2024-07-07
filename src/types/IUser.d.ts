@@ -73,10 +73,6 @@ interface IUser extends Document {
     status?: string;
     amount?: string;
   };
-  quiz?: {
-    minor?: any[];
-    major?: any[];
-  };
   resetPasswordToken?: string | null;
   resetTokenExpiry?: string | null;
   createdAt?: Date; // Optional as it has a default value

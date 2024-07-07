@@ -49,81 +49,108 @@ export const updateDailyPlanner = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const timezone = "Asia/Kolkata";
+  try {
+    const timezone = "Asia/Kolkata";
 
-  // Get today and yesterday in IST
-  const todayIST = moment().tz(timezone).startOf("day");
-  const yesterdayIST = moment().tz(timezone).subtract(1, "days").startOf("day");
+    // Get today in IST
+    const todayIST = moment().tz(timezone).startOf("day");
+    const todayUTC = todayIST.clone().utc().toDate();
 
-  // Convert today and yesterday to UTC
-  const todayUTC = todayIST.clone().utc().toDate();
-  const yesterdayUTC = yesterdayIST.clone().utc().toDate();
+    // Get next day in IST
+    const nextDayIST = todayIST.clone().add(1, "days").startOf("day");
+    const nextDayUTC = nextDayIST.clone().utc().toDate();
 
-  console.log(yesterdayUTC, "hello", todayUTC);
+    const user: IUser = req.user;
 
-  const user: IUser = req.user;
+    const continuousRevisionTopics = (await StudyData.find({
+      user: user._id,
+      tag: "continuous_revision",
+      createdAt: { $gte: todayUTC },
+    }).exec()) as IDataSchema[];
 
-  const continuousRevisionTopics = (await StudyData.find({
-    user: user._id,
-    tag: "continuous_revision",
-    createdAt: { $gte: todayUTC },
-  }).exec()) as IDataSchema[];
 
-  const planner = await Planner.findOne({
-    student: user._id,
-    "days.date": todayUTC,
-  });
+    const planner = await Planner.findOne({
+      student: user._id,
+      "days.date": todayUTC,
+    });
 
-  if (!planner) {
-    throw new Error(
-      `Planner not found for user ${user._id} and date ${yesterdayUTC}`,
-    );
-  }
-
-  const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
-    continuousRevisionTopics,
-    [],
-    user,
-  );
-
-  dailyContinuousTopics.forEach((data) => {
-    if (!data.topic.studiedAt) {
-      data.topic.studiedAt = [];
+    if (!planner) {
+      throw new Error(
+        `Planner not found for user ${user._id} and date ${todayUTC}`,
+      );
     }
-    data.topic.studiedAt.push({ date: todayUTC, efficiency: 0 });
-  });
 
-  const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
+    const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
+      continuousRevisionTopics,
+      [],
+      user,
+    );
 
-  const dailyQuestions = await getDailyQuestions(
-    moment(todayUTC).format("dddd"),
-    todayUTC,
-    dailyTopics,
-  );
+    const existingTopicNames = new Set(
+      planner.days
+        .find(day => day.date.toISOString() === todayUTC.toISOString())?.continuousRevisionTopics
+        .map(data => data.topic.name) || []
+    );
 
-  await Planner.updateOne(
-    { student: user._id, "days.date": todayUTC },
-    {
-      $set: {
-        "days.$.continuousRevisionTopics": dailyContinuousTopics,
-        "days.$.questions": dailyQuestions,
+    const newContinuousTopics = dailyContinuousTopics.filter(
+      data => !existingTopicNames.has(data.topic.name)
+    );
+
+    newContinuousTopics.forEach((data) => {
+      if (!data.topic.studiedAt) {
+        data.topic.studiedAt = [];
+      }
+      data.topic.studiedAt.push({ date: nextDayUTC, efficiency: 0 });
+
+      if (!data.topic.plannerFrequency) {
+        data.topic.plannerFrequency = 0;
+      }
+      data.topic.plannerFrequency += 1;
+    });
+
+    const dailyTopics = [...newContinuousTopics, ...dailyBackTopics];
+
+    const dailyQuestions = await getDailyQuestions(
+      moment(nextDayUTC).format("dddd"),
+      nextDayUTC,
+      dailyTopics,
+    );
+
+    // Merge existing questions with new dailyQuestions
+    const existingQuestions = planner.days.find(day => day.date.toISOString() === todayUTC.toISOString())?.questions || {};
+    const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
+
+    const updatePlanner = await Planner.updateOne(
+      { student: user._id, "days.date": todayUTC },
+      {
+        $push: {
+          "days.$.continuousRevisionTopics": { $each: newContinuousTopics },
+        },
+        $set: {
+          "days.$.questions": mergedQuestions,
+        },
       },
-    },
-  );
+    );
 
-  continuousRevisionTopics.forEach(
-    (data) => (data.tag = "active_continuous_revision"),
-  );
-  await Promise.all(continuousRevisionTopics.map((data) => data.save()));
+    await Promise.all(continuousRevisionTopics.map((data) => {
+      data.tag = "active_continuous_revision";
+      return data.save();
+    }));
 
-  console.log("planner updated")
+    console.log("planner updated");
 
-  res.status(200).json({
-    success: true,
-    message: `Updated planner for user ${user._id} for date ${todayUTC}`,
-    planner,
-  });
+    res.status(200).json({
+      success: true,
+      message: `Planner Updated`,
+      planner: updatePlanner,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
 };
+
+
+
 export const getPlanner = async (
   req: Request,
   res: Response,
