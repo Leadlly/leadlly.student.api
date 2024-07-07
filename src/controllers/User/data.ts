@@ -82,7 +82,7 @@ export const deleteUnrevisedTopics = async (req: Request, res: Response, next: N
 
     const deleteResult = await StudyData.deleteMany({
       user: req.user._id,
-      "chapter.name": chapterName
+      "chapter.name": chapterName.toLowerCase()
     });
 
     if (deleteResult.deletedCount === 0) {
