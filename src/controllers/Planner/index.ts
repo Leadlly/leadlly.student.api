@@ -86,7 +86,17 @@ export const updateDailyPlanner = async (
       user,
     );
 
-    dailyContinuousTopics.forEach((data) => {
+    const existingTopicNames = new Set(
+      planner.days
+        .find(day => day.date.toISOString() === todayUTC.toISOString())?.continuousRevisionTopics
+        .map(data => data.topic.name) || []
+    );
+
+    const newContinuousTopics = dailyContinuousTopics.filter(
+      data => !existingTopicNames.has(data.topic.name)
+    );
+
+    newContinuousTopics.forEach((data) => {
       if (!data.topic.studiedAt) {
         data.topic.studiedAt = [];
       }
@@ -98,7 +108,7 @@ export const updateDailyPlanner = async (
       data.topic.plannerFrequency += 1;
     });
 
-    const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
+    const dailyTopics = [...newContinuousTopics, ...dailyBackTopics];
 
     const dailyQuestions = await getDailyQuestions(
       moment(nextDayUTC).format("dddd"),
@@ -114,7 +124,7 @@ export const updateDailyPlanner = async (
       { student: user._id, "days.date": todayUTC },
       {
         $push: {
-          "days.$.continuousRevisionTopics": { $each: dailyContinuousTopics },
+          "days.$.continuousRevisionTopics": { $each: newContinuousTopics },
         },
         $set: {
           "days.$.questions": mergedQuestions,
