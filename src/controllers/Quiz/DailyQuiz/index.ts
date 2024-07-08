@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import SolvedQuestions from "../../../models/solvedQuestions";
-import { calculateEfficiency } from "../../../helpers/Efficiency/calculateTopicEfficiency";
+import { calculateEfficiency } from "../../../functions/CalculateEfficiency/calculateTopicEfficiency";
 import { CustomError } from "../../../middlewares/error";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {

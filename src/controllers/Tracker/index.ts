@@ -4,7 +4,7 @@ import { CustomError } from "../../middlewares/error";
 
 export const getStudentTracker = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const tracker = await Tracker.findOne({ user: req.user._id });
+      const tracker = await Tracker.find({ user: req.user._id, subject: req.body.subject });
   
       if (!tracker) {
         return res.status(404).json({
