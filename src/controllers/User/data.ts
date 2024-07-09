@@ -8,7 +8,7 @@ export const storeUnrevisedTopics = async (
   next: NextFunction,
 ) => {
   try {
-    const { topics, tag, user, ...restBody } = req.body;
+    const { topics, tag, subject, ...restBody } = req.body;
 
     // Check if topics is an array and not empty
     if (!Array.isArray(topics) || topics.length === 0) {
@@ -43,7 +43,8 @@ export const storeUnrevisedTopics = async (
       const data = await StudyData.create({
         ...restBody,
         topic,
-        tag,
+        tag, 
+        "subject.name": subject,
         user: req.user._id,
       });
 

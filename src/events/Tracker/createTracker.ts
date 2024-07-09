@@ -1,13 +1,12 @@
-import createStudentTracker from '../functions/CreateTracker';
-import IDataSchema from '../types/IDataSchema';
-import { StudyData } from '../models/studentData';
-import User from '../models/userModel';
-import { calculateChapterEfficiency } from '../functions/CalculateEfficiency/calculateChapterEfficiency';
-import { calculateSubjectEfficiency } from '../functions/CalculateEfficiency/calculateSubjectEfficiency';
-import IUser from '../types/IUser';
+import createStudentTracker from '../../functions/CreateTracker';
+import IDataSchema from '../../types/IDataSchema';
+import { StudyData } from '../../models/studentData';
+import User from '../../models/userModel';
+import IUser from '../../types/IUser';
+import { trackerQueue } from '../../services/bullmq/producer';
 
 
-export const watchStudyDataCollection = async () => {
+export const watchingForCreateTracker = async () => {
     // Create a change stream to watch for changes in the collection
     const changeStream = StudyData.watch([], { fullDocument: 'updateLookup' });
 
@@ -20,9 +19,6 @@ export const watchStudyDataCollection = async () => {
                 case 'update':
                     fullDocument = change.fullDocument as IDataSchema;
                     updatedFields = change.updateDescription.updatedFields;
-                    break;
-                case 'replace':
-                    fullDocument = change.fullDocument as IDataSchema;
                     break;
                 default:
                     console.log(`Unhandled change operation: ${change.operationType}`);
@@ -38,21 +34,16 @@ export const watchStudyDataCollection = async () => {
                 }
 
                 if (updatedFields) {
-                    const subjectName = fullDocument.subject;
 
-                    // Check for topic.overall_efficiency update
-                    if (updatedFields['topic.overall_efficiency'] !== undefined) {
-                        const chapterName = fullDocument.chapter.name; 
-                        await calculateChapterEfficiency(chapterName, user);
-                    }
-
-                    // Check for chapter.overall_efficiency update
-                    if (updatedFields['chapter.overall_efficiency'] !== undefined) {
-                        await calculateSubjectEfficiency(subjectName, user);
+                    if (updatedFields['tag'] === 'active_continuous_revision' || updatedFields['tag'] === 'active_unrevised_topic') {
+                        
+                        await trackerQueue.add("createTracker", fullDocument);
+                        
+                        console.log("Tracker added to queue sucess")
                     }
                 }
 
-                await createStudentTracker(fullDocument);
+                
             }
         } catch (error) {
             console.error('Error processing change:', error);

@@ -1,42 +1,64 @@
-import Tracker from "../../models/trackerModel"
-import User from "../../models/userModel"
-import IDataSchema from "../../types/IDataSchema"
+import mongoose from 'mongoose';
+import Tracker from "../../models/trackerModel";
+import User from "../../models/userModel";
+import IDataSchema from "../../types/IDataSchema";
 
 const createStudentTracker = async (fullDocument: IDataSchema) => {
-    try {
-      const user = await User.findById(fullDocument.user);
-      if (!user) throw new Error('User not found');
-  
-      const subject = fullDocument.subject;
-      const chapterName = fullDocument.chapter.name;
-  
-      let tracker = await Tracker.findOne({
-        user: fullDocument.user,
-        subject: subject,
-        'chapter.name': chapterName
-      });
-  
-      if (tracker) {
-        // Tracker exists, push the topic to the existing tracker
-        tracker.topics.push(fullDocument.topic);
-        await tracker.save();
-        console.log('Tracker updated with new topic');
-      } else {
-        // Tracker does not exist, create a new tracker
-        tracker = new Tracker({
-          user: fullDocument.user,
-          subject: subject,
-          chapter: fullDocument.chapter,
-          topics: [fullDocument.topic]
-        });
-        await tracker.save();
+  console.log("worker executed");
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-        console.log(tracker)
-        console.log('New tracker created');
+  try {
+    const user = await User.findById(fullDocument.user).session(session);
+    if (!user) throw new Error('User not found');
+
+    const subjectName = fullDocument.subject.name.trim().toLowerCase();
+    const chapterName = fullDocument.chapter.name.trim().toLowerCase();
+
+    let tracker = await Tracker.findOne({
+      user: fullDocument.user,
+      "subject.name": subjectName,
+      'chapter.name': chapterName
+    }).session(session);
+
+    if (tracker) {
+      // Check if the topic already exists in the tracker
+      const topicExists = tracker.topics.some(
+        (topic) => topic.name === fullDocument.topic.name.trim().toLowerCase()
+      );
+
+      if (topicExists) {
+        console.log('Topic already exists in tracker, returning without updating');
+        await session.commitTransaction();
+        session.endSession();
+        return; // Topic already exists, return without making changes
       }
-    } catch (error) {
-      console.log(error);
+
+      // Topic does not exist, push the new topic into the chapter
+      tracker.topics.push(fullDocument.topic);
+      await tracker.save({ session });
+
+      console.log('New topic added to existing tracker');
+    } else {
+      // Tracker does not exist, create a new tracker
+      tracker = new Tracker({
+        user: fullDocument.user,
+        subject: { name: subjectName },
+        chapter: { name: chapterName },
+        topics: [fullDocument.topic]
+      });
+      await tracker.save({ session });
+
+      console.log('New tracker created');
     }
-  };
-  
-  export default createStudentTracker;
+
+    await session.commitTransaction();
+    session.endSession();
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.log(error);
+  }
+};
+
+export default createStudentTracker;

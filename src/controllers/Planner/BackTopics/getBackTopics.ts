@@ -92,7 +92,7 @@ export const getBackRevisionTopics = async (
 
   subjects.forEach((subject: any) => {
     subjectTopicsMap[subject] = backRevisionTopics.filter(
-      topic => topic.subject === subject
+      topic => topic.subject.name === subject
     );
   });
 

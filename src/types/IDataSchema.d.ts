@@ -22,12 +22,19 @@ interface Chapter {
   }[];
 }
 
+interface Subject {
+  name: string;
+  overall_efficiency?: number
+}
+
+
+
 interface IDataSchema extends mongoose.Document {
   user: mongoose.Types.ObjectId;
   tag: string;
   topic: Topic;
   chapter: Chapter;
-  subject: string;
+  subject: Subject;
   standard: number;
   createdAt?: Date;
   updatedAt?: Date;

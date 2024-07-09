@@ -41,9 +41,11 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     ],
   },
   subject: {
-    type: String,
-    required: true,
-    overall_efficiency: Number,
+    name: {
+      type: String,
+      required: true
+    },
+    overall_efficiency: {type: Number, default: 0},
   },
   standard: {
     type: Number,

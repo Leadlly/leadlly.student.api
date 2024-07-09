@@ -68,15 +68,14 @@ export const updateDailyPlanner = async (
       createdAt: { $gte: todayUTC },
     }).exec()) as IDataSchema[];
 
-
     const planner = await Planner.findOne({
       student: user._id,
-      "days.date": todayUTC,
+      "days.date": nextDayUTC,
     });
 
     if (!planner) {
       throw new Error(
-        `Planner not found for user ${user._id} and date ${todayUTC}`,
+        `Planner not found for user ${user._id} and date ${nextDayUTC}`,
       );
     }
 
@@ -88,13 +87,20 @@ export const updateDailyPlanner = async (
 
     const existingTopicNames = new Set(
       planner.days
-        .find(day => day.date.toISOString() === todayUTC.toISOString())?.continuousRevisionTopics
-        .map(data => data.topic.name) || []
+        .find(day => day.date.toISOString() === nextDayUTC.toISOString())?.continuousRevisionTopics
+        .map(data => data.topic.name.toLowerCase()) || []
     );
 
     const newContinuousTopics = dailyContinuousTopics.filter(
-      data => !existingTopicNames.has(data.topic.name)
+      data => !existingTopicNames.has(data.topic.name.toLowerCase())
     );
+
+    if (newContinuousTopics.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "All topics are already added for the next day.",
+      });
+    }
 
     newContinuousTopics.forEach((data) => {
       if (!data.topic.studiedAt) {
@@ -117,11 +123,11 @@ export const updateDailyPlanner = async (
     );
 
     // Merge existing questions with new dailyQuestions
-    const existingQuestions = planner.days.find(day => day.date.toISOString() === todayUTC.toISOString())?.questions || {};
+    const existingQuestions = planner.days.find(day => day.date.toISOString() === nextDayUTC.toISOString())?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
 
     const updatePlanner = await Planner.updateOne(
-      { student: user._id, "days.date": todayUTC },
+      { student: user._id, "days.date": nextDayUTC },
       {
         $push: {
           "days.$.continuousRevisionTopics": { $each: newContinuousTopics },

@@ -20,7 +20,7 @@ export const calculateSubjectEfficiency = async (subjectName: string, user: IUse
                 const studyData = await StudyData.findOne({
                     user: user._id,
                     'chapter.name': chapter.name,
-                    'subject': subjectName,
+                    'subject.name': subjectName,
                 });
 
                 if (studyData) {
@@ -30,20 +30,23 @@ export const calculateSubjectEfficiency = async (subjectName: string, user: IUse
             }
 
             // Calculate the average efficiency for the subject
-            const subjectEfficiency = chapterCount > 0 ? totalEfficiency / chapterCount : 0;
+            let subjectEfficiency = chapterCount > 0 ? totalEfficiency / chapterCount : 0;
+
+            // Round off the efficiency to two decimal places
+            subjectEfficiency = Math.round(subjectEfficiency * 100) / 100;
 
             // Update the subject efficiency in the StudyData model
-            await StudyData.updateMany(
-                {
-                    user: user._id,
-                    'subject': subjectName,
-                },
-                {
-                    $set: {
-                        'subject.overall_efficiency': subjectEfficiency,
-                    }
-                }
-            );
+            // await StudyData.updateMany(
+            //     {
+            //         user: user._id,
+            //         'subject.name': subjectName,
+            //     },
+            //     {
+            //         $set: {
+            //             'subject.overall_efficiency': subjectEfficiency,
+            //         }
+            //     }
+            // );
 
             console.log(`Subject ${subjectName} efficiency calculated: ${subjectEfficiency}`);
         }
