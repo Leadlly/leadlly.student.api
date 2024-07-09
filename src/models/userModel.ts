@@ -35,7 +35,14 @@ const userSchema = new Schema({
   academic: {
     standard: { type: Number, default: null },
     competitiveExam: { type: String, default: null },
-    subjects: { type: Array, default: null },
+    subjects: [
+      { 
+        name: {type: String, default: null},
+        overall_efficiency:{ type: Number, default: 0, min: 0, max: 100 },
+        overall_progress: { type: Number, default: 0, min: 0, max: 100 },
+        total_questions_solved: { type: Number, default: 0 } 
+      }
+    ],
     schedule: { type: String, default: null },
     coachingMode: { type: String, default: null },
     coachingName: { type: String, default: null },

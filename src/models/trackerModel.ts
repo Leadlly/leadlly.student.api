@@ -10,7 +10,6 @@ const trackerSchema = new mongoose.Schema({
         name: {
             type: String,
             required: true,
-            unique: true
           },
           plannerFrequency: {type: Number, default: 0},
           level: String,
@@ -25,7 +24,7 @@ const trackerSchema = new mongoose.Schema({
     topics: Array
 })
 
-trackerSchema.index({ 'chapter.name': 1 }, { unique: true });
+trackerSchema.index({ user: 1, 'chapter.name': 1 }, { unique: true });
 
 const Tracker = mongoose.model("Tracker", trackerSchema)
 
