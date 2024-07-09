@@ -23,8 +23,10 @@ const userSchema = new Schema({
     phone: { type: Number, default: null },
   },
   mentor: {
-    type: mongoose.Schema.Types.ObjectId,
-    default: null,
+    id: { 
+      type: mongoose.Schema.Types.ObjectId,
+      default: null
+    }
   },
   planner:{ type: Boolean, default: false},
   address: {
