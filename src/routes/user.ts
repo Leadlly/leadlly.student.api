@@ -23,7 +23,7 @@ router.delete(
   checkAuth,
   deleteUnrevisedTopics
 );
-router.post("/profile/save", checkAuth, studentPersonalInfo);
+router.post("/profile/save", checkAuth, convertToLowercase, studentPersonalInfo);
 router.post("/todaysVibe/save", checkAuth, setTodaysVibe);
 
 export default router;

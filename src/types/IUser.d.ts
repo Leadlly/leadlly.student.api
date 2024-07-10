@@ -1,5 +1,23 @@
 import { Document } from "mongoose";
 
+export interface ISubject {
+  name: string;
+  overall_efficiency: number;
+  overall_progress: number;
+  total_questions_solved: number;
+}
+
+interface IAcademic {
+  standard: number;
+  competitiveExam?: string | null;
+  subjects?: ISubject[];
+  schedule?: string | null;
+  coachingMode?: string | null;
+  coachingName?: string | null;
+  coachingAddress?: string | null;
+  schoolOrCollegeName?: string | null;
+  schoolOrCollegeAddress?: string | null;
+}
 interface IUser extends Document {
   firstname: string;
   lastname?: string;
@@ -25,17 +43,7 @@ interface IUser extends Document {
     addressLine?: string;
     pincode?: number;
   };
-  academic: {
-    standard: number;
-    competitiveExam?: string;
-    subjects?: Array;
-    schedule?: string;
-    coachingMode?: string;
-    coachingName?: string;
-    coachingAddress?: string;
-    schoolOrCollegeName?: string;
-    schoolOrCollegeAddress?: string;
-  };
+  academic: IAcademic;
   about: {
     dateOfBirth?: string;
     gender: string;

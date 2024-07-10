@@ -5,13 +5,26 @@ const trackerSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    subject: String,
+    subject: {},
     chapter: {
-        type: mongoose.Schema.Types.Mixed,
-        default: {},
+        name: {
+            type: String,
+            required: true,
+          },
+          plannerFrequency: {type: Number, default: 0},
+          level: String,
+          overall_efficiency: {type: Number, default: 0},
+          studiedAt: [
+            {
+              date: Date,
+              efficieny: {type: Number, default: 0},
+            },
+          ],
     },
     topics: Array
 })
+
+trackerSchema.index({ user: 1, 'chapter.name': 1 }, { unique: true });
 
 const Tracker = mongoose.model("Tracker", trackerSchema)
 

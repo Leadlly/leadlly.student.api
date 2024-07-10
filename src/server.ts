@@ -1,28 +1,24 @@
 import { app } from "./app";
 import ConnectToDB from "./db/db";
 import { questions_db } from "./db/db";
-import { otpWorker, subWorker } from "./services/bullmq/worker";
+import { otpWorker, subWorker, trackerWorker } from "./services/bullmq/worker";
 import "./controllers/Planner/scheduler";
 import { logger } from "./utils/winstonLogger";
 import serverless from "serverless-http";
-import { watchStudyDataCollection } from "./events/updateTracker";
-
-// import razorpay from "./services/payment/Razorpay";
+import { watchTrackerChanges } from "./events/Tracker";
 
 const port = process.env.PORT || 4000;
 
-//Database
-ConnectToDB(); //main db
-// questions_db.on("connected", () => {
-//   console.log("Question_DB connected");
-// });
+// Database
+ConnectToDB(); 
 
-
-// Queues
+// Workers
 otpWorker; 
-subWorker; // for subscription related emails
+subWorker;
+trackerWorker;
 
-watchStudyDataCollection()
+// Triggers
+watchTrackerChanges()
 
 const handler = serverless(app);
 

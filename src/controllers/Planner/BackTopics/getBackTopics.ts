@@ -2,7 +2,7 @@ import moment from "moment";
 import { StudyData } from "../../../models/studentData";
 import IDataSchema from "../../../types/IDataSchema";
 import User from "../../../models/userModel";
-import IUser from "../../../types/IUser";
+import IUser, { ISubject } from "../../../types/IUser";
 
 const getWeekNumber = (startDate: Date, currentDate: Date) => {
   const start = moment(startDate);
@@ -90,17 +90,17 @@ export const getBackRevisionTopics = async (
   // Limit to 18 topics and mix equally from all subjects
   const subjectTopicsMap: Record<string, IDataSchema[]> = {};
 
-  subjects.forEach((subject: any) => {
-    subjectTopicsMap[subject] = backRevisionTopics.filter(
-      topic => topic.subject === subject
+  subjects.forEach((subject: ISubject) => {
+    subjectTopicsMap[subject.name] = backRevisionTopics.filter(
+      topic => topic.subject.name === subject.name
     );
   });
 
   const maxTopicsPerSubject = Math.floor(18 / subjects.length);
   const mixedTopics: IDataSchema[] = [];
 
-  subjects.forEach((subject: any) => {
-    const topics = subjectTopicsMap[subject].slice(0, maxTopicsPerSubject);
+  subjects.forEach((subject: ISubject) => {
+    const topics = subjectTopicsMap[subject.name].slice(0, maxTopicsPerSubject);
     mixedTopics.push(...topics);
   });
 
