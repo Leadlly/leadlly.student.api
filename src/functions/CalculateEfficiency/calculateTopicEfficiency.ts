@@ -18,7 +18,6 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
     ]);
 
     for (let topic of topics) {
-
       // Fetch studyData for the topic
       const studyData = await StudyData.findOne({
         user: user._id,
@@ -42,7 +41,14 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
         }
       });
 
-      const efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+      let efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+
+      // Increment the efficiency by 0.02 but cap it at 98%
+      efficiency += 0.02;
+      efficiency = Math.min(efficiency, 98); // Cap at 98%
+
+      // Round efficiency to two decimal places
+      efficiency = Math.round(efficiency * 100) / 100;
 
       // Update the studyData topic's studiedAt array
       await StudyData.updateOne(
@@ -50,7 +56,6 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
         {
           $push: {
             "topic.studiedAt": {
-              date: today,
               efficiency: efficiency,
             },
           },
@@ -69,7 +74,7 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
   }
 };
 
-const calculateOverallEfficiency = async (topic: Topic, user: IUser) => {
+export const calculateOverallEfficiency = async (topic: Topic, user: IUser) => {
   try {
     const solvedQuestions = await SolvedQuestions.find({
       student: user._id,
@@ -85,8 +90,14 @@ const calculateOverallEfficiency = async (topic: Topic, user: IUser) => {
       }
     });
 
-  
-    const efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+    let efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+
+    // Increment the efficiency by 0.02 but cap it at 98%
+    efficiency += 0.02;
+    efficiency = Math.min(efficiency, 98); // Cap at 98%
+
+    // Round efficiency to two decimal places
+    efficiency = Math.round(efficiency * 100) / 100;
 
     await StudyData.updateOne(
       { user: user._id, "topic.name": topic.name },

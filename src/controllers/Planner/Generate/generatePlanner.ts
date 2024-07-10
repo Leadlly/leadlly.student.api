@@ -56,6 +56,7 @@ export const generateWeeklyPlanner = async (
 
   const yesterday = moment().subtract(1, "days").startOf("day").toDate();
 
+
   const continuousRevisionTopics = (await StudyData.find({
     user: user._id,
     tag: "continuous_revision",
@@ -91,17 +92,32 @@ export const generateWeeklyPlanner = async (
 
       const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
 
-      dailyTopics.forEach((data) => {
-        if (!data.topic.studiedAt) {
-          data.topic.studiedAt = [];
-        }
-        data.topic.studiedAt.push({ date, efficiency: 0 });
+      // Fetch and update topics in the StudyData collection
+      await Promise.all(dailyTopics.map(async (data) => {
+        const studyData = await StudyData.findOne({
+          user: user._id,
+          "topic.name": data.topic.name
+        }).exec() as IDataSchema;
 
-        if (!data.topic.plannerFrequency) {
-          data.topic.plannerFrequency = 0;
+        if (studyData) {
+          if (!studyData.topic.studiedAt) {
+            studyData.topic.studiedAt = [];
+          }
+          studyData.topic.studiedAt.push({ date, efficiency: 0 });
+
+          if (!studyData.topic.plannerFrequency) {
+            studyData.topic.plannerFrequency = 0;
+          }
+          studyData.topic.plannerFrequency += 1;
+
+          // Update the tag if needed
+          if (studyData.tag === "unrevised_topic") {
+            studyData.tag = "active_unrevised_topic";
+          }
+
+          await studyData.save();
         }
-        data.topic.plannerFrequency += 1;
-      });
+      }));
 
       dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
       return {
@@ -122,15 +138,11 @@ export const generateWeeklyPlanner = async (
   });
 
   const planner = await Planner.create(generatedPlanner);
+
+  // Update tags for continuousRevisionTopics
   continuousRevisionTopics.forEach(
     (data) => (data.tag = "active_continuous_revision"),
   );
-
-  backRevisionTopics.forEach((data) => {
-    if (data.tag === "unrevised_topic") {
-      data.tag = "active_back_revision"
-    }
-  });
   await Promise.all(continuousRevisionTopics.map((data) => data.save()));
 
   return { message: "Planner created", planner };
