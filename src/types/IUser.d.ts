@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, ObjectId } from "mongoose";
 
 export interface ISubject {
   name: string;
@@ -10,7 +10,7 @@ export interface ISubject {
 interface IAcademic {
   standard: number;
   competitiveExam?: string | null;
-  subjects?: ISubject[];
+  subjects: ISubject[];
   schedule?: string | null;
   coachingMode?: string | null;
   coachingName?: string | null;
@@ -38,6 +38,9 @@ interface IUser extends Document {
     name?: string;
     phone?: string;
   };
+  mentor: {
+    id?: ObjectId
+  }
   address: {
     country?: string;
     addressLine?: string;
