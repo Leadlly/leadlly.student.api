@@ -14,6 +14,7 @@ import plannerRoutes from "./routes/planner";
 import questionRoutes from "./routes/question";
 import quizRoutes from './routes/quiz'
 import trackerRoutes from './routes/tracker'
+import meetingRoutes from './routes/meeting'
 
 config({
   path: "./.env",
@@ -69,6 +70,7 @@ app.use("/api/planner", plannerRoutes);
 app.use("/api/questionbank", questionRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/tracker", trackerRoutes);
+app.use("/api/meeting", meetingRoutes);
 
 app.get("/api", (req, res) => {
   res.send("Hello, world!");

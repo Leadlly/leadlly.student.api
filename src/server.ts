@@ -1,11 +1,11 @@
 import { app } from "./app";
 import ConnectToDB from "./db/db";
-import { questions_db } from "./db/db";
 import { otpWorker, subWorker, trackerWorker } from "./services/bullmq/worker";
-import "./controllers/Planner/scheduler";
 import { logger } from "./utils/winstonLogger";
 import serverless from "serverless-http";
 import { watchTrackerChanges } from "./events/Tracker";
+import { watchMeetingChanges } from "./events/Meeting";
+import "./controllers/Planner/scheduler";
 
 const port = process.env.PORT || 4000;
 
@@ -19,6 +19,7 @@ trackerWorker;
 
 // Triggers
 watchTrackerChanges()
+watchMeetingChanges()
 
 const handler = serverless(app);
 

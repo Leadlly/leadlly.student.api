@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../../models/userModel";
 import IUser from "../../types/IUser";
 import { todaysVibeSchema } from "../../Schemas/user.schema";
 import { getSubjectList } from "../../utils/getSubjectList";
-export const studentPersonalInfo = async (req: Request, res: Response) => {
+import { CustomError } from "../../middlewares/error";
+export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const bodyData = req.body;
     const user = (await User.findById(req.user._id)) as IUser;
@@ -91,13 +92,13 @@ export const studentPersonalInfo = async (req: Request, res: Response) => {
       message: "Personal information updated successfully",
       user,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating personal info:", error);
-    res.status(500).json({ message: "Server error", error });
+    next(new CustomError(error.message))
   }
 };
 
-export const setTodaysVibe = async (req: Request, res: Response) => {
+export const setTodaysVibe = async (req: Request, res: Response, next: NextFunction) => {
   const parsedResult = todaysVibeSchema.safeParse(req.body);
 
   if (!parsedResult.success) {
@@ -137,7 +138,7 @@ export const setTodaysVibe = async (req: Request, res: Response) => {
       message: "todays Vibe updated successfully",
       todaysVibe: todaysVibe,
     });
-  } catch (error) {
-    return res.status(500).json({ message: "Error updating TodayVibe", error });
+  } catch (error: any) {
+    next(new CustomError(error.message))
   }
 };

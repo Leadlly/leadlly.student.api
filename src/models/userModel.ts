@@ -25,6 +25,7 @@ const userSchema = new Schema({
   mentor: {
     id: { 
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Mentor',
       default: null
     }
   },

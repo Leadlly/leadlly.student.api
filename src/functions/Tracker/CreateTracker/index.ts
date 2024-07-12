@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import Tracker from "../../models/trackerModel";
-import User from "../../models/userModel";
-import IDataSchema from "../../types/IDataSchema";
+import Tracker from "../../../models/trackerModel";
+import IDataSchema from "../../../types/IDataSchema";
+import User from '../../../models/userModel';
 
 const createStudentTracker = async (fullDocument: IDataSchema) => {
   console.log("worker executed");
