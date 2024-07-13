@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, ObjectId } from "mongoose";
 
 interface IDay {
   date: Date;
@@ -9,7 +9,7 @@ interface IDay {
 }
 
 interface IPlanner extends Document {
-  student: mongoose.Schema.Types.ObjectId;
+  student: ObjectId;
   startDate: Date;
   endDate: Date;
   days: IDay[];

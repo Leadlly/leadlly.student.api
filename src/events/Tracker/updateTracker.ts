@@ -3,8 +3,8 @@ import { StudyData } from '../../models/studentData';
 import User from '../../models/userModel';
 import { calculateSubjectEfficiency } from '../../functions/CalculateEfficiency/calculateSubjectEfficiency';
 import IUser from '../../types/IUser';
-import updateStudentTracker from '../../functions/UpdateTracker';
 import { calculateChapterEfficiency } from '../../functions/CalculateEfficiency/calculateChapterEfficiency';
+import { updateTrackerQueue } from '../../services/bullmq/producer';
 
 
 export const watchingForUpdateTracker = async () => {
@@ -44,7 +44,7 @@ export const watchingForUpdateTracker = async () => {
                     if (updatedFields['topic.overall_efficiency'] !== undefined) {
                         const chapterName = fullDocument.chapter.name; 
                         await calculateChapterEfficiency(chapterName, user);
-                        await updateStudentTracker(fullDocument);
+                        await updateTrackerQueue.add("updateTracker", fullDocument);
                     }
 
                     // Check for chapter.overall_efficiency update

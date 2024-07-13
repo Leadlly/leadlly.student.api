@@ -1,4 +1,3 @@
-import createStudentTracker from '../../functions/CreateTracker';
 import IDataSchema from '../../types/IDataSchema';
 import { StudyData } from '../../models/studentData';
 import User from '../../models/userModel';

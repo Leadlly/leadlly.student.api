@@ -21,7 +21,9 @@ const trackerSchema = new mongoose.Schema({
             },
           ],
     },
-    topics: Array
+    topics: Array,
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
 })
 
 trackerSchema.index({ user: 1, 'chapter.name': 1 }, { unique: true });

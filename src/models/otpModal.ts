@@ -52,6 +52,7 @@ const OTPSchema: Schema = new Schema({
       type: String,
     },
   },
+  createdAt: { type: Date, default: Date.now },
 });
 
 // Pre-save hook for password hashing
