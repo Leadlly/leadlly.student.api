@@ -73,6 +73,11 @@ const userSchema = new Schema({
         emoji: { type: String, default: null },
       },
     ],
+    dailyReport : {
+      dailySessions: { type: Number, default: 0, min: 0, max: 100 },      
+      dailyQuiz: { type: Number, default: 0, min: 0, max: 100 },      
+      overall: { type: Number, default: 0, min: 0, max: 100 }
+    }
   },
   badges: [
     {

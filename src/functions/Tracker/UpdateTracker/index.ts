@@ -25,6 +25,7 @@ const updateStudentTracker = async (fullDocument: IDataSchema) => {
       tracker.topics[topicIndex].plannerFrequency = fullDocument.topic.plannerFrequency;
       tracker.topics[topicIndex].overall_efficiency = fullDocument.topic.overall_efficiency;
       tracker.topics[topicIndex].studiedAt = fullDocument.topic.studiedAt;
+      tracker.updatedAt = new Date()
       console.log('Topic already present in the tracker, updated the topic information');
     } else {
       // Topic does not exist, add it to the tracker

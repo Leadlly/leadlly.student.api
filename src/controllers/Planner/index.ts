@@ -10,6 +10,7 @@ import moment from "moment-timezone";
 import { getDailyTopics } from "./DailyTopics/getDailyTopics";
 import IDataSchema from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
+import mongoose from "mongoose";
 
 export const createPlanner = async (
   req: Request,
@@ -63,13 +64,13 @@ export const updateDailyPlanner = async (
     const user: IUser = req.user;
 
     const continuousRevisionTopics = (await StudyData.find({
-      user: user._id,
+      user: new mongoose.Types.ObjectId(user._id),
       tag: "continuous_revision",
       createdAt: { $gte: todayUTC },
     }).exec()) as IDataSchema[];
 
     const planner = await Planner.findOne({
-      student: user._id,
+      student: new mongoose.Types.ObjectId(user._id),
       "days.date": nextDayUTC,
     });
 
