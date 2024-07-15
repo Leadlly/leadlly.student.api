@@ -68,12 +68,13 @@ export const updateDailyPlanner = async (
 
     const planner = await Planner.findOne({
       student: new mongoose.Types.ObjectId(user._id),
-      "days.date": nextDay,
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
     });
 
     if (!planner) {
       throw new Error(
-        `Planner not found for user ${user._id} for the current week.`,
+        `Planner not found for user ${user._id} for the date ${nextDay}`,
       );
     }
 
@@ -83,9 +84,14 @@ export const updateDailyPlanner = async (
       user,
     );
 
+    const nextDayString = nextDay.format("YYYY-MM-DD");
+
+    const existingDay = planner.days.find(day => 
+      moment(day.date).format("YYYY-MM-DD") === nextDayString
+    );
+
     const existingTopicNames = new Set(
-      planner.days
-        .find(day => moment(day.date).isSame(nextDay, "day"))?.continuousRevisionTopics
+      existingDay?.continuousRevisionTopics
         .map(data => data.topic.name.toLowerCase()) || []
     );
 
@@ -120,7 +126,7 @@ export const updateDailyPlanner = async (
       dailyTopics,
     );
 
-    const existingQuestions = planner.days.find(day => moment(day.date).isSame(nextDay, "day"))?.questions || {};
+    const existingQuestions = existingDay?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
 
     const updatePlanner = await Planner.updateOne(
@@ -144,14 +150,13 @@ export const updateDailyPlanner = async (
 
     res.status(200).json({
       success: true,
-      message: `Planner Updated`,
+      message: `Planner Updated for ${nextDay}`,
       planner: updatePlanner,
     });
   } catch (error: any) {
     next(new CustomError(error.message));
   }
 };
-
 
 
 export const getPlanner = async (
