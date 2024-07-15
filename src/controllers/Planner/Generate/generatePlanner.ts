@@ -35,8 +35,11 @@ export const generateWeeklyPlanner = async (
   let startDate;
   let endDate;
 
-  if (activationMoment.isSame(currentMoment, 'week')) {
-    startDate = activationMoment.startOf("day").toDate();
+  // Start from the next day of activation date
+  const nextDay = activationMoment.add(1, 'days').startOf('day');
+
+  if (nextDay.isSame(currentMoment, 'week')) {
+    startDate = nextDay.toDate();
     endDate = moment(startDate).endOf("isoWeek").toDate();
   } else {
     startDate = currentMoment.startOf("isoWeek").toDate();
@@ -63,15 +66,15 @@ export const generateWeeklyPlanner = async (
     createdAt: { $gte: yesterday },
   }).exec()) as IDataSchema[];
 
-  const startDayIndex = activationMoment.isSame(currentMoment, 'week')
-    ? daysOfWeek.indexOf(activationMoment.format('dddd'))
+  const startDayIndex = nextDay.isSame(currentMoment, 'week')
+    ? daysOfWeek.indexOf(nextDay.format('dddd'))
     : 0;
 
   let dailyQuestions;
   const days = await Promise.all(
     daysOfWeek.slice(startDayIndex).map(async (day, index) => {
-      const date = activationMoment.isSame(currentMoment, 'week')
-        ? moment(activationMoment).add(index, "days").toDate()
+      const date = nextDay.isSame(currentMoment, 'week')
+        ? moment(nextDay).add(index, "days").toDate()
         : moment(startDate).add(index, "days").toDate();
 
       if (day === "Sunday") {

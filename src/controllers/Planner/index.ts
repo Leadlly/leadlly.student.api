@@ -150,7 +150,7 @@ export const updateDailyPlanner = async (
 
     res.status(200).json({
       success: true,
-      message: `Planner Updated for ${nextDay}`,
+      message: `Planner Updated for ${nextDay.toDate()}`,
       planner: updatePlanner,
     });
   } catch (error: any) {
