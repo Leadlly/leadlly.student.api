@@ -52,31 +52,29 @@ export const updateDailyPlanner = async (
 ) => {
   try {
     const timezone = "Asia/Kolkata";
-
-    // Get today in IST
-    const todayIST = moment().tz(timezone).startOf("day");
-    const todayUTC = todayIST.clone().utc().toDate();
-
-    // Get next day in IST
-    const nextDayIST = todayIST.clone().add(1, "days").startOf("day");
-    const nextDayUTC = nextDayIST.clone().utc().toDate();
+    const today = moment().tz(timezone).startOf("day");
+    const nextDay = moment(today).add(1, "days").startOf("day");
 
     const user: IUser = req.user;
 
-    const continuousRevisionTopics = (await StudyData.find({
+    const continuousRevisionTopics = await StudyData.find({
       user: new mongoose.Types.ObjectId(user._id),
       tag: "continuous_revision",
-      createdAt: { $gte: todayUTC },
-    }).exec()) as IDataSchema[];
+      createdAt: { $gte: today.toDate() },
+    }).exec() as IDataSchema[];
+
+    const startDate = moment().startOf("isoWeek").toDate();
+    const endDate = moment(startDate).endOf("isoWeek").toDate();
 
     const planner = await Planner.findOne({
       student: new mongoose.Types.ObjectId(user._id),
-      "days.date": nextDayUTC,
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
     });
 
     if (!planner) {
       throw new Error(
-        `Planner not found for user ${user._id} and date ${nextDayUTC}`,
+        `Planner not found for user ${user._id} for the date ${nextDay}`,
       );
     }
 
@@ -86,9 +84,14 @@ export const updateDailyPlanner = async (
       user,
     );
 
+    const nextDayString = nextDay.format("YYYY-MM-DD");
+
+    const existingDay = planner.days.find(day => 
+      moment(day.date).format("YYYY-MM-DD") === nextDayString
+    );
+
     const existingTopicNames = new Set(
-      planner.days
-        .find(day => day.date.toISOString() === nextDayUTC.toISOString())?.continuousRevisionTopics
+      existingDay?.continuousRevisionTopics
         .map(data => data.topic.name.toLowerCase()) || []
     );
 
@@ -107,7 +110,7 @@ export const updateDailyPlanner = async (
       if (!data.topic.studiedAt) {
         data.topic.studiedAt = [];
       }
-      data.topic.studiedAt.push({ date: nextDayUTC, efficiency: 0 });
+      data.topic.studiedAt.push({ date: nextDay.toDate(), efficiency: 0 });
 
       if (!data.topic.plannerFrequency) {
         data.topic.plannerFrequency = 0;
@@ -118,17 +121,16 @@ export const updateDailyPlanner = async (
     const dailyTopics = [...newContinuousTopics, ...dailyBackTopics];
 
     const dailyQuestions = await getDailyQuestions(
-      moment(nextDayUTC).format("dddd"),
-      nextDayUTC,
+      moment(nextDay).format("dddd"),
+      nextDay.toDate(),
       dailyTopics,
     );
 
-    // Merge existing questions with new dailyQuestions
-    const existingQuestions = planner.days.find(day => day.date.toISOString() === nextDayUTC.toISOString())?.questions || {};
+    const existingQuestions = existingDay?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
 
     const updatePlanner = await Planner.updateOne(
-      { student: user._id, "days.date": nextDayUTC },
+      { student: user._id, "days.date": nextDay.toDate() },
       {
         $push: {
           "days.$.continuousRevisionTopics": { $each: newContinuousTopics },
@@ -148,14 +150,13 @@ export const updateDailyPlanner = async (
 
     res.status(200).json({
       success: true,
-      message: `Planner Updated`,
+      message: `Planner Updated for ${nextDay.toDate()}`,
       planner: updatePlanner,
     });
   } catch (error: any) {
     next(new CustomError(error.message));
   }
 };
-
 
 
 export const getPlanner = async (
