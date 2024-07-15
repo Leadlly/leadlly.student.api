@@ -60,7 +60,7 @@ interface IUser extends Document {
       day: String;
       emoji: String;
     }>;
-    dailyReport : {
+    dailyReport?: {
       dailySessions: number,      
       dailyQuiz: number,      
       overall: number
