@@ -6,7 +6,7 @@ import { generateWeeklyPlanner } from "./Generate/generatePlanner";
 import IUser from "../../types/IUser";
 import { getBackRevisionTopics } from "./BackTopics/getBackTopics";
 import { getDailyQuestions } from "./DailyQuestions/getDailyQuestions";
-import moment from "moment";
+import moment from "moment-timezone";
 import { getDailyTopics } from "./DailyTopics/getDailyTopics";
 import IDataSchema from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
@@ -51,7 +51,8 @@ export const updateDailyPlanner = async (
   next: NextFunction,
 ) => {
   try {
-    const today = moment().startOf("day");
+    const timezone = "Asia/Kolkata";
+    const today = moment().tz(timezone).startOf("day");
     const nextDay = moment(today).add(1, "days").startOf("day");
 
     const user: IUser = req.user;
@@ -164,7 +165,7 @@ export const getPlanner = async (
   next: NextFunction,
 ) => {
   try {
-    const today = moment();
+    const today = moment().tz("Asia/Kolkata");
     const userId = req.user._id;
 
     const startDate = moment().startOf("isoWeek").toDate();

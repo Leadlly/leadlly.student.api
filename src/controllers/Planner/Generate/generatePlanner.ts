@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import Planner from "../../../models/plannerModel";
 import { StudyData } from "../../../models/studentData";
 import IDataSchema, { Topic } from "../../../types/IDataSchema";
@@ -28,8 +28,9 @@ export const generateWeeklyPlanner = async (
     throw new Error("Activation date not found");
   }
 
-  const activationMoment = moment(activationDate);
-  const currentMoment = moment();
+  const timezone = "Asia/Kolkata";
+  const activationMoment = moment.tz(activationDate, timezone);
+  const currentMoment = moment.tz(timezone);
 
   // Determine the start and end dates of the planner
   let startDate;
@@ -57,8 +58,7 @@ export const generateWeeklyPlanner = async (
     return { message: "Planner already exists", planner: existingPlanner };
   }
 
-  const yesterday = moment().subtract(1, "days").startOf("day").toDate();
-
+  const yesterday = moment.tz(timezone).subtract(1, "days").startOf("day").toDate();
 
   const continuousRevisionTopics = (await StudyData.find({
     user: user._id,
