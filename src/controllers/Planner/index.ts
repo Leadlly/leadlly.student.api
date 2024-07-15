@@ -68,8 +68,7 @@ export const updateDailyPlanner = async (
 
     const planner = await Planner.findOne({
       student: new mongoose.Types.ObjectId(user._id),
-      startDate: { $gte: startDate },
-      endDate: { $lte: endDate },
+      "days.date": nextDay,
     });
 
     if (!planner) {
