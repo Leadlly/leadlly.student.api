@@ -18,7 +18,6 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
     ]);
 
     for (let topic of topics) {
-      // Fetch studyData for the topic
       const studyData = await StudyData.findOne({
         user: user._id,
         "topic.name": topic.name,
@@ -47,20 +46,28 @@ export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
       efficiency += 0.02;
       efficiency = Math.min(efficiency, 98); // Cap at 98%
 
-      // Round efficiency to two decimal places
       efficiency = Math.round(efficiency * 100) / 100;
 
-      // Update the studyData topic's studiedAt array
-      await StudyData.updateOne(
-        { _id: studyData._id, "topic.name": topic.name },
-        {
-          $push: {
-            "topic.studiedAt": {
-              efficiency: efficiency,
-            },
-          },
+      const existingEntryIndex = studyData.topic.studiedAt.findIndex((entry) => {
+        if (!entry.date) {
+          return false;
         }
-      );
+        const entryDate = new Date(entry.date);
+        entryDate.setHours(0, 0, 0, 0);
+        return entryDate.getTime() === today.getTime();
+      });
+
+      if (existingEntryIndex !== -1) {
+        studyData.topic.studiedAt[existingEntryIndex].efficiency = efficiency;
+      } else {
+        // Push a new entry
+        studyData.topic.studiedAt.push({
+          date: today,
+          efficiency: efficiency,
+        });
+      }
+
+      await studyData.save();
 
       // Calculate overall efficiency
       topic.overall_efficiency = await calculateOverallEfficiency(topic, user);

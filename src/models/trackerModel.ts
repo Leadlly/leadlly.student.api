@@ -1,11 +1,15 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
+import { ITracker } from '../types/ITracker';
 
-const trackerSchema = new mongoose.Schema({
+
+const trackerSchema: Schema = new mongoose.Schema<ITracker>({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    subject: {},
+    subject: {
+      name: String
+    },
     chapter: {
         name: {
             type: String,
@@ -28,6 +32,6 @@ const trackerSchema = new mongoose.Schema({
 
 trackerSchema.index({ user: 1, 'chapter.name': 1 }, { unique: true });
 
-const Tracker = mongoose.model("Tracker", trackerSchema)
+const Tracker = mongoose.model<ITracker>("Tracker", trackerSchema)
 
 export default Tracker

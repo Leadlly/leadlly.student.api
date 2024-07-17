@@ -21,20 +21,32 @@ const updateStudentTracker = async (fullDocument: IDataSchema) => {
     const topicIndex = tracker.topics.findIndex(topic => topic.name === topicName);
 
     if (topicIndex !== -1) {
-      // Topic exists, update its information
+      if (tracker.chapter) {
+        tracker.chapter.overall_efficiency = fullDocument.chapter.overall_efficiency;
+      }
       tracker.topics[topicIndex].plannerFrequency = fullDocument.topic.plannerFrequency;
       tracker.topics[topicIndex].overall_efficiency = fullDocument.topic.overall_efficiency;
       tracker.topics[topicIndex].studiedAt = fullDocument.topic.studiedAt;
-      tracker.updatedAt = new Date()
-      console.log('Topic already present in the tracker, updated the topic information');
+      tracker.updatedAt = new Date();
+
+      await Tracker.updateOne(
+        { _id: tracker._id, "topics.name": topicName },
+        {
+          $set: {
+            "topics.$": tracker.topics[topicIndex],
+            "chapters.$.overall_efficiency": fullDocument.chapter.overall_efficiency,
+            updatedAt: new Date()
+          }
+        }
+      );
+      console.log('Topic already present in the tracker, updated the topic information', tracker.topics[topicIndex]);
     } else {
       // Topic does not exist, add it to the tracker
       tracker.topics.push(fullDocument.topic);
+      await tracker.save();
       console.log('New topic added to existing tracker');
     }
 
-    await tracker.save();
-    console.log('Tracker updated successfully');
   } catch (error) {
     console.log(error);
   }
