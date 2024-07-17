@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import SolvedQuestions from "../../../models/solvedQuestions";
-import { calculateEfficiency } from "../../../functions/CalculateEfficiency/calculateTopicEfficiency";
+import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calculateTopicMetrics";
 import { CustomError } from "../../../middlewares/error";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
@@ -33,7 +33,7 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
     });
 
     await Promise.all(createQuestionPromises);
-    await calculateEfficiency(topics, req.user);
+    await calculateTopicMetrics(topics, req.user);
 
     res.status(200).json({
       success: true,

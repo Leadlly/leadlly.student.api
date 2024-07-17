@@ -1,11 +1,27 @@
 
-import { Chapter, Topic } from "./IDataSchema";
+import { Topic } from "./IDataSchema";
 
   
 
 interface IStudiedAt {
     date: Date;
     efficiency: number;
+  }
+
+  interface Chapter {
+    name: string;
+    plannerFrequency?: number;
+    level?: string;
+    overall_efficiency?: number;
+    overall_progress?: number;
+    total_questions_solved: { 
+    number?: number;
+    percentage?: number;
+    };
+    studiedAt: {
+      date?: Date;
+      efficiency?: number;
+    }[];
   }
 
   

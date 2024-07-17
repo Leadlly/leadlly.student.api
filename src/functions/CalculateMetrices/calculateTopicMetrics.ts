@@ -3,7 +3,7 @@ import IUser from "../../types/IUser";
 import IDataSchema, { Topic } from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
 
-export const calculateEfficiency = async (topics: Topic[], user: IUser) => {
+export const calculateTopicMetrics = async (topics: Topic[], user: IUser) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

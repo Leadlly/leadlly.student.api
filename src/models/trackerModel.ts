@@ -18,6 +18,11 @@ const trackerSchema: Schema = new mongoose.Schema<ITracker>({
           plannerFrequency: {type: Number, default: 0},
           level: String,
           overall_efficiency: {type: Number, default: 0},
+          overall_progress: { type: Number, default: 0, min: 0, max: 100 },
+          total_questions_solved: { 
+            number: { type: Number, default: 0 },
+            percentage: { type: Number, default: 0, min: 0, max: 100 },
+          }, 
           studiedAt: [
             {
               date: Date,

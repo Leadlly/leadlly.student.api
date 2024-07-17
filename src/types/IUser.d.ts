@@ -2,9 +2,12 @@ import { Document, ObjectId } from "mongoose";
 
 export interface ISubject {
   name: string;
-  overall_efficiency: number;
-  overall_progress: number;
-  total_questions_solved: number;
+  overall_efficiency?: number;
+  overall_progress?: number;
+  total_questions_solved: { 
+    number?: number;
+    percentage?: number;
+    };
 }
 
 interface IAcademic {
