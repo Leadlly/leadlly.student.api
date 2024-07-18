@@ -67,9 +67,15 @@ const userSchema = new Schema({
     url: { type: String, default: null },
   },
   details: {
-    level: { type: Number, default: null },
-    points: { type: Number, default: null },
-    streak: { type: Number, default: null },
+    level: { 
+      number: {type: Number, default: null} 
+    },
+    points: {
+      number: {type: Number, default: null} 
+     },
+    streak: {
+      number: {type: Number, default: null} 
+     },
     mood: [
       {
         day: { type: String, default: null },
