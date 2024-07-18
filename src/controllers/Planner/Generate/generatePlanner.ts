@@ -20,7 +20,6 @@ export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
 ) => {
-  // Determine the activation date
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
 
@@ -32,7 +31,6 @@ export const generateWeeklyPlanner = async (
   const activationMoment = moment.tz(activationDate, timezone);
   const currentMoment = moment.tz(timezone);
 
-  // Determine the start and end dates of the planner
   let startDate;
   let endDate;
 
@@ -113,7 +111,6 @@ export const generateWeeklyPlanner = async (
           }
           studyData.topic.plannerFrequency += 1;
 
-          // Update the tag if needed
           if (studyData.tag === "unrevised_topic") {
             studyData.tag = "active_unrevised_topic";
           }
@@ -142,7 +139,6 @@ export const generateWeeklyPlanner = async (
 
   const planner = await Planner.create(generatedPlanner);
 
-  // Update tags for continuousRevisionTopics
   continuousRevisionTopics.forEach(
     (data) => (data.tag = "active_continuous_revision"),
   );

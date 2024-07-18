@@ -43,7 +43,10 @@ const userSchema = new Schema({
         name: {type: String, default: null},
         overall_efficiency:{ type: Number, default: 0, min: 0, max: 100 },
         overall_progress: { type: Number, default: 0, min: 0, max: 100 },
-        total_questions_solved: { type: Number, default: 0 } 
+        total_questions_solved: { 
+          number: { type: Number, default: 0 },
+          percentage: { type: Number, default: 0, min: 0, max: 100 },
+        } 
       }
     ],
     schedule: { type: String, default: null },

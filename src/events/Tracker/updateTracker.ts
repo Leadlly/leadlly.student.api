@@ -1,9 +1,8 @@
 import IDataSchema from '../../types/IDataSchema';
 import { StudyData } from '../../models/studentData';
 import User from '../../models/userModel';
-import { calculateSubjectEfficiency } from '../../functions/CalculateEfficiency/calculateSubjectEfficiency';
+import { calculateSubjectMetrics } from '../../functions/CalculateMetrices/calculateSubjectMetrics';
 import IUser from '../../types/IUser';
-import { calculateChapterEfficiency } from '../../functions/CalculateEfficiency/calculateChapterEfficiency';
 import { updateTrackerQueue } from '../../services/bullmq/producer';
 
 
@@ -42,14 +41,12 @@ export const watchingForUpdateTracker = async () => {
 
                     // Check for topic.overall_efficiency update
                     if (updatedFields['topic.overall_efficiency'] !== undefined) {
-                        const chapterName = fullDocument.chapter.name; 
-                        await calculateChapterEfficiency(chapterName, user);
                         await updateTrackerQueue.add("updateTracker", fullDocument);
                     }
 
                     // Check for chapter.overall_efficiency update
                     if (updatedFields['chapter.overall_efficiency'] !== undefined) {
-                        await calculateSubjectEfficiency(subjectName, user);
+                        await calculateSubjectMetrics(subjectName, user);
                     }
                 }
 
