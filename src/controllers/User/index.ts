@@ -86,6 +86,7 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
       user.academic.coachingAddress = bodyData.coachingAddress;
     }
 
+    user.updatedAt = new Date()
     await user.save();
 
     res.status(200).json({

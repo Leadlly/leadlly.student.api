@@ -1,5 +1,6 @@
 import Tracker from "../../../models/trackerModel";
 import IDataSchema from "../../../types/IDataSchema";
+import {calculateChapterMetrics} from '../../CalculateMetrices/calculateChapterMetrics'
 
 const updateStudentTracker = async (fullDocument: IDataSchema) => {
   try {
@@ -18,22 +19,39 @@ const updateStudentTracker = async (fullDocument: IDataSchema) => {
       return; 
     }
 
+    const chapterProgress = await calculateChapterMetrics(chapterName, fullDocument.user)
+
     const topicIndex = tracker.topics.findIndex(topic => topic.name === topicName);
 
     if (topicIndex !== -1) {
-      // Topic exists, update its information
       tracker.topics[topicIndex].plannerFrequency = fullDocument.topic.plannerFrequency;
       tracker.topics[topicIndex].overall_efficiency = fullDocument.topic.overall_efficiency;
       tracker.topics[topicIndex].studiedAt = fullDocument.topic.studiedAt;
-      console.log('Topic already present in the tracker, updated the topic information');
+      tracker.updatedAt = new Date();
+
+      await Tracker.updateOne(
+        { _id: tracker._id, "topics.name": topicName },
+        {
+          $set: {
+            "topics.$": tracker.topics[topicIndex],
+            updatedAt: new Date()
+          }
+        }
+      );
+      console.log('Topic already present in the tracker, updated the topic information', tracker.topics[topicIndex]);
     } else {
       // Topic does not exist, add it to the tracker
       tracker.topics.push(fullDocument.topic);
       console.log('New topic added to existing tracker');
     }
 
+    tracker.chapter.overall_efficiency = chapterProgress.overall_efficiency;
+    tracker.chapter.overall_progress = chapterProgress.overall_progress;
+    tracker.chapter.total_questions_solved = chapterProgress.total_questions_solved;
+    tracker.updatedAt = new Date();
+
     await tracker.save();
-    console.log('Tracker updated successfully');
+
   } catch (error) {
     console.log(error);
   }

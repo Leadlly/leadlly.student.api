@@ -2,9 +2,12 @@ import { Document, ObjectId } from "mongoose";
 
 export interface ISubject {
   name: string;
-  overall_efficiency: number;
-  overall_progress: number;
-  total_questions_solved: number;
+  overall_efficiency?: number;
+  overall_progress?: number;
+  total_questions_solved: { 
+    number?: number;
+    percentage?: number;
+    };
 }
 
 interface IAcademic {
@@ -60,6 +63,11 @@ interface IUser extends Document {
       day: String;
       emoji: String;
     }>;
+    dailyReport?: {
+      dailySessions: number,      
+      dailyQuiz: number,      
+      overall: number
+    }
   };
   badges?: Array<{
     name: string;
@@ -86,7 +94,8 @@ interface IUser extends Document {
   };
   resetPasswordToken?: string | null;
   resetTokenExpiry?: string | null;
-  createdAt?: Date; // Optional as it has a default value
+  createdAt?: Date; 
+  updatedAt?: Date; 
   comparePassword(candidatePassword: string): Promise<boolean>;
   getToken(): Promise<string>;
 }

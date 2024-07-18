@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import Planner from "../../../models/plannerModel";
 import { StudyData } from "../../../models/studentData";
 import IDataSchema, { Topic } from "../../../types/IDataSchema";
@@ -20,7 +20,6 @@ export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
 ) => {
-  // Determine the activation date
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
 
@@ -28,15 +27,18 @@ export const generateWeeklyPlanner = async (
     throw new Error("Activation date not found");
   }
 
-  const activationMoment = moment(activationDate);
-  const currentMoment = moment();
+  const timezone = "Asia/Kolkata";
+  const activationMoment = moment.tz(activationDate, timezone);
+  const currentMoment = moment.tz(timezone);
 
-  // Determine the start and end dates of the planner
   let startDate;
   let endDate;
 
-  if (activationMoment.isSame(currentMoment, 'week')) {
-    startDate = activationMoment.startOf("day").toDate();
+  // Start from the next day of activation date
+  const nextDay = activationMoment.add(1, 'days').startOf('day');
+
+  if (nextDay.isSame(currentMoment, 'week')) {
+    startDate = nextDay.toDate();
     endDate = moment(startDate).endOf("isoWeek").toDate();
   } else {
     startDate = currentMoment.startOf("isoWeek").toDate();
@@ -54,8 +56,7 @@ export const generateWeeklyPlanner = async (
     return { message: "Planner already exists", planner: existingPlanner };
   }
 
-  const yesterday = moment().subtract(1, "days").startOf("day").toDate();
-
+  const yesterday = moment.tz(timezone).subtract(1, "days").startOf("day").toDate();
 
   const continuousRevisionTopics = (await StudyData.find({
     user: user._id,
@@ -63,15 +64,15 @@ export const generateWeeklyPlanner = async (
     createdAt: { $gte: yesterday },
   }).exec()) as IDataSchema[];
 
-  const startDayIndex = activationMoment.isSame(currentMoment, 'week')
-    ? daysOfWeek.indexOf(activationMoment.format('dddd'))
+  const startDayIndex = nextDay.isSame(currentMoment, 'week')
+    ? daysOfWeek.indexOf(nextDay.format('dddd'))
     : 0;
 
   let dailyQuestions;
   const days = await Promise.all(
     daysOfWeek.slice(startDayIndex).map(async (day, index) => {
-      const date = activationMoment.isSame(currentMoment, 'week')
-        ? moment(activationMoment).add(index, "days").toDate()
+      const date = nextDay.isSame(currentMoment, 'week')
+        ? moment(nextDay).add(index, "days").toDate()
         : moment(startDate).add(index, "days").toDate();
 
       if (day === "Sunday") {
@@ -110,7 +111,6 @@ export const generateWeeklyPlanner = async (
           }
           studyData.topic.plannerFrequency += 1;
 
-          // Update the tag if needed
           if (studyData.tag === "unrevised_topic") {
             studyData.tag = "active_unrevised_topic";
           }
@@ -139,7 +139,6 @@ export const generateWeeklyPlanner = async (
 
   const planner = await Planner.create(generatedPlanner);
 
-  // Update tags for continuousRevisionTopics
   continuousRevisionTopics.forEach(
     (data) => (data.tag = "active_continuous_revision"),
   );
