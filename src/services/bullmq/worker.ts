@@ -84,7 +84,7 @@ export const updateTrackerWorker = new Worker(
   workerOptions
 );
 
-export const generalWorker = new Worker(
+export const meetingWorker = new Worker(
   "meeting-queue",
   async (job) => {
     try {

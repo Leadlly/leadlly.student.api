@@ -7,7 +7,7 @@ export interface ISubject {
   total_questions_solved: { 
     number?: number;
     percentage?: number;
-    };
+  };
 }
 
 interface IAcademic {
@@ -21,6 +21,7 @@ interface IAcademic {
   schoolOrCollegeName?: string | null;
   schoolOrCollegeAddress?: string | null;
 }
+
 interface IUser extends Document {
   firstname: string;
   lastname?: string;
@@ -29,21 +30,20 @@ interface IUser extends Document {
     personal?: number;
     other?: number;
   };
-
   password: string;
   salt: string;
   avatar?: {
     public_id?: string;
     url?: string;
   };
-  planner: Boolean;
+  planner: boolean;
   parent: {
     name?: string;
     phone?: string;
   };
   mentor: {
-    id?: ObjectId
-  }
+    id?: ObjectId;
+  };
   address: {
     country?: string;
     addressLine?: string;
@@ -60,14 +60,31 @@ interface IUser extends Document {
     points?: number;
     streak?: number;
     mood?: Array<{
-      day: String;
-      emoji: String;
+      day: string;
+      emoji: string;
     }>;
-    dailyReport?: {
-      dailySessions: number,      
-      dailyQuiz: number,      
-      overall: number
-    }
+    report?: {
+      dailyReport?: {
+        session: number;
+        quiz: number;
+        overall: number;
+      };
+      weeklyReport?: {
+        session: number;
+        quiz: number;
+        overall: number;
+      };
+      monthlyReport?: {
+        session: number;
+        quiz: number;
+        overall: number;
+      };
+      overallReport?: {
+        session: number;
+        quiz: number;
+        overall: number;
+      };
+    };
   };
   badges?: Array<{
     name: string;
@@ -81,11 +98,11 @@ interface IUser extends Document {
     dateOfActivation?: Date;
   };
   freeTrial: {
-    availed?: Boolean
-    active?:  Boolean
-    dateOfActivation?: Date,
-    dateOfDeactivation?: Date,
-  },
+    availed?: boolean;
+    active?: boolean;
+    dateOfActivation?: Date;
+    dateOfDeactivation?: Date;
+  };
   refund: {
     type?: string;
     subscriptionType?: string;
@@ -93,7 +110,7 @@ interface IUser extends Document {
     amount?: string;
   };
   resetPasswordToken?: string | null;
-  resetTokenExpiry?: string | null;
+  resetTokenExpiry?: Date | null;
   createdAt?: Date; 
   updatedAt?: Date; 
   comparePassword(candidatePassword: string): Promise<boolean>;

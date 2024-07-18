@@ -76,11 +76,29 @@ const userSchema = new Schema({
         emoji: { type: String, default: null },
       },
     ],
-    dailyReport : {
-      dailySessions: { type: Number, default: 0, min: 0, max: 100 },      
-      dailyQuiz: { type: Number, default: 0, min: 0, max: 100 },      
-      overall: { type: Number, default: 0, min: 0, max: 100 }
+    report: {
+      dailyReport : {
+        session: { type: Number, default: 0, min: 0, max: 100 },      
+        quiz: { type: Number, default: 0, min: 0, max: 100 },      
+        overall: { type: Number, default: 0, min: 0, max: 100 }
+      },
+      weeklyReport : {
+        session: { type: Number, default: 0, min: 0, max: 100 },      
+        quiz: { type: Number, default: 0, min: 0, max: 100 },      
+        overall: { type: Number, default: 0, min: 0, max: 100 }
+      },
+      monthlyReport : {
+        session: { type: Number, default: 0, min: 0, max: 100 },      
+        quiz: { type: Number, default: 0, min: 0, max: 100 },      
+        overall: { type: Number, default: 0, min: 0, max: 100 }
+      },
+      overallReport : {
+        session: { type: Number, default: 0, min: 0, max: 100 },      
+        quiz: { type: Number, default: 0, min: 0, max: 100 },  
+        overall: { type: Number, default: 0, min: 0, max: 100 }  
+      },
     }
+    
   },
   badges: [
     {
@@ -119,17 +137,6 @@ userSchema.pre("save", function (next) {
   }
   next();
 });
-
-// Pre-save hook for password hashing
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password")) return next();
-
-//   const salt = await bcrypt.genSalt(10);
-//   if (!this.password) return;
-//   this.password = await bcrypt.hash(this.password, salt);
-
-//   next();
-// });
 
 userSchema.methods.comparePassword = async function (
   candidatePassword: string,
