@@ -56,9 +56,9 @@ interface IUser extends Document {
   };
   role?: string;
   details?: {
-    level: { number?: number};
-    points: { number?: number};
-    streak: { number?: number};
+    level?: { number: number};
+    points?: { number: number};
+    streak?: { number: number};
     mood?: Array<{
       day: string;
       emoji: string;
