@@ -35,7 +35,7 @@ export const generateWeeklyPlanner = async (
   let endDate;
 
   // Start from the next day of activation date
-  const nextDay = activationMoment.add(1, 'days').startOf('day');
+  const nextDay = activationMoment.add(0, 'days').startOf('day');
 
   if (nextDay.isSame(currentMoment, 'week')) {
     startDate = nextDay.toDate();
