@@ -1,6 +1,6 @@
 import { app } from "./app";
 import ConnectToDB from "./db/db";
-import { otpWorker, subWorker, trackerWorker } from "./services/bullmq/worker";
+import { generalWorker, otpWorker, subWorker, trackerWorker, updateTrackerWorker } from "./services/bullmq/worker";
 import { logger } from "./utils/winstonLogger";
 import serverless from "serverless-http";
 import { watchTrackerChanges } from "./events/Tracker";
@@ -16,6 +16,8 @@ ConnectToDB();
 otpWorker; 
 subWorker;
 trackerWorker;
+updateTrackerWorker;
+generalWorker;
 
 // Triggers
 watchTrackerChanges()
