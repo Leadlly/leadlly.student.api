@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { Redis } from "ioredis";
+import { Redis, RedisOptions } from "ioredis";
 import { config } from "dotenv";
 config();
 
