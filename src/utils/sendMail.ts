@@ -5,6 +5,9 @@ export type Options = {
   email: string;
   subject: string;
   message: string;
+  username?: string;
+  dashboardLink?: string;
+  
   tag: string
 };
 export const sendMail = async (options: Options) => {

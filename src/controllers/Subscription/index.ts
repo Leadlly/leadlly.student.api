@@ -5,6 +5,7 @@ import User from "../../models/userModel";
 import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
+import { Options } from "../../utils/sendMail";
 
 export const buySubscription = async (
   req: Request,
@@ -100,8 +101,11 @@ export const verifySubscription = async (
       options: {
         email: user.email,
         subject: "Leadlly Subscription",
-        message: `Congratulations! Your one month plan is now active. Ref. no. -> ${razorpay_payment_id}`,
-      },
+        message: 'Subscription',
+        username: user.firstname,
+        dashboardLink: `${process.env.FRONTEND_URL}`,
+        tag: "subscription_active"
+      } as Options,
     });
 
     res.redirect(
@@ -170,7 +174,7 @@ export const cancelSubscription = async (
       await user.save();
 
       await subQueue.add("SubcriptionCancel", {
-        options: {
+          options: {
           email: user.email,
           subject: "Leadlly Subscription",
           message: `Hello ${user.firstname}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
@@ -204,6 +208,18 @@ export const getFreeTrialActive = async (
     user.freeTrial.availed = true;
 
     await user.save();
+
+
+    await subQueue.add("freetrial", {
+      options: {
+        email: user.email,
+        subject: "Leadlly Free-Trial",
+        message: 'Free-Trail',
+        username: user.firstname,
+        dashboardLink: `${process.env.FRONTEND_URL}`,
+        tag: "subscription_active"
+      } as Options,
+    });
 
     return res
       .status(200)
