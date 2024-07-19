@@ -69,21 +69,23 @@ interface IUser extends Document {
         quiz: number;
         overall: number;
       };
-      weeklyReport?: {
+      weeklyReport?: Array<{
+        day: string,
+        date: Date,
         session: number;
         quiz: number;
         overall: number;
-      };
-      monthlyReport?: {
+      }>;
+      monthlyReport?: Array<{
         session: number;
         quiz: number;
         overall: number;
-      };
-      overallReport?: {
+      }>;
+      overallReport?: Array<{
         session: number;
         quiz: number;
         overall: number;
-      };
+      }>;
     };
   };
   badges?: Array<{
