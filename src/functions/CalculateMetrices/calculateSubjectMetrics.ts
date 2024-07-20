@@ -18,7 +18,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
         }
 
         let totalEfficiency = 0;
-        let chapterCount = 0;
+        let chapterCount = chapters.length;
         let totalProgress = 0;
       
 
@@ -32,7 +32,6 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
 
             if (studyData) {
                 totalEfficiency += studyData.chapter.overall_efficiency!;
-                chapterCount++;
             }
 
             // Calculate progress
@@ -51,6 +50,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
         const subjectEfficiency = chapterCount > 0 ? totalEfficiency / chapterCount : 0;
 
         // Calculate overall progress
+        console.log(totalProgress, chapterCount, "herer is hte main dhdata %#$#$#$#$#$#$#$#dsfsdfsdfds")
         const overallProgress = totalProgress / chapterCount;
 
         const solvedQuestionCount = await SolvedQuestions.countDocuments({
