@@ -4,7 +4,6 @@ import { meetingWorker, otpWorker, subWorker, trackerWorker, updateTrackerWorker
 import { logger } from "./utils/winstonLogger";
 import serverless from "serverless-http";
 import { watchTrackerChanges } from "./events/Tracker";
-import { watchUserCollection } from "./events/Report";
 import "./controllers/Planner/scheduler";
 import { watchMeetingChanges } from "./events/Meeting";
 
@@ -23,7 +22,6 @@ meetingWorker;
 // Triggers
 watchTrackerChanges()
 watchMeetingChanges()
-watchUserCollection()
 
 const handler = serverless(app);
 
