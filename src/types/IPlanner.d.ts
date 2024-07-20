@@ -5,6 +5,8 @@ interface IDay {
   day: string;
   continuousRevisionTopics: any[];
   backRevisionTopics: any[];
+  completedTopics: any[],
+  incompletedTopics: any[],
   questions: { [key: string]: any };
 }
 

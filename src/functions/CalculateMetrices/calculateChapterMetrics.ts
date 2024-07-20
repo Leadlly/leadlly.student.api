@@ -20,7 +20,7 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
         ]).toArray();
 
         let totalEfficiency = 0;
-        let topicCount = 0;
+        let topicCount = topics.length;
 
         const solvedTopicsSet = new Set();
         const totalQuestionsInBankCount = await questions_db.collection("questionbanks").countDocuments({
@@ -41,7 +41,6 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
 
                 if (studyData) {
                     totalEfficiency += studyData.topic.overall_efficiency || 0;
-                    topicCount++;
                 }
 
             const solvedCount = await SolvedQuestions.countDocuments({

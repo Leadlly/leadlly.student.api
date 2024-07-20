@@ -18,7 +18,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
         }
 
         let totalEfficiency = 0;
-        let chapterCount = 0;
+        let chapterCount = chapters.length;
         let totalProgress = 0;
       
 
@@ -32,7 +32,6 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
 
             if (studyData) {
                 totalEfficiency += studyData.chapter.overall_efficiency!;
-                chapterCount++;
             }
 
             // Calculate progress

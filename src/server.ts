@@ -4,8 +4,8 @@ import { meetingWorker, otpWorker, subWorker, trackerWorker, updateTrackerWorker
 import { logger } from "./utils/winstonLogger";
 import serverless from "serverless-http";
 import { watchTrackerChanges } from "./events/Tracker";
-import { watchMeetingChanges } from "./events/Meeting";
 import "./controllers/Planner/scheduler";
+import { watchMeetingChanges } from "./events/Meeting";
 
 const port = process.env.PORT || 4000;
 

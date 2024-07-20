@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import SolvedQuestions from "../../../models/solvedQuestions";
 import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calculateTopicMetrics";
 import { CustomError } from "../../../middlewares/error";
+import { calculateStudentReport } from "../../../helpers/studentReport";
+import { insertCompletedTopics } from "./helpers/insertCompletedTopics";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -32,8 +34,12 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
       });
     });
 
+
+    await insertCompletedTopics(req.user._id, topic, questions)
+
     await Promise.all(createQuestionPromises);
     await calculateTopicMetrics(topics, req.user);
+    await calculateStudentReport(req.user._id);
 
     res.status(200).json({
       success: true,

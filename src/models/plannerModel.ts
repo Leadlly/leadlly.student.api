@@ -12,6 +12,8 @@ const daySchema = new mongoose.Schema<IDay>({
   },
   continuousRevisionTopics: Array,
   backRevisionTopics: Array,
+  completedTopics: [],
+  incompletedTopics: [],
   questions: {
     type: mongoose.Schema.Types.Mixed,
     default: {},

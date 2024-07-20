@@ -4,6 +4,9 @@ import IUser from "../../types/IUser";
 import { todaysVibeSchema } from "../../Schemas/user.schema";
 import { getSubjectList } from "../../utils/getSubjectList";
 import { CustomError } from "../../middlewares/error";
+import { StudentReport } from "../../models/reportModel";
+import moment from 'moment';
+
 export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const bodyData = req.body;
@@ -141,5 +144,124 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
     });
   } catch (error: any) {
     next(new CustomError(error.message))
+  }
+};
+
+
+export const getWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const startDate = moment().startOf('isoWeek'); // assuming the week starts on Monday
+    const endDate = moment().endOf('isoWeek');
+
+    const reports = await StudentReport.find({
+      user: req.user._id,
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+    });
+
+    const daysInWeek = [];
+    for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+      daysInWeek.push(date.clone());
+    }
+
+    const weeklyReport = {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      days: daysInWeek.map(day => {
+        const report = reports.find(r => moment(r.date).isSame(day, 'day'));
+        return {
+          day: day.format('dddd'),
+          date: day.format('YYYY-MM-DD'),
+          session: report ? report.session : 0,
+          quiz: report ? report.quiz : 0,
+          overall: report ? report.overall : 0
+        };
+      })
+    };
+
+    res.status(200).json({
+      success: true,
+      weeklyReport
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const getMonthlyReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const startDate = moment().startOf('month');
+    const endDate = moment().endOf('month');
+
+    const reports = await StudentReport.find({
+      user: req.user._id,
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+    });
+
+    const daysInMonth = [];
+    for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+      daysInMonth.push(date.clone());
+    }
+
+    const monthlyReport = {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      days: daysInMonth.map(day => {
+        const report = reports.find(r => moment(r.date).isSame(day, 'day'));
+        return {
+          day: day.format('dddd'),
+          date: day.format('YYYY-MM-DD'),
+          session: report ? report.session : 0,
+          quiz: report ? report.quiz : 0,
+          overall: report ? report.overall : 0
+        };
+      })
+    };
+
+    res.status(200).json({
+      success: true,
+      monthlyReport
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const getOverallReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const reports = await StudentReport.find({
+      user: req.user._id,
+    });
+
+    if (!reports.length) return next(new CustomError("No reports found for the user"));
+
+    const uniqueDates = Array.from(new Set(reports.map(report => moment(report.date).format('YYYY-MM-DD'))));
+    
+    uniqueDates.sort((a, b) => moment(a).diff(moment(b)));
+    
+    // Generate report
+    const overallReport = uniqueDates.map(dateString => {
+      const dayReports = reports.filter(report => moment(report.date).isSame(dateString, 'day'));
+      const aggregatedReport = dayReports.reduce((acc, report) => {
+        acc.session += report.session;
+        acc.quiz += report.quiz;
+        acc.overall += report.overall;
+        return acc;
+      }, { session: 0, quiz: 0, overall: 0 });
+
+      return {
+        day: moment(dateString).format('dddd'),
+        date: dateString,
+        session: aggregatedReport.session,
+        quiz: aggregatedReport.quiz,
+        overall: aggregatedReport.overall
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      overallReport
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
   }
 };
