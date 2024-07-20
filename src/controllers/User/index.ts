@@ -148,20 +148,6 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
 };
 
 
-export const getStudentReport = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const report = await StudentReport.findOne({user: req.user._id})
-    if(!report) next(new CustomError("User report not exists"))
-     
-      res.status(200).json({
-        success: true, 
-        report
-      })
-  } catch (error) {
-    next(new CustomError((error as Error).message))
-  }
-}
-
 export const getWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const startDate = moment().startOf('isoWeek'); // assuming the week starts on Monday
@@ -234,6 +220,46 @@ export const getMonthlyReport = async (req: Request, res: Response, next: NextFu
     res.status(200).json({
       success: true,
       monthlyReport
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const getOverallReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const reports = await StudentReport.find({
+      user: req.user._id,
+    });
+
+    if (!reports.length) return next(new CustomError("No reports found for the user"));
+
+    const uniqueDates = Array.from(new Set(reports.map(report => moment(report.date).format('YYYY-MM-DD'))));
+    
+    uniqueDates.sort((a, b) => moment(a).diff(moment(b)));
+    
+    // Generate report
+    const overallReport = uniqueDates.map(dateString => {
+      const dayReports = reports.filter(report => moment(report.date).isSame(dateString, 'day'));
+      const aggregatedReport = dayReports.reduce((acc, report) => {
+        acc.session += report.session;
+        acc.quiz += report.quiz;
+        acc.overall += report.overall;
+        return acc;
+      }, { session: 0, quiz: 0, overall: 0 });
+
+      return {
+        day: moment(dateString).format('dddd'),
+        date: dateString,
+        session: aggregatedReport.session,
+        quiz: aggregatedReport.quiz,
+        overall: aggregatedReport.overall
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      overallReport
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
