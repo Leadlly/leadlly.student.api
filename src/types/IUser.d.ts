@@ -63,30 +63,6 @@ interface IUser extends Document {
       day: string;
       emoji: string;
     }>;
-    report?: {
-      dailyReport?: {
-        session: number;
-        quiz: number;
-        overall: number;
-      };
-      weeklyReport?: Array<{
-        day: string,
-        date: Date,
-        session: number;
-        quiz: number;
-        overall: number;
-      }>;
-      monthlyReport?: Array<{
-        session: number;
-        quiz: number;
-        overall: number;
-      }>;
-      overallReport?: Array<{
-        session: number;
-        quiz: number;
-        overall: number;
-      }>;
-    };
   };
   badges?: Array<{
     name: string;
