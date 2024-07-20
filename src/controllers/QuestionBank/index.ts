@@ -18,11 +18,18 @@ export const getChapter = async (
       });
     }
 
+    let standardQuery: any;
+    if (standard === "13") {
+      standardQuery = { $in: ["11", "12"] };
+    } else {
+      standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
+    }
+
     const chapters = await questions_db
       .collection("chapters")
       .find({
         subjectName: { $regex: new RegExp(`^${subjectName}$`, "i") },
-        standard: { $regex: new RegExp(`^${standard}$`, "i") },
+        standard: standardQuery,
       })
       .toArray();
 
@@ -59,19 +66,19 @@ export const getTopic = async (
       });
     }
 
-    const standardStr = standard as string;
-    const subjectNameStr = subjectName as string;
-    const chapterNameStr = chapterName as string;
+    let standardQuery: any;
+    if (standard === "13") {
+      standardQuery = { $in: ["11", "12"] };
+    } else {
+      standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
+    }
 
-    // Build the query object
     const topicQuery = {
-      standard: new RegExp(`^${standardStr}$`, "i"),
-      subjectName: new RegExp(`^${subjectNameStr}$`, "i"),
-      chapterName: new RegExp(`^${chapterNameStr}$`, "i"),
+      standard: standardQuery,
+      subjectName: new RegExp(`^${subjectName}$`, "i"),
+      chapterName: new RegExp(`^${chapterName}$`, "i"),
     };
 
-
-    // Fetch topics based on standard, subjectName, and chapterName
     const topics = await questions_db
       .collection("topics")
       .find(topicQuery)
@@ -92,10 +99,11 @@ export const getTopic = async (
       topics,
     });
   } catch (error: any) {
-    console.error("Error in getChapter:", error);
+    console.error("Error in getTopic:", error);
     next(new CustomError(error.message));
   }
 };
+
 
 export const getStreakQuestion = async (
   req: Request,
