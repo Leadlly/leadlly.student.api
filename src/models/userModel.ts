@@ -81,7 +81,14 @@ const userSchema = new Schema({
         day: { type: String, default: null },
         emoji: { type: String, default: null },
       },
-    ],    
+    ],
+    report: {
+      dailyReport: {
+        session:  { type: Number, default: 0, min: 0, max: 100 },
+        quiz:  { type: Number, default: 0, min: 0, max: 100 },
+        overall:  { type: Number, default: 0, min: 0, max: 100 }
+      }
+    }    
   },
   badges: [
     {

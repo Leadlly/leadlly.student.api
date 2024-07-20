@@ -63,6 +63,13 @@ interface IUser extends Document {
       day: string;
       emoji: string;
     }>;
+    report?: {
+      dailyReport?: {
+        session:  number,
+        quiz:  number,
+        overall?: number
+      }
+    }    
   };
   badges?: Array<{
     name: string;

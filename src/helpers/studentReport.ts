@@ -17,8 +17,8 @@ export const calculateStudentReport = async (userId: string) => {
         const timezone = 'Asia/Kolkata';
         const today = moment.tz(timezone).startOf('day');
         const todayStr = today.format('YYYY-MM-DD');
+        const todayDayStr = today.format('dddd');
 
-        
         const startDate = moment().startOf("isoWeek").toDate();
         const endDate = moment(startDate).endOf("isoWeek").toDate();
 
@@ -53,55 +53,48 @@ export const calculateStudentReport = async (userId: string) => {
         });
         const quizCompletionPercentage = (totalQuestions > 0) ? (solvedQuestionsToday / totalQuestions) * 100 : 0;
 
-        // Check if a report document exists for the user
-        let report = await StudentReport.findOne({ user: userId });
+        // Check if a report document exists for the user with the same day and date
+        let report = await StudentReport.findOne({
+            user: userId,
+            day: todayDayStr,
+            date: today.toDate()
+        });
 
         if (!report) {
             // Create a new report document
             report = new StudentReport({
                 user: userId,
-                dailyReport: {
-                    session: completionPercentage,
-                    quiz: quizCompletionPercentage,
-                    overall: 0,
-                },
-                weeklyReport: [{
-                    day: today.format('dddd'),
-                    date: today.toDate(),
-                    session: completionPercentage,
-                    quiz: quizCompletionPercentage,
-                    overall: 0,
-                }],
-                monthlyReport: [],
-                overallReport: [],
+                day: todayDayStr,
+                date: today.toDate(),
+                session: completionPercentage,
+                quiz: quizCompletionPercentage,
+                overall: (completionPercentage + quizCompletionPercentage) / 2,
             });
         } else {
-            // Check if today's entry already exists in the weekly report
-            const todayWeeklyEntryIndex = report.weeklyReport.findIndex(
-                entry => moment(entry.date).tz(timezone).format('YYYY-MM-DD') === todayStr
-            );
-
-            if (todayWeeklyEntryIndex > -1) {
-                // Update the existing entry
-                report.weeklyReport[todayWeeklyEntryIndex].session = completionPercentage;
-                report.weeklyReport[todayWeeklyEntryIndex].quiz = quizCompletionPercentage;
-            } else {
-                // Add a new entry
-                report.weeklyReport.push({
-                    day: today.format('dddd'),
-                    date: today.toDate(),
-                    session: completionPercentage,
-                    quiz: quizCompletionPercentage,
-                    overall: 0,
-                });
-            }
-
-            report.dailyReport.session = completionPercentage;
-            report.dailyReport.quiz = quizCompletionPercentage;
+            // Update the existing report document
+            report.session = completionPercentage;
+            report.quiz = quizCompletionPercentage;
+            report.overall = (completionPercentage + quizCompletionPercentage) / 2;
             report.updatedAt = new Date();
         }
 
         await report.save();
+
+        // Ensure user.details and user.details.report exist
+        if (!user.details) {
+            user.details = {};
+        }
+        if (!user.details.report) {
+            user.details.report = {};
+        }
+
+        user.details.report.dailyReport = {
+            session: completionPercentage,
+            quiz: quizCompletionPercentage,
+            overall: (completionPercentage + quizCompletionPercentage) / 2,
+        };
+
+        await user.save();
 
     } catch (error) {
         console.log(error);

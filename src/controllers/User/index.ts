@@ -5,6 +5,8 @@ import { todaysVibeSchema } from "../../Schemas/user.schema";
 import { getSubjectList } from "../../utils/getSubjectList";
 import { CustomError } from "../../middlewares/error";
 import { StudentReport } from "../../models/reportModel";
+import moment from 'moment';
+
 export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const bodyData = req.body;
@@ -159,3 +161,81 @@ export const getStudentReport = async (req: Request, res: Response, next: NextFu
     next(new CustomError((error as Error).message))
   }
 }
+
+export const getWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const startDate = moment().startOf('isoWeek'); // assuming the week starts on Monday
+    const endDate = moment().endOf('isoWeek');
+
+    const reports = await StudentReport.find({
+      user: req.user._id,
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+    });
+
+    const daysInWeek = [];
+    for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+      daysInWeek.push(date.clone());
+    }
+
+    const weeklyReport = {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      days: daysInWeek.map(day => {
+        const report = reports.find(r => moment(r.date).isSame(day, 'day'));
+        return {
+          day: day.format('dddd'),
+          date: day.format('YYYY-MM-DD'),
+          session: report ? report.session : 0,
+          quiz: report ? report.quiz : 0,
+          overall: report ? report.overall : 0
+        };
+      })
+    };
+
+    res.status(200).json({
+      success: true,
+      weeklyReport
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const getMonthlyReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const startDate = moment().startOf('month');
+    const endDate = moment().endOf('month');
+
+    const reports = await StudentReport.find({
+      user: req.user._id,
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+    });
+
+    const daysInMonth = [];
+    for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+      daysInMonth.push(date.clone());
+    }
+
+    const monthlyReport = {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      days: daysInMonth.map(day => {
+        const report = reports.find(r => moment(r.date).isSame(day, 'day'));
+        return {
+          day: day.format('dddd'),
+          date: day.format('YYYY-MM-DD'),
+          session: report ? report.session : 0,
+          quiz: report ? report.quiz : 0,
+          overall: report ? report.overall : 0
+        };
+      })
+    };
+
+    res.status(200).json({
+      success: true,
+      monthlyReport
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
