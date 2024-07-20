@@ -19,6 +19,7 @@ const daysOfWeek = [
 export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
+  nextWeek: boolean
 ) => {
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
@@ -37,7 +38,10 @@ export const generateWeeklyPlanner = async (
   // Start from the next day of activation date
   const nextDay = activationMoment.add(0, 'days').startOf('day');
 
-  if (nextDay.isSame(currentMoment, 'week')) {
+  if (nextWeek === true) {
+    startDate = moment(nextDay).add(1, 'week').startOf('isoWeek').toDate();
+    endDate = moment(startDate).endOf('isoWeek').toDate();
+  } else if (nextDay.isSame(currentMoment, 'week')) {
     startDate = nextDay.toDate();
     endDate = moment(startDate).endOf("isoWeek").toDate();
   } else {
