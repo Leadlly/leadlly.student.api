@@ -4,6 +4,7 @@ import IUser from "../../types/IUser";
 import { todaysVibeSchema } from "../../Schemas/user.schema";
 import { getSubjectList } from "../../utils/getSubjectList";
 import { CustomError } from "../../middlewares/error";
+import { StudentReport } from "../../models/reportModel";
 export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const bodyData = req.body;
@@ -143,3 +144,18 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
     next(new CustomError(error.message))
   }
 };
+
+
+export const getStudentReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const report = await StudentReport.findOne({user: req.user._id})
+    if(!report) next(new CustomError("User report not exists"))
+     
+      res.status(200).json({
+        success: true, 
+        report
+      })
+  } catch (error) {
+    next(new CustomError((error as Error).message))
+  }
+}
