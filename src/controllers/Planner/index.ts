@@ -30,7 +30,7 @@ export const createPlanner = async (
       activationDate,
     );
 
-    const result = await generateWeeklyPlanner(user, backRevisionTopics);
+    const result = await generateWeeklyPlanner(user, backRevisionTopics, req.body.nextWeek);
 
     user.planner = true
     await user.save()
