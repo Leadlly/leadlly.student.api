@@ -63,8 +63,7 @@ cron.schedule("0 19 * * 6", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
 
-// Schedule the createPlanner task to run every Sunday at 10:45 PM IST (5:15 PM UTC)
-cron.schedule("15 17 * * 0", () => {
+// Schedule the createPlanner task to run every Sunday at 10:50 PM IST (5:20 PM UTC)
+cron.schedule("20 17 * * 0", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
-
