@@ -26,7 +26,7 @@ const mockNext: NextFunction = (error?: any) => {
   }
 };
 
-const runJobWithRetries = async (jobFunction: Function, retries: number) => {
+const runJobWithRetries = async (jobFunction: Function, retries: number, nextWeek: boolean) => {
   try {
     const users: IUser[] = await User.find({
       $or: [
@@ -36,9 +36,9 @@ const runJobWithRetries = async (jobFunction: Function, retries: number) => {
     });
 
     for (const user of users) {
-        const req = { user } as Request;
-        const res = mockResponse();
-        await jobFunction(req, res, mockNext);
+      const req = { user, body: { nextWeek } } as Request;
+      const res = mockResponse();
+      await jobFunction(req, res, mockNext);
     }
     console.log(`Scheduled ${jobFunction.name} job completed successfully.`);
   } catch (error) {
@@ -47,7 +47,7 @@ const runJobWithRetries = async (jobFunction: Function, retries: number) => {
         `Error running scheduled ${jobFunction.name}, retrying... (${retries} retries left)`,
         error,
       );
-      setTimeout(() => runJobWithRetries(jobFunction, retries - 1), retryDelay);
+      setTimeout(() => runJobWithRetries(jobFunction, retries - 1, nextWeek), retryDelay);
     } else {
       console.error(
         `Error running scheduled ${jobFunction.name} after multiple retries:`,
@@ -57,7 +57,12 @@ const runJobWithRetries = async (jobFunction: Function, retries: number) => {
   }
 };
 
-// Schedule the createPlanner task to run every Monday at 12:30 AM
-cron.schedule("30 0 * * 1", () => {
-  runJobWithRetries(createPlanner, maxRetries);
+// Schedule the createPlanner task to run every Sunday at 12:30 AM
+cron.schedule("30 0 * * 0", () => {
+  runJobWithRetries(createPlanner, maxRetries, true);
+});
+
+// Schedule the createPlanner task to run every Sunday at 10:30 PM
+cron.schedule("30 22 * * 0", () => {
+  runJobWithRetries(createPlanner, maxRetries, true);
 });
