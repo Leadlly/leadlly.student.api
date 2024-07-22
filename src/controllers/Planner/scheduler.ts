@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import IUser from "../../types/IUser";
 import User from "../../models/userModel";
-import { createPlanner, updateDailyPlanner } from ".";
+import { createPlanner } from ".";
 import { Request, Response, NextFunction } from "express";
 
 const maxRetries = 3;

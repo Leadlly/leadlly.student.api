@@ -35,3 +35,27 @@ functions:
     handler: dist/server.handler
     events:
       - httpApi: "*"
+
+functions:
+  api:
+    handler: dist/server.handler
+    events:
+      - httpApi: "*"
+
+  createPlannerJob15:
+    handler: dist/controllers/Planner.handler.handler
+    events:
+      - schedule:
+          rate: cron(15 9 ? * 2#1 *)  # Every Monday at 3:15 PM IST
+
+  createPlannerJob17:
+    handler: dist/controllers/Planner.handler.handler
+    events:
+      - schedule:
+          rate: cron(17 9 ? * 2#1 *)  # Every Monday at 3:17 PM IST
+
+  createPlannerJob20:
+    handler: dist/controllers/Planner.handler.handler
+    events:
+      - schedule:
+          rate: cron(20 9 ? * 2#1 *)  # Every Monday at 3:20 PM IST
