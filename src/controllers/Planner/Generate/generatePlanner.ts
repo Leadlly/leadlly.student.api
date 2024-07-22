@@ -35,15 +35,26 @@ export const generateWeeklyPlanner = async (
   let startDate;
   let endDate;
 
-  // Start from the next day of activation date
-  const nextDay = activationMoment.add(1, 'days').startOf('day');
+  if (nextWeek) {
+    console.log("Generating planner for next week");
 
-  if (nextDay.isSame(currentMoment, 'week')) {
-    startDate = nextDay.toDate();
-    endDate = moment(startDate).endOf("isoWeek").toDate();
-  } else {
-    startDate = moment(nextDay).startOf('isoWeek').add(1, 'weeks').toDate();
+    // Calculate the start and end of next week
+    startDate = moment(currentMoment).startOf('isoWeek').add(1, 'week').toDate();
     endDate = moment(startDate).endOf('isoWeek').toDate();
+
+  } else {
+    console.log("Generating planner for current week");
+
+    // Start from the next day of activation date
+    const nextDay = activationMoment.add(1, 'days').startOf('day');
+
+    if (nextDay.isSame(currentMoment, 'week')) {
+      startDate = nextDay.toDate();
+      endDate = moment(startDate).endOf("isoWeek").toDate();
+    } else {
+      startDate = moment(nextDay).startOf('isoWeek').add(1, 'weeks').toDate();
+      endDate = moment(startDate).endOf('isoWeek').toDate();
+    }
   }
 
   const existingPlanner = await Planner.findOne({
@@ -65,16 +76,12 @@ export const generateWeeklyPlanner = async (
     createdAt: { $gte: yesterday },
   }).exec()) as IDataSchema[];
 
-  const startDayIndex = nextDay.isSame(currentMoment, 'week')
-    ? daysOfWeek.indexOf(nextDay.format('dddd'))
-    : 0;
+  const startDayIndex = daysOfWeek.indexOf(moment(startDate).format('dddd'));
 
   let dailyQuestions;
   const days = await Promise.all(
     daysOfWeek.slice(startDayIndex).map(async (day, index) => {
-      const date = nextDay.isSame(currentMoment, 'week')
-        ? moment(nextDay).add(index, "days").toDate()
-        : moment(startDate).add(index, "days").toDate();
+      const date = moment(startDate).add(index, "days").toDate();
 
       if (day === "Sunday") {
         return {
