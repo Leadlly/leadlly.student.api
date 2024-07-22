@@ -92,8 +92,6 @@ export const getTopic = async (
       });
     }
 
-    console.log("Found Topics:", topics);
-
     res.status(200).json({
       success: true,
       topics,

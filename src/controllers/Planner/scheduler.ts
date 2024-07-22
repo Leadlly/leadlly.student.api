@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import IUser from "../../types/IUser";
 import User from "../../models/userModel";
-import { createPlanner, updateDailyPlanner } from ".";
+import { createPlanner } from ".";
 import { Request, Response, NextFunction } from "express";
 
 const maxRetries = 3;
@@ -58,12 +58,22 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
 };
 
 
-// Schedule the createPlanner task to run every Sunday at 12:30 AM IST (7:00 PM UTC previous day)
-cron.schedule("0 19 * * 6", () => {
+// Schedule the createPlanner task to run every Monday at 2:45 PM IST (9:15 AM UTC)
+cron.schedule("15 9 * * 1", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
 
-// Schedule the createPlanner task to run every Sunday at 10:50 PM IST (5:20 PM UTC)
-cron.schedule("20 17 * * 0", () => {
+// Schedule the createPlanner task to run every Monday at 2:47 PM IST (9:17 AM UTC)
+cron.schedule("17 9 * * 1", () => {
+  runJobWithRetries(createPlanner, maxRetries, true);
+});
+
+// Schedule the createPlanner task to run every Monday at 2:50 PM IST (9:20 AM UTC)
+cron.schedule("20 9 * * 1", () => {
+  runJobWithRetries(createPlanner, maxRetries, true);
+});
+
+// Schedule the createPlanner task to run every Monday at 2:55 PM IST (9:25 AM UTC)
+cron.schedule("25 9 * * 1", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
