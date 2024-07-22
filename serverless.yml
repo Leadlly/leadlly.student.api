@@ -36,12 +36,6 @@ functions:
     events:
       - httpApi: "*"
 
-functions:
-  api:
-    handler: dist/server.handler
-    events:
-      - httpApi: "*"
-
   createPlannerJob15:
     handler: dist/controllers/Planner.handler.handler
     events:
