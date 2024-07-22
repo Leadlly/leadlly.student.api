@@ -50,7 +50,6 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
         const subjectEfficiency = chapterCount > 0 ? totalEfficiency / chapterCount : 0;
 
         // Calculate overall progress
-        console.log(totalProgress, chapterCount, "herer is hte main dhdata %#$#$#$#$#$#$#$#dsfsdfsdfds")
         const overallProgress = totalProgress / chapterCount;
 
         const solvedQuestionCount = await SolvedQuestions.countDocuments({

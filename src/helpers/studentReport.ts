@@ -46,11 +46,19 @@ export const calculateStudentReport = async (userId: string) => {
         const completionPercentage = (totalTopics > 0) ? (completedTopicsCount / totalTopics) * 100 : 0;
 
         // Calculate quiz completion percentage
-        const totalQuestions = todayPlannerDay.questions ? Object.keys(todayPlannerDay.questions).length : 0;
+        let totalQuestions = 0;
+        if (todayPlannerDay.questions) {
+            totalQuestions = Object.values(todayPlannerDay.questions).reduce((acc, arr) => acc + arr.length, 0);
+        }
+
         const solvedQuestionsToday = await SolvedQuestions.countDocuments({
-            user: userId,
-            date: today.toDate(),
+            student: new mongoose.Types.ObjectId(userId),
+            createdAt: {
+                $gte: today.toDate(),
+                $lt:  moment(today).endOf('day').toDate(),
+            },
         });
+
         const quizCompletionPercentage = (totalQuestions > 0) ? (solvedQuestionsToday / totalQuestions) * 100 : 0;
 
         // Check if a report document exists for the user with the same day and date
@@ -66,15 +74,15 @@ export const calculateStudentReport = async (userId: string) => {
                 user: userId,
                 day: todayDayStr,
                 date: today.toDate(),
-                session: completionPercentage,
-                quiz: quizCompletionPercentage,
-                overall: (completionPercentage + quizCompletionPercentage) / 2,
+                session: Math.round(completionPercentage),
+                quiz: Math.round(quizCompletionPercentage),
+                overall: Math.round((completionPercentage + quizCompletionPercentage) / 2),
             });
         } else {
             // Update the existing report document
-            report.session = completionPercentage;
-            report.quiz = quizCompletionPercentage;
-            report.overall = (completionPercentage + quizCompletionPercentage) / 2;
+            report.session =  Math.round(completionPercentage);
+            report.quiz = Math.round(quizCompletionPercentage);
+            report.overall = Math.round((completionPercentage + quizCompletionPercentage) / 2);
             report.updatedAt = new Date();
         }
 
@@ -89,9 +97,9 @@ export const calculateStudentReport = async (userId: string) => {
         }
 
         user.details.report.dailyReport = {
-            session: completionPercentage,
-            quiz: quizCompletionPercentage,
-            overall: (completionPercentage + quizCompletionPercentage) / 2,
+            session:  Math.round(completionPercentage),
+            quiz: Math.round(quizCompletionPercentage),
+            overall: Math.round((completionPercentage + quizCompletionPercentage) / 2),
         };
 
         await user.save();
