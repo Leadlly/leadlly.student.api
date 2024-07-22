@@ -19,7 +19,7 @@ const daysOfWeek = [
 export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
-  nextWeek: Boolean
+  nextWeek: boolean
 ) => {
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
@@ -35,26 +35,15 @@ export const generateWeeklyPlanner = async (
   let startDate;
   let endDate;
 
-  if (nextWeek) {
-    console.log("Generating planner for next week");
+  // Start from the next day of activation date
+  const nextDay = activationMoment.add(1, 'days').startOf('day');
 
-    // Calculate the start and end of next week
-    startDate = moment(currentMoment).startOf('isoWeek').add(1, 'week').toDate();
-    endDate = moment(startDate).endOf('isoWeek').toDate();
-
+  if (nextDay.isSame(currentMoment, 'week')) {
+    startDate = nextDay.toDate();
+    endDate = moment(startDate).endOf("isoWeek").toDate();
   } else {
-    console.log("Generating planner for current week");
-
-    // Start from the next day of activation date
-    const nextDay = activationMoment.add(1, 'days').startOf('day');
-
-    if (nextDay.isSame(currentMoment, 'week')) {
-      startDate = nextDay.toDate();
-      endDate = moment(startDate).endOf("isoWeek").toDate();
-    } else {
-      startDate = moment(nextDay).startOf('isoWeek').add(1, 'weeks').toDate();
-      endDate = moment(startDate).endOf('isoWeek').toDate();
-    }
+    startDate = currentMoment.startOf("isoWeek").toDate();
+    endDate = moment(startDate).endOf("isoWeek").toDate();
   }
 
   const existingPlanner = await Planner.findOne({
@@ -76,12 +65,16 @@ export const generateWeeklyPlanner = async (
     createdAt: { $gte: yesterday },
   }).exec()) as IDataSchema[];
 
-  const startDayIndex = daysOfWeek.indexOf(moment(startDate).format('dddd'));
+  const startDayIndex = nextDay.isSame(currentMoment, 'week')
+    ? daysOfWeek.indexOf(nextDay.format('dddd'))
+    : 0;
 
   let dailyQuestions;
   const days = await Promise.all(
     daysOfWeek.slice(startDayIndex).map(async (day, index) => {
-      const date = moment(startDate).add(index, "days").toDate();
+      const date = nextDay.isSame(currentMoment, 'week')
+        ? moment(nextDay).add(index, "days").toDate()
+        : moment(startDate).add(index, "days").toDate();
 
       if (day === "Sunday") {
         return {
