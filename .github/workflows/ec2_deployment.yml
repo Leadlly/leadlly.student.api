@@ -31,3 +31,4 @@ jobs:
         touch .env
         echo "${{ secrets.PORD_ENV }}" > .env
     - run: npm run build --if-present
+    - run: pm2 restart student-api
