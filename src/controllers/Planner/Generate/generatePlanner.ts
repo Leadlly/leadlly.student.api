@@ -65,10 +65,14 @@ export const generateWeeklyPlanner = async (
 
     const startDayIndex = daysOfWeek.indexOf(moment(startDate).format('dddd'));
 
+    console.log("Start day index:", startDayIndex);
+
     let dailyQuestions;
     const days = await Promise.all(
-      daysOfWeek.slice(startDayIndex).map(async (day, index) => {
+      daysOfWeek.map(async (day, index) => {
         const date = moment(startDate).add(index, "days").toDate();
+
+        console.log(`Processing ${day}: ${date}`);
 
         if (day === "Sunday") {
           return {
@@ -124,6 +128,8 @@ export const generateWeeklyPlanner = async (
         };
       }),
     );
+
+    console.log("Days generated for next week:", days);
 
     const generatedPlanner = new Planner({
       student: user._id,
@@ -189,6 +195,8 @@ export const generateWeeklyPlanner = async (
         ? moment(nextDay).add(index, "days").toDate()
         : moment(startDate).add(index, "days").toDate();
 
+        console.log(`Processing ${day}: ${date}`);
+
         if (day === "Sunday") {
           return {
             day,
@@ -243,6 +251,8 @@ export const generateWeeklyPlanner = async (
         };
       }),
     );
+
+    console.log("Days generated for current week:", days);
 
     const generatedPlanner = new Planner({
       student: user._id,
