@@ -102,7 +102,7 @@ export const updateDailyPlanner = async (
     if (newContinuousTopics.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "All topics are already added for the next day.",
+        message: "Topics are already added for the next day.",
       });
     }
 
@@ -125,6 +125,8 @@ export const updateDailyPlanner = async (
       nextDay.toDate(),
       dailyTopics,
     );
+
+    console.log(dailyQuestions, "here are the quesitons")
 
     const existingQuestions = existingDay?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
