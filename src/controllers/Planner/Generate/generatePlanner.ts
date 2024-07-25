@@ -32,16 +32,15 @@ export const generateWeeklyPlanner = async (
   const activationMoment = moment.tz(activationDate, timezone);
   const currentMoment = moment.tz(timezone);
 
-  let startDate: any;
-  let endDate;
 
   if (nextWeek) {
     console.log("Generating planner for next week");
 
     // Calculate the start and end of next week
-    startDate = moment(currentMoment).startOf('isoWeek').add(1, 'week').toDate();
-    endDate = moment(startDate).endOf('isoWeek').toDate();
+    const startDate = moment(currentMoment).startOf('isoWeek').add(1, 'week').toDate();
+    const endDate = moment(startDate).endOf('isoWeek').toDate();
 
+    console.log(startDate, endDate, "here are the date")
 
     const existingPlanner = await Planner.findOne({
       student: user._id,
@@ -143,6 +142,8 @@ export const generateWeeklyPlanner = async (
   } else {
     console.log("Generating planner for current week");
 
+    let startDate;
+    let endDate;
     // Start from the next day of activation date
     const nextDay = activationMoment.add(1, 'days').startOf('day');
 
