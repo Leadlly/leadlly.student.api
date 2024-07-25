@@ -58,22 +58,15 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
 };
 
 
-// Schedule the createPlanner task to run every Monday at 2:45 PM IST (9:15 AM UTC)
-cron.schedule("15 9 * * 1", () => {
+// Schedule the createPlanner task to run every Thursday at 11:45 PM IST (6:15 PM UTC)
+cron.schedule("15 18 * * 4", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
 
-// Schedule the createPlanner task to run every Monday at 2:47 PM IST (9:17 AM UTC)
-cron.schedule("17 9 * * 1", () => {
+// Schedule the createPlanner task to run every Thursday at 11:50 PM IST (6:20 PM UTC)
+cron.schedule("20 18 * * 4", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
 
-// Schedule the createPlanner task to run every Monday at 2:50 PM IST (9:20 AM UTC)
-cron.schedule("20 9 * * 1", () => {
-  runJobWithRetries(createPlanner, maxRetries, true);
-});
 
-// Schedule the createPlanner task to run every Monday at 2:55 PM IST (9:25 AM UTC)
-cron.schedule("25 9 * * 1", () => {
-  runJobWithRetries(createPlanner, maxRetries, true);
-});
+
