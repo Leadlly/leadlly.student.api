@@ -1,7 +1,7 @@
 import moment from "moment-timezone";
 import Planner from "../../../models/plannerModel";
 import { StudyData } from "../../../models/studentData";
-import IDataSchema, { Topic } from "../../../types/IDataSchema";
+import IDataSchema from "../../../types/IDataSchema";
 import { getDailyTopics } from "../DailyTopics/getDailyTopics";
 import IUser from "../../../types/IUser";
 import { getDailyQuestions } from "../DailyQuestions/getDailyQuestions";
@@ -19,7 +19,7 @@ const daysOfWeek = [
 export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
-  nextWeek: Boolean
+  nextWeek: boolean
 ) => {
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
@@ -32,43 +32,48 @@ export const generateWeeklyPlanner = async (
   const activationMoment = moment.tz(activationDate, timezone);
   const currentMoment = moment.tz(timezone);
 
-  let startDate: any;
-  let endDate;
-
   if (nextWeek) {
     console.log("Generating planner for next week");
 
     // Calculate the start and end of next week
-    startDate = moment(currentMoment).startOf('isoWeek').add(1, 'week').toDate();
-    endDate = moment(startDate).endOf('isoWeek').toDate();
+    const startDateLocal = moment(currentMoment).startOf('isoWeek').add(1, 'week').startOf('day');
+    const endDateLocal = moment(startDateLocal).endOf('isoWeek').endOf('day');
 
+    const startDate = startDateLocal.toDate();
+    const endDate = endDateLocal.toDate();
+
+    console.log(startDate, endDate, "here are the date");
 
     const existingPlanner = await Planner.findOne({
       student: user._id,
       startDate,
       endDate,
     });
-  
+
     if (existingPlanner) {
       console.log("Planner already exists");
       return { message: "Planner already exists", planner: existingPlanner };
     }
-  
+
     const yesterday = moment.tz(timezone).subtract(1, "days").startOf("day").toDate();
-  
+
     const continuousRevisionTopics = (await StudyData.find({
       user: user._id,
       tag: "continuous_revision",
       createdAt: { $gte: yesterday },
     }).exec()) as IDataSchema[];
-  
+
     const startDayIndex = daysOfWeek.indexOf(moment(startDate).format('dddd'));
-  
+
+    console.log("Start day index:", startDayIndex);
+
     let dailyQuestions;
     const days = await Promise.all(
-      daysOfWeek.slice(startDayIndex).map(async (day, index) => {
+      daysOfWeek.map(async (day, index) => {
         const date = moment(startDate).add(index, "days").toDate();
-  
+
+        console.log(`Processing ${day}: ${date}`);
+
         if (day === "Sunday") {
           return {
             day,
@@ -78,41 +83,41 @@ export const generateWeeklyPlanner = async (
             questions: [],
           };
         }
-  
+
         const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
           [],
           backRevisionTopics,
           user,
         );
-  
+
         const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
-  
+
         // Fetch and update topics in the StudyData collection
         await Promise.all(dailyTopics.map(async (data) => {
           const studyData = await StudyData.findOne({
             user: user._id,
             "topic.name": data.topic.name
           }).exec() as IDataSchema;
-  
+
           if (studyData) {
             if (!studyData.topic.studiedAt) {
               studyData.topic.studiedAt = [];
             }
             studyData.topic.studiedAt.push({ date, efficiency: 0 });
-  
+
             if (!studyData.topic.plannerFrequency) {
               studyData.topic.plannerFrequency = 0;
             }
             studyData.topic.plannerFrequency += 1;
-  
+
             if (studyData.tag === "unrevised_topic") {
               studyData.tag = "active_unrevised_topic";
             }
-  
+
             await studyData.save();
           }
         }));
-  
+
         dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
         return {
           day,
@@ -123,57 +128,62 @@ export const generateWeeklyPlanner = async (
         };
       }),
     );
-  
+
+    console.log("Days generated for next week:", days);
+
     const generatedPlanner = new Planner({
       student: user._id,
       startDate,
       endDate,
       days,
     });
-  
+
     const planner = await Planner.create(generatedPlanner);
-  
+
     continuousRevisionTopics.forEach(
       (data) => (data.tag = "active_continuous_revision"),
     );
     await Promise.all(continuousRevisionTopics.map((data) => data.save()));
-  
+
     return { message: "Planner created", planner };
 
   } else {
     console.log("Generating planner for current week");
 
+    let startDateLocal, endDateLocal;
     // Start from the next day of activation date
     const nextDay = activationMoment.add(1, 'days').startOf('day');
 
     if (nextDay.isSame(currentMoment, 'week')) {
-      startDate = nextDay.toDate();
-      endDate = moment(startDate).endOf("isoWeek").toDate();
+      startDateLocal = nextDay;
+      endDateLocal = moment(startDateLocal).endOf("isoWeek").endOf('day');
     } else {
-      startDate = moment(nextDay).startOf('isoWeek').add(1, 'weeks').toDate();
-      endDate = moment(startDate).endOf('isoWeek').toDate();
+      startDateLocal = moment(nextDay).startOf('isoWeek').add(1, 'weeks');
+      endDateLocal = moment(startDateLocal).endOf('isoWeek').endOf('day');
     }
 
+    const startDate = startDateLocal.toDate();
+    const endDate = endDateLocal.toDate();
 
     const existingPlanner = await Planner.findOne({
       student: user._id,
       startDate,
       endDate,
     });
-  
+
     if (existingPlanner) {
       console.log("Planner already exists");
       return { message: "Planner already exists", planner: existingPlanner };
     }
-  
+
     const yesterday = moment.tz(timezone).subtract(1, "days").startOf("day").toDate();
-  
+
     const continuousRevisionTopics = (await StudyData.find({
       user: user._id,
       tag: "continuous_revision",
       createdAt: { $gte: yesterday },
     }).exec()) as IDataSchema[];
-  
+
     const startDayIndex = nextDay.isSame(currentMoment, 'week')
     ? daysOfWeek.indexOf(nextDay.format('dddd'))
     : 0;
@@ -184,7 +194,9 @@ export const generateWeeklyPlanner = async (
       const date = nextDay.isSame(currentMoment, 'week')
         ? moment(nextDay).add(index, "days").toDate()
         : moment(startDate).add(index, "days").toDate();
-  
+
+        console.log(`Processing ${day}: ${date}`);
+
         if (day === "Sunday") {
           return {
             day,
@@ -194,41 +206,41 @@ export const generateWeeklyPlanner = async (
             questions: [],
           };
         }
-  
+
         const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
           [],
           backRevisionTopics,
           user,
         );
-  
+
         const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
-  
+
         // Fetch and update topics in the StudyData collection
         await Promise.all(dailyTopics.map(async (data) => {
           const studyData = await StudyData.findOne({
             user: user._id,
             "topic.name": data.topic.name
           }).exec() as IDataSchema;
-  
+
           if (studyData) {
             if (!studyData.topic.studiedAt) {
               studyData.topic.studiedAt = [];
             }
             studyData.topic.studiedAt.push({ date, efficiency: 0 });
-  
+
             if (!studyData.topic.plannerFrequency) {
               studyData.topic.plannerFrequency = 0;
             }
             studyData.topic.plannerFrequency += 1;
-  
+
             if (studyData.tag === "unrevised_topic") {
               studyData.tag = "active_unrevised_topic";
             }
-  
+
             await studyData.save();
           }
         }));
-  
+
         dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
         return {
           day,
@@ -239,21 +251,23 @@ export const generateWeeklyPlanner = async (
         };
       }),
     );
-  
+
+    console.log("Days generated for current week:", days);
+
     const generatedPlanner = new Planner({
       student: user._id,
       startDate,
       endDate,
       days,
     });
-  
+
     const planner = await Planner.create(generatedPlanner);
-  
+
     continuousRevisionTopics.forEach(
       (data) => (data.tag = "active_continuous_revision"),
     );
     await Promise.all(continuousRevisionTopics.map((data) => data.save()));
-  
+
     return { message: "Planner created", planner };
   }
 };
