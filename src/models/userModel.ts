@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import IUser from "../types/IUser";
 import crypto from "crypto";
+import moment from "moment-timezone";
 
 const userSchema = new Schema({
   firstname: {
@@ -84,7 +85,7 @@ const userSchema = new Schema({
     ],
     report: {
       dailyReport: {
-        date: Date,
+        date: { type: Date, default: moment.tz("Asia/Kolkata").startOf("day").toDate()},
         session:  { type: Number, default: 0, min: 0, max: 100 },
         quiz:  { type: Number, default: 0, min: 0, max: 100 },
         overall:  { type: Number, default: 0, min: 0, max: 100 }
