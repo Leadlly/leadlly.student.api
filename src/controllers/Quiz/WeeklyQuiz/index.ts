@@ -104,9 +104,40 @@ export const createWeeklyQuiz = async (
       endDate,
     });
 
+    console.log(weeklyQuiz);
+
     return res.status(200).json({
       success: true,
       message: "Weekly quiz created successfully!",
+      weeklyQuiz,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};
+
+export const getWeeklyQuiz = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user._id;
+
+    const weeklyQuiz = await Quiz.find({
+      user: userId,
+      attempted: false,
+    });
+
+    if (!weeklyQuiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quizzes does not exist for the current week",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
       weeklyQuiz,
     });
   } catch (error: any) {

@@ -3,6 +3,7 @@ import IUser from "../../types/IUser";
 import User from "../../models/userModel";
 import { createPlanner } from ".";
 import { Request, Response, NextFunction } from "express";
+import { createWeeklyQuiz } from "../Quiz/WeeklyQuiz";
 
 const maxRetries = 3;
 const retryDelay = 180000; // 3-minute delay between retries
@@ -26,13 +27,20 @@ const mockNext: NextFunction = (error?: any) => {
   }
 };
 
-const runJobWithRetries = async (jobFunction: Function, retries: number, nextWeek: boolean) => {
+const runJobWithRetries = async (
+  jobFunction: Function,
+  retries: number,
+  nextWeek: boolean
+) => {
   try {
     const users: IUser[] = await User.find({
       $or: [
-        { "subscription.status": "active", "subscription.dateOfActivation": { $exists: true } },
-        { "freeTrial.active": true }
-      ]
+        {
+          "subscription.status": "active",
+          "subscription.dateOfActivation": { $exists: true },
+        },
+        { "freeTrial.active": true },
+      ],
     });
 
     for (const user of users) {
@@ -45,18 +53,24 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
     if (retries > 0) {
       console.warn(
         `Error running scheduled ${jobFunction.name}, retrying... (${retries} retries left)`,
-        error,
+        error
       );
-      setTimeout(() => runJobWithRetries(jobFunction, retries - 1, nextWeek), retryDelay);
+      setTimeout(
+        () => runJobWithRetries(jobFunction, retries - 1, nextWeek),
+        retryDelay
+      );
     } else {
       console.error(
         `Error running scheduled ${jobFunction.name} after multiple retries:`,
-        error,
+        error
       );
     }
   }
 };
 
+cron.schedule("48 11 * * *", () => {
+  runJobWithRetries(createWeeklyQuiz, maxRetries, true);
+});
 
 // // Schedule the createPlanner task to run every Sunday at 12:40 AM IST
 // cron.schedule("30 0 * * 0", () => {
@@ -72,5 +86,3 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
 // cron.schedule("0 2 * * 1", () => {
 //   runJobWithRetries(createPlanner, maxRetries, true);
 // });
-
-
