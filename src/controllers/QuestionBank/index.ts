@@ -1,7 +1,20 @@
 import { questions_db } from "../../db/db";
 import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../../middlewares/error";
-import { ObjectId } from "mongodb";
+
+
+const getExamTags = (competitiveExam?: string): string[] => {
+  switch (competitiveExam?.toLowerCase()) {
+    case 'jee':
+      return ['jeemains', 'jeeadvance'];
+    case 'neet':
+      return ['neet'];
+    case 'boards':
+      return ['boards'];
+    default:
+      return [];
+  }
+};
 
 export const getChapter = async (
   req: Request,
@@ -10,6 +23,7 @@ export const getChapter = async (
 ) => {
   try {
     const { subjectName, standard } = req.query;
+    const competitiveExam = req.user?.academic?.competitiveExam;
 
     if (!subjectName || !standard) {
       return res.status(400).json({
@@ -25,11 +39,15 @@ export const getChapter = async (
       standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
     }
 
+    const examTags = getExamTags(competitiveExam);
+    console.log(examTags, 'here are exam tags')
+
     const chapters = await questions_db
       .collection("chapters")
       .find({
         subjectName: { $regex: new RegExp(`^${subjectName}$`, "i") },
         standard: standardQuery,
+        exam: { $in: examTags },
       })
       .toArray();
 
@@ -50,6 +68,7 @@ export const getChapter = async (
   }
 };
 
+
 export const getTopic = async (
   req: Request,
   res: Response,
@@ -57,12 +76,12 @@ export const getTopic = async (
 ) => {
   try {
     const { standard, subjectName, chapterName } = req.query;
+    const competitiveExam = req.user?.academic?.competitiveExam;
 
     if (!standard || !subjectName || !chapterName) {
       return res.status(400).json({
         success: false,
-        message:
-          "Standard, subjectName, and chapterName are required in query params",
+        message: "Standard, subjectName, and chapterName are required in query params",
       });
     }
 
@@ -73,10 +92,14 @@ export const getTopic = async (
       standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
     }
 
+    const examTags = getExamTags(competitiveExam);
+  
+
     const topicQuery = {
       standard: standardQuery,
       subjectName: new RegExp(`^${subjectName}$`, "i"),
       chapterName: new RegExp(`^${chapterName}$`, "i"),
+      exam: { $in: examTags },
     };
 
     const topics = await questions_db
@@ -87,8 +110,7 @@ export const getTopic = async (
     if (topics.length === 0) {
       return res.status(404).json({
         success: false,
-        message:
-          "No topics found for the specified standard, subjectName, and chapterName",
+        message: "No topics found for the specified standard, subjectName, and chapterName",
       });
     }
 

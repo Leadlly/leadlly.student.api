@@ -65,6 +65,7 @@ interface IUser extends Document {
     }>;
     report?: {
       dailyReport?: {
+        date: Date,
         session:  number,
         quiz:  number,
         overall?: number
