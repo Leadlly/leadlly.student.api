@@ -4,6 +4,7 @@ import { Meeting } from "../../models/meetingModal";
 import User from "../../models/userModel";
 import IUser from "../../types/IUser";
 import mongoose from "mongoose";
+import { db } from "../../db/db";
 
 export const requestMeeting = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -21,12 +22,16 @@ export const requestMeeting = async (req: Request, res: Response, next: NextFunc
             return next(new CustomError("Mentor not allotted", 400))
         }
 
+        const mentor = await db.collection("mentors").findOne({_id: mentorId})
+        if(!mentor) return next(new CustomError("Mentor not exists", 400))
+
         const newMeeting = new Meeting({
             date,
             time,
             student: studentId,
             mentor: mentorId,
-            message
+            message,
+            "gmeet.link": mentor?.gmeet?.link 
         });
 
         await newMeeting.save();
