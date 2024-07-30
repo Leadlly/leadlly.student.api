@@ -31,7 +31,8 @@ export const requestMeeting = async (req: Request, res: Response, next: NextFunc
             student: studentId,
             mentor: mentorId,
             message,
-            "gmeet.link": mentor?.gmeet?.link 
+            "gmeet.link": mentor?.gmeet?.link,
+            createdBy: 'student' 
         });
 
         await newMeeting.save();

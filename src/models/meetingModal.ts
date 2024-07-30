@@ -27,6 +27,7 @@ const meetingSchema: Schema<IMeeting>  = new mongoose.Schema({
             type: String, 
         }
     },
+    isCompleted: { type: Boolean, default: false },
     gmeet: {
         tokens: {},
         link: {
@@ -35,6 +36,10 @@ const meetingSchema: Schema<IMeeting>  = new mongoose.Schema({
         },
     },
     message: String,
+    createdBy: {
+            type: String,
+            enum: ['mentor', 'student'],
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 })
