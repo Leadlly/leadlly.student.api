@@ -3,7 +3,7 @@ import IUser from "../types/IUser";
 import crypto from "crypto";
 import moment from "moment-timezone";
 
-const userSchema = new Schema({
+const userSchema = new Schema<IUser>({
   firstname: {
     type: String,
     required: [true, "Please enter your name"],
@@ -116,6 +116,7 @@ const userSchema = new Schema({
   },
   resetPasswordToken: { type: String, default: null },
   resetTokenExpiry: { type: String, default: null },
+  disabled: { type: Boolean, default: false}, // If disabled is true then the student will not be assigned an mentor (for test accounts only)
 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

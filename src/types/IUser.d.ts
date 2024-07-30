@@ -95,6 +95,7 @@ interface IUser extends Document {
     status?: string;
     amount?: string;
   };
+  disabled: boolean;
   resetPasswordToken?: string | null;
   resetTokenExpiry?: Date | null;
   createdAt?: Date; 
