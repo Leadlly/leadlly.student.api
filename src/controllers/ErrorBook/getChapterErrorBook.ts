@@ -1,14 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { CustomError } from '../../middlewares/error';
 import SolvedQuestions from '../../models/solvedQuestions';
-import { ChapterErrorBookSchema } from '../../Schemas/errorBook.schema';
 
 export const getChapterErrorBook = async (req: Request, res: Response, next: NextFunction) => {
-	const { success } = ChapterErrorBookSchema.safeParse(req.body);
-	if (!success) {
-		return next(new CustomError('Invalid request body'));
-	}
-	const { chapterName } = req.body;
+
+	const  chapterName  = req.params.chapter;
+	console.log(chapterName)
 
 	try {
 		const chapterErrorBook = await SolvedQuestions.aggregate([

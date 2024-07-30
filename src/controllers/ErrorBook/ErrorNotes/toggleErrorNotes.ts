@@ -9,11 +9,11 @@ export const toggleErrorNotes = async (req: Request, res: Response, next: NextFu
 			{
 				_id: errorNoteId,
 			},
-			{
-				$set: {
-					isCompleted: { $not: '$isCompleted' },
-				},
+		[{
+			$set: {
+				isCompleted: { $not: '$isCompleted' },
 			},
+		}],
 			{ new: true, upsert: false }
 		);
 		if (!updatedErrorNotes) {
