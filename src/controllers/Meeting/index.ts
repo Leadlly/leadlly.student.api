@@ -61,7 +61,13 @@ export const getMeetings = async (req: Request, res: Response, next: NextFunctio
             mentor: mentorObjectId
         };
 
-        const meetings = await Meeting.find(query)
+        if (req.query.meeting === 'done') {
+            query.isCompleted = true;
+        } else {
+            query.isCompleted = false;
+        }
+
+        const meetings = await Meeting.find(query);
 
         res.status(200).json({
             success: true,
