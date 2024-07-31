@@ -17,23 +17,25 @@ export const storeUnrevisedTopics = async (
 
     const topicNames = new Set();
     for (let topic of topics) {
-      if (topicNames.has(topic.name)) {
+      const normalizedTopicName = topic.name.toLowerCase();
+      if (topicNames.has(normalizedTopicName)) {
         throw new CustomError(`Duplicate topic found: "${topic.name}"`);
       }
-      topicNames.add(topic.name);
+      topicNames.add(normalizedTopicName);
     }
 
     const createdDocuments = [];
 
     for (let topic of topics) {
+      const normalizedTopicName = topic.name.toLowerCase();
+      console.log(normalizedTopicName)
       const existingDocument = await StudyData.findOne({
-        "topic.name": topic.name,
+        "topic.name": normalizedTopicName,
         tag,
         user: req.user._id, 
       });
 
       if (existingDocument) {
-
         console.log(
           `Document with topic "${topic.name}" and tag "${tag}" already exists for user "${req.user._id}". Skipping...`
         );
@@ -42,9 +44,12 @@ export const storeUnrevisedTopics = async (
 
       const data = await StudyData.create({
         ...restBody,
-        topic,
-        tag, 
-        "subject.name": subject,
+        topic: {
+          ...topic,
+          name: normalizedTopicName
+        },
+        tag,
+        "subject.name": subject.toLowerCase(),
         user: req.user._id,
       });
 
