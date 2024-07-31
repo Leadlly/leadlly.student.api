@@ -53,6 +53,7 @@ export const calculateStudentReport = async (userId: string) => {
 
         const solvedQuestionsToday = await SolvedQuestions.countDocuments({
             student: new mongoose.Types.ObjectId(userId),
+            isCorrect: true,
             createdAt: {
                 $gte: today.toDate(),
                 $lt:  moment(today).endOf('day').toDate(),
