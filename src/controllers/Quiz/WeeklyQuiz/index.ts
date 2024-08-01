@@ -97,15 +97,19 @@ export const createWeeklyQuiz = async (
       }
     }
 
+    function getNextSaturday(date: Date) {
+      const result = new Date(date);
+      result.setDate(result.getDate() + ((6 - result.getDay() + 7) % 7));
+      return result;
+    }
+
     const weeklyQuiz = await Quiz.create({
       user: user._id,
       questions: results,
       quizType: "weekly",
-      startDate,
-      endDate,
+      createdAt: new Date(),
+      endDate: getNextSaturday(new Date()),
     });
-
-    console.log(weeklyQuiz);
 
     return res.status(200).json({
       success: true,
@@ -138,7 +142,7 @@ export const getWeeklyQuiz = async (
       query.attempted = false;
     }
 
-    const weeklyQuiz = await Quiz.find(query);
+    const weeklyQuiz = await Quiz.find(query).sort({ createdAt: -1 });
 
     if (!weeklyQuiz) {
       return res.status(404).json({
@@ -150,6 +154,39 @@ export const getWeeklyQuiz = async (
     res.status(200).json({
       success: true,
       weeklyQuiz,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};
+
+export const getWeeklyQuizQuestions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const weeklyQuiz = await Quiz.findOne({
+      _id: req.query.quizId,
+      user: req.user._id,
+    });
+
+    if (!weeklyQuiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quizzes does not exist for the current week",
+      });
+    }
+
+    const weeklyQuestions = Object.values(weeklyQuiz.questions).flat();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        weeklyQuestions,
+        startDate: weeklyQuiz.createdAt,
+        endDate: weeklyQuiz.endDate,
+      },
     });
   } catch (error: any) {
     next(new CustomError(error.message));
