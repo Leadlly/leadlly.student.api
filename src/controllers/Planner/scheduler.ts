@@ -3,7 +3,6 @@ import IUser from "../../types/IUser";
 import User from "../../models/userModel";
 import { createPlanner } from ".";
 import { Request, Response, NextFunction } from "express";
-import { createWeeklyQuiz } from "../Quiz/WeeklyQuiz";
 
 const maxRetries = 3;
 const retryDelay = 180000; // 3-minute delay between retries
@@ -42,12 +41,9 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
   try {
     const users: IUser[] = await User.find({
       $or: [
-        {
-          "subscription.status": "active",
-          "subscription.dateOfActivation": { $exists: true },
-        },
-        { "freeTrial.active": true },
-      ],
+        { "subscription.status": "active", "subscription.dateOfActivation": { $exists: true } },
+        { "freeTrial.active": true }
+      ]
     });
 
     // Process users in batches
@@ -61,16 +57,13 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
     if (retries > 0) {
       console.warn(
         `Error running scheduled ${jobFunction.name}, retrying... (${retries} retries left)`,
-        error
+        error,
       );
-      setTimeout(
-        () => runJobWithRetries(jobFunction, retries - 1, nextWeek),
-        retryDelay
-      );
+      setTimeout(() => runJobWithRetries(jobFunction, retries - 1, nextWeek), retryDelay);
     } else {
       console.error(
         `Error running scheduled ${jobFunction.name} after multiple retries:`,
-        error
+        error,
       );
     }
   }
@@ -85,4 +78,3 @@ cron.schedule("40 0 * * 0", () => {
 cron.schedule("0 23 * * 0", () => {
   runJobWithRetries(createPlanner, maxRetries, true);
 });
-
