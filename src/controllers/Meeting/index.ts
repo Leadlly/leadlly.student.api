@@ -67,7 +67,7 @@ export const getMeetings = async (req: Request, res: Response, next: NextFunctio
             query.isCompleted = false;
         }
 
-        const meetings = await Meeting.find(query);
+        const meetings = await Meeting.find(query).sort({date: 1, time: -1});
 
         res.status(200).json({
             success: true,
