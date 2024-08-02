@@ -7,7 +7,7 @@ import Planner from "../../../models/plannerModel";
 import { Collection } from "mongodb";
 import SolvedQuestions from "../../../models/solvedQuestions";
 import { Quiz } from "../../../models/quizModel";
-import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calculateTopicMetrics";
+import { saveQuizQuestionsQueue } from "../../../services/bullmq/producer";
 
 export const createWeeklyQuiz = async (
   req: Request,
@@ -193,64 +193,29 @@ export const getWeeklyQuizQuestions = async (
   }
 };
 
-export const saveQuizQuestions = async (
+export const saveQuestions = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { quizData, quizId } = req.body;
+    const { topic, question, quizId} = req.body
 
-    if (!Array.isArray(quizData)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-      });
+    if (!topic || !question || !quizId) {
+      throw new Error("Invalid quiz entry format");
     }
 
-    await Promise.all(
-      quizData.map(async (quiz) => {
-        const { topic, questions } = quiz;
-
-        if (!topic || !questions || !Array.isArray(questions)) {
-          throw new Error("Invalid quiz entry format");
-        }
-
-        const topics = [topic];
-
-        const createQuestionPromises = questions.map((ques) => {
-          const { question, studentAnswer, isCorrect, tag } = ques;
-
-          if (
-            !question ||
-            studentAnswer === undefined ||
-            isCorrect === undefined ||
-            !tag
-          ) {
-            return Promise.reject(new Error("Invalid question format"));
-          }
-
-          return SolvedQuestions.create({
-            student: req.user._id,
-            question,
-            studentAnswer,
-            isCorrect,
-            tag,
-            quizId,
-          });
-        });
-
-        await Promise.all(createQuestionPromises);
-
-        // Calculate topic metrics
-        await calculateTopicMetrics(topics, req.user);
-      })
-    );
+    await saveQuizQuestionsQueue.add('quizQuestion' , {
+        user: req.user,
+        topic,
+        ques: question,
+        quizId
+    })
 
     res.status(200).json({
       success: true,
-      message: "Saved",
-    });
+      message: "Question added to queue"
+    })
   } catch (error: any) {
     console.error(error);
     next(new CustomError(error.message));
