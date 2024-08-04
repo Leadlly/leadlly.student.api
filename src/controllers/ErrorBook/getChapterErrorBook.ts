@@ -33,6 +33,7 @@ export const getChapterErrorBook = async (req: Request, res: Response, next: Nex
 			success: true,
 			chapterErrorBook,
 		});
+		console.log(chapterErrorBook)
 	} catch (error: any) {
 		console.error(error);
 		next(new CustomError(error.message));
