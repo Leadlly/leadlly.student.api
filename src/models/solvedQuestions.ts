@@ -9,6 +9,10 @@ const questionSchema: Schema = new mongoose.Schema({
   studentAnswer: {},
   isCorrect: Boolean,
   tag: String,
+  quizId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Quiz",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
