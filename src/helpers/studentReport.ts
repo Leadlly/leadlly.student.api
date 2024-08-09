@@ -53,6 +53,7 @@ export const calculateStudentReport = async (userId: string) => {
 
         const solvedQuestionsToday = await SolvedQuestions.countDocuments({
             student: new mongoose.Types.ObjectId(userId),
+            isCorrect: true,
             createdAt: {
                 $gte: today.toDate(),
                 $lt:  moment(today).endOf('day').toDate(),
@@ -96,8 +97,22 @@ export const calculateStudentReport = async (userId: string) => {
             user.details.report = {};
         }
 
+        if (!user.details.report.dailyReport) {
         user.details.report.dailyReport = {
-            session:  Math.round(completionPercentage),
+            date: new Date(Date.now()),
+            session: 0,
+            quiz: 0
+        };
+        }
+
+        // Check if the 'date' field exists in dailyReport
+        if (!user.details.report.dailyReport.date) {
+            user.details.report.dailyReport.date = today.toDate();
+        }
+
+        user.details.report.dailyReport = {
+            date: today.toDate(),
+            session: Math.round(completionPercentage),
             quiz: Math.round(quizCompletionPercentage),
             overall: Math.round((completionPercentage + quizCompletionPercentage) / 2),
         };

@@ -1,8 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import IUser from "../types/IUser";
 import crypto from "crypto";
+import moment from "moment-timezone";
 
-const userSchema = new Schema({
+const userSchema = new Schema<IUser>({
   firstname: {
     type: String,
     required: [true, "Please enter your name"],
@@ -84,6 +85,7 @@ const userSchema = new Schema({
     ],
     report: {
       dailyReport: {
+        date: { type: Date, default: moment.tz("Asia/Kolkata").startOf("day").toDate()},
         session:  { type: Number, default: 0, min: 0, max: 100 },
         quiz:  { type: Number, default: 0, min: 0, max: 100 },
         overall:  { type: Number, default: 0, min: 0, max: 100 }
@@ -114,6 +116,7 @@ const userSchema = new Schema({
   },
   resetPasswordToken: { type: String, default: null },
   resetTokenExpiry: { type: String, default: null },
+  disabled: { type: Boolean, default: false}, // If disabled is true then the student will not be assigned an mentor (for test accounts only)
 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

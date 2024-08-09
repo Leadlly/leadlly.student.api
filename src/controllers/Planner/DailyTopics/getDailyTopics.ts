@@ -19,7 +19,7 @@ export const getDailyTopics = (
     }
   } else {
     // If no continuous revision topics, add 3 back revision topics
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       const backTopic = backRevisionTopics.shift();
       if (backTopic) {
         dailyBackTopics.push(backTopic);

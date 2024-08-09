@@ -1,6 +1,7 @@
 import Tracker from "../../../models/trackerModel";
 import IDataSchema from "../../../types/IDataSchema";
-import {calculateChapterMetrics} from '../../CalculateMetrices/calculateChapterMetrics'
+import { calculateChapterMetrics } from '../../CalculateMetrices/calculateChapterMetrics';
+import createStudentTracker from "../CreateTracker";
 
 const updateStudentTracker = async (fullDocument: IDataSchema) => {
   try {
@@ -15,11 +16,12 @@ const updateStudentTracker = async (fullDocument: IDataSchema) => {
     });
 
     if (!tracker) {
-      console.log('Tracker not found, nothing to update');
-      return; 
+      console.log('Tracker not found, creating a new tracker');
+      await createStudentTracker(fullDocument); 
+      return;
     }
 
-    const chapterProgress = await calculateChapterMetrics(chapterName, fullDocument.user)
+    const chapterProgress = await calculateChapterMetrics(chapterName, fullDocument.user);
 
     const topicIndex = tracker.topics.findIndex(topic => topic.name === topicName);
 

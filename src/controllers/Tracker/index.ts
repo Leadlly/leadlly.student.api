@@ -6,8 +6,6 @@ export const getStudentTracker = async (req: Request, res: Response, next: NextF
     try {
    
       const tracker = await Tracker.find({ user: req.user._id, "subject.name": req.query.subject });
-
-      console.log(tracker, req.query.subject)
   
       if (!tracker) {
         return res.status(404).json({

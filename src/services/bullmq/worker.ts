@@ -6,6 +6,8 @@ import createStudentTracker from "../../functions/Tracker/CreateTracker";
 import { sendNotification } from "../../functions/MeetingNotification";
 import updateStudentTracker from "../../functions/Tracker/UpdateTracker";
 import { logger } from "../../utils/winstonLogger";
+import { saveQuizQuestions } from "../../controllers/Quiz/helpers/saveQuizQuestion";
+
 
 config();
 
@@ -89,6 +91,20 @@ export const meetingWorker = new Worker(
   async (job) => {
     try {
       await sendNotification(job.data);
+      logger.info(`Job ${job.id} completed successfully`);
+    } catch (error) {
+      logger.error(`Job ${job.id} failed: ${(error as Error).message}`);
+      throw error; 
+    }
+  },
+  workerOptions
+);
+
+export const quizQuestionWorker = new Worker(
+  "quiz-queue",
+  async (job) => {
+    try {
+      await saveQuizQuestions(job.data);
       logger.info(`Job ${job.id} completed successfully`);
     } catch (error) {
       logger.error(`Job ${job.id} failed: ${(error as Error).message}`);
