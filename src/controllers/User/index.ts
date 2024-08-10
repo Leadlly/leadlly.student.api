@@ -6,6 +6,7 @@ import { getSubjectList } from "../../utils/getSubjectList";
 import { CustomError } from "../../middlewares/error";
 import { StudentReport } from "../../models/reportModel";
 import moment from 'moment';
+import { db } from "../../db/db";
 
 export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -265,3 +266,22 @@ export const getOverallReport = async (req: Request, res: Response, next: NextFu
     next(new CustomError((error as Error).message));
   }
 };
+
+
+export const getMentorInfo = async(req: Request, res: Response, next: NextFunction) =>{
+  try {
+    const Mentor = db.collection('mentors')
+    const mentorId = req.user.mentor.id
+
+    if(!mentorId) next(new CustomError("Mentor not alloted", 400))
+    
+    const mentor = await Mentor.findOne({_id: mentorId })
+    if(!mentor) next(new CustomError("Mentor not exists", 404))
+    
+    console.log(mentor)
+    res.status(200).json({success: true, mentor})
+
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+}

@@ -1,4 +1,4 @@
-import { getMonthlyReport, getOverallReport, getWeeklyReport, setTodaysVibe } from "./../controllers/User/index";
+import { getMentorInfo, getMonthlyReport, getOverallReport, getWeeklyReport, setTodaysVibe } from "./../controllers/User/index";
 import express from "express";
 import { deleteUnrevisedTopics, getUnrevisedTopics, storeUnrevisedTopics } from "../controllers/User/data";
 import { checkAuth } from "../middlewares/checkAuth";
@@ -28,5 +28,6 @@ router.post("/todaysVibe/save", checkAuth, setTodaysVibe);
 router.get("/report/week", checkAuth, getWeeklyReport);
 router.get("/report/month", checkAuth, getMonthlyReport);
 router.get("/report/overall", checkAuth, getOverallReport);
+router.get("/mentor/info", checkAuth, getMentorInfo);
 
 export default router;
