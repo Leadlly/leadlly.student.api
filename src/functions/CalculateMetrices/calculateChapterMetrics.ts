@@ -65,6 +65,7 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
             {
                 $set: {
                     'chapter.overall_efficiency': chapterEfficiency,
+                    updatedAt: new Date()
                 }
             }
         );

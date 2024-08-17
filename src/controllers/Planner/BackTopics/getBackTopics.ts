@@ -1,12 +1,14 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import { StudyData } from "../../../models/studentData";
 import IDataSchema from "../../../types/IDataSchema";
 import User from "../../../models/userModel";
 import IUser, { ISubject } from "../../../types/IUser";
 
 const getWeekNumber = (startDate: Date, currentDate: Date) => {
-  const start = moment(startDate);
-  const current = moment(currentDate);
+  const start = moment.tz(startDate, "Asia/Kolkata");
+  const current = moment.tz(currentDate, "Asia/Kolkata");
+ 
+  // Calculate the difference in weeks
   return current.diff(start, "weeks") + 1;
 };
 
@@ -22,7 +24,7 @@ export const getBackRevisionTopics = async (
     throw new Error("User or user subjects not found");
   }
 
-  const subjects = user.academic.subjects; // Assuming subjects is an array of subject names
+  const subjects = user.academic.subjects;
 
   // Fetch all relevant topics in one go
   const activeContinuousRevisionTopics = (await StudyData.find({
@@ -64,18 +66,23 @@ export const getBackRevisionTopics = async (
     console.log("3 week1 2");
   } else {
     // For Week 3 onwards:
-    // Determine the reference week to fetch topics from
-    const referenceWeek = currentWeek - 2; // Fetch topics from one week before previous week
 
-    // Filter topics based on the reference week
+    // Determine the reference week to fetch topics from
+    const referenceWeek = currentWeek - 2; 
+
+    const getLastStudiedDate = (studiedAt: {   date?: Date; efficiency?: number; }[]) => {
+      return studiedAt.length > 0 ? studiedAt[studiedAt.length - 1].date : null;
+    };
+
+    // Filter topics based on the reference week using the last studied date
     const filteredContinuousLowEfficiency = continuousLowEfficiency.filter(
-      (data) => getWeekNumber(data.updatedAt!, new Date()) === referenceWeek,
+      (data) => getWeekNumber(getLastStudiedDate(data.topic.studiedAt)!, new Date()) === referenceWeek,
     );
     const filteredUnrevisedLowEfficiency = unrevisedLowEfficiency.filter(
-      (data) => getWeekNumber(data.updatedAt!, new Date()) === referenceWeek,
+      (data) => getWeekNumber(getLastStudiedDate(data.topic.studiedAt)!, new Date()) === referenceWeek,
     );
     const filteredUnrevisedTopics = allUnrevisedTopics.filter(
-      (data) => getWeekNumber(data.updatedAt!, new Date()) === referenceWeek,
+      (data) => getWeekNumber(getLastStudiedDate(data.topic.studiedAt)!, new Date()) === referenceWeek,
     );
     console.log("4 week2");
     // Construct the backRevisionTopics array in the specified order
@@ -92,7 +99,7 @@ export const getBackRevisionTopics = async (
 
   subjects.forEach((subject: ISubject) => {
     subjectTopicsMap[subject.name] = backRevisionTopics.filter(
-      topic => topic.subject.name === subject.name
+      (topic) => topic.subject.name === subject.name,
     );
   });
 

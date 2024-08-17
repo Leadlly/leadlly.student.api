@@ -108,7 +108,7 @@ export const calculateOverallEfficiency = async (topic: Topic, user: IUser) => {
 
     await StudyData.updateOne(
       { user: user._id, "topic.name": topic.name },
-      { $set: { "topic.overall_efficiency": efficiency } }
+      { $set: { "topic.overall_efficiency": efficiency, updatedAt: new Date() } }
     );
 
     return efficiency;
