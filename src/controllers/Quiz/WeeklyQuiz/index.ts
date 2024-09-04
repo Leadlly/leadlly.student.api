@@ -27,6 +27,7 @@ export const createWeeklyQuiz = async (
     const currentMoment = moment.tz(timezone);
 
     // Calculate the start and end of next week
+    
     const startDate = moment(currentMoment).startOf("isoWeek").toDate();
     const endDate = moment(startDate).endOf("isoWeek").toDate();
 
