@@ -6,6 +6,7 @@ import {
   getWeeklyQuiz,
   getWeeklyQuizQuestions,
   saveQuestions,
+  getReport,
 } from "../controllers/Quiz/WeeklyQuiz";
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.post("/weekly/create", checkAuth, createWeeklyQuiz);
 router.get("/weekly/get", checkAuth, getWeeklyQuiz);
 router.get("/weekly/questions/get", checkAuth, getWeeklyQuizQuestions);
 router.post("/weekly/questions/save", checkAuth, saveQuestions);
+router.post("/weekly/submission", checkAuth, getReport);
 
 export default router;

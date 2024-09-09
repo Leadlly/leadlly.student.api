@@ -80,7 +80,7 @@ export const createWeeklyQuiz = async (
             ])
             .toArray();
 
-          topicQuestions.map(async (topicData) => {
+          topicQuestions.map(async (topicData: any) => {
             const solvedQuestions = await SolvedQuestions.findOne({
               student: user._id,
               "question.question": topicData.question,
@@ -199,25 +199,107 @@ export const saveQuestions = async (
   next: NextFunction
 ) => {
   try {
-    const { topic, question, quizId} = req.body
+    const { topic, question, quizId } = req.body;
 
     if (!topic || !question || !quizId) {
       throw new Error("Invalid quiz entry format");
     }
 
-    await saveQuizQuestionsQueue.add('quizQuestion' , {
-        user: req.user,
-        topic,
-        ques: question,
-        quizId
-    })
+    await saveQuizQuestionsQueue.add("quizQuestion", {
+      user: req.user,
+      topic,
+      ques: question,
+      quizId,
+    });
 
     res.status(200).json({
       success: true,
-      message: "Question added to queue"
-    })
+      message: "Question added to queue",
+    });
   } catch (error: any) {
     console.error(error);
     next(new CustomError(error.message));
+  }
+};
+
+export const getReport = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { quizId } = req.query;
+
+    if (typeof quizId !== "string") {
+      return next(new CustomError("Invalid quizId", 400));
+    }
+
+    const getQuiz = await Quiz.findById(quizId).lean();
+
+    if (!getQuiz) {
+      return next(new CustomError("Quiz not found", 404));
+    }
+
+    const topicCovered = Object.entries(getQuiz.questions);
+    const topicsSet: any[] = [];
+
+    await Promise.all(
+      topicCovered.map(async (topicItem: any) => {
+        const questionsArray = topicItem[1][0];
+        if (questionsArray && typeof questionsArray === "object") {
+          const topicName = questionsArray.topics;
+
+          if (topicName) {
+            topicsSet.push(topicName);
+          }
+        }
+      })
+    );
+
+    const topics = [
+      ...new Set(
+        topicsSet.flatMap((item) =>
+          item !== null && item !== undefined
+            ? Array.isArray(item)
+              ? item
+              : [item]
+            : []
+        )
+      ),
+    ];
+    const topicsWithEfficiency: any[] = [];
+    let questionsID: any[] = [];
+    await Promise.all(
+      topics.map(async (topic: any) => {
+        const questions = await SolvedQuestions.find({
+          "question.topics": topic,
+          quizId,
+          student: req.user,
+        });
+
+        questions.forEach((question) => questionsID.push(question._id));
+        const totalQuestions = questions.length;
+        const correctAnswers = questions.filter((q: any) => q.isCorrect).length;
+
+        const efficiency = (correctAnswers / totalQuestions) * 100;
+        topicsWithEfficiency.push({
+          topic,
+          efficiency: isNaN(efficiency) ? 0 : efficiency.toFixed(2),
+        });
+      })
+    );
+    res.status(200).json({
+      status: 200,
+      topicsWithEfficiency,
+      questions: questionsID,
+    });
+  } catch (error: any) {
+    console.error(error);
+    next(
+      new CustomError(
+        error.message || "An error occurred while getting the report",
+        500
+      )
+    );
   }
 };
