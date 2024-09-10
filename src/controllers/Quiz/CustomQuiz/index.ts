@@ -1,3 +1,5 @@
+import { getQuizQuestions } from './../helpers/getQuizByType';
+import { saveQuizQuestionsQueue } from './../../../services/bullmq/producer';
 import { Collection } from 'mongodb';
 import moment from "moment-timezone";
 import { Request, Response, NextFunction } from "express";
@@ -34,7 +36,6 @@ export const createCustomQuiz = async (req: Request, res: Response, next: NextFu
 
         const allQuestions = Object.values(results).flat();
 
-        // Create the quiz
         const customQuiz = await Quiz.create({
             user: user._id,
             questions: allQuestions,
@@ -87,31 +88,38 @@ export const getCustomQuiz = async (req: Request, res: Response, next: NextFunct
     next: NextFunction
   ) => {
     try {
-      const customQuiz = await Quiz.findOne({
-        _id: req.query.quizId,
-        user: req.user._id,
-        quizType: "custom",
-      });
-  
-      if (!customQuiz) {
-        return res.status(404).json({
-          success: false,
-          message: "Custom quiz does not exist",
-        });
-      }
-  
-      const customQuizQuestions = Object.values(customQuiz.questions).flat();
-  
-      res.status(200).json({
-        success: true,
-        data: {
-          customQuizQuestions,
-          startDate: customQuiz.createdAt,
-          endDate: customQuiz.endDate,
-        },
-      });
+      req.query.quizType = "custom";  
+      await getQuizQuestions(req, res, next);  
     } catch (error: any) {
       next(new CustomError(error.message));
     }
   };
 
+  export const saveCustomQuizAnswers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { topic, question, quizId } = req.body;
+  
+      if (!topic || !question || !quizId) {
+        throw new Error("Invalid quiz entry format");
+      }
+
+      await saveQuizQuestionsQueue.add('customQuizQuestion', {
+        user: req.user,
+        topic,
+        ques: question,
+        quizId,
+      });
+  
+      res.status(200).json({
+        success: true,
+        message: "Custom quiz question added to queue for saving",
+      });
+    } catch (error: any) {
+      console.error(error);
+      next(new CustomError(error.message));
+    }
+  };

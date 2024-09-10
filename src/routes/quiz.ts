@@ -1,4 +1,4 @@
-import { createCustomQuiz, getCustomQuiz, getCustomQuizQuestions } from './../controllers/Quiz/CustomQuiz/index';
+import { createCustomQuiz, getCustomQuiz, getCustomQuizQuestions, saveCustomQuizAnswers } from './../controllers/Quiz/CustomQuiz/index';
 import express from "express";
 import { checkAuth } from "../middlewares/checkAuth";
 import { saveDailyQuiz } from "../controllers/Quiz/DailyQuiz";
@@ -21,5 +21,6 @@ router.post("/weekly/questions/save", checkAuth, saveQuestions);
 router.post("/custom/create" ,checkAuth ,createCustomQuiz)
 router.get("/custom/get" ,checkAuth ,getCustomQuiz)
 router.get("/custom/questions/get" , checkAuth , getCustomQuizQuestions)
+router.post("/custom/questions/save" , checkAuth , saveCustomQuizAnswers )
 
 export default router;

@@ -35,8 +35,6 @@ export const saveQuizQuestions = async (data: IData) => {
             tag,
             quizId,
         });
-
-        // Calculate topic metrics
         await calculateTopicMetrics(topics, user);
 
         return { success: true, message: "Saved" };
