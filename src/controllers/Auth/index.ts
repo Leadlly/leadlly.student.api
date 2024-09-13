@@ -7,6 +7,7 @@ import { otpQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import OTPModel from "../../models/otpModal";
 import { sendMail } from "../../utils/sendMail";
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 export const register = async (
   req: Request,
@@ -174,6 +175,34 @@ export const login = async (
     // Use the comparePassword method here
     const isMatched = await user.comparePassword(password);
     if (!isMatched) return next(new CustomError("Wrong password", 400));
+
+    setCookie({
+      user,
+      res,
+      next,
+      message: "Login Success",
+      statusCode: 200,
+    });
+  } catch (error: any) {
+    console.log(error);
+    next(new CustomError(error.message));
+  }
+};
+
+export const verifyToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { token } = req.body;
+    if (!token) return next(new CustomError("Login First", 400));
+  
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
+  
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    const user = await User.findById(decoded.id);
 
     setCookie({
       user,
