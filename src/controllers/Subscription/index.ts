@@ -14,43 +14,54 @@ export const buySubscription = async (
 ) => {
   try {
     const user = await User.findById(req.user._id);
-
     if (!user) {
       return next(new CustomError("User not found", 404));
     }
 
-    const planId = process.env.RAZORPAY_PLAN_ID;
+    const planType = Number(req.query.duration);
+    let planId: string;
+
+    switch (planType) {
+      case 3:
+        planId = process.env.RAZORPAY_PLAN_ID_3_MONTH!;
+        break;
+      case 6:
+        planId = process.env.RAZORPAY_PLAN_ID_6_MONTH!;
+        break;
+      case 12:
+        planId = process.env.RAZORPAY_PLAN_ID_12_MONTH!;
+        break;
+      default:
+        return next(new CustomError("Invalid subscription plan selected", 400));
+    }
+
     if (!planId) {
       return next(
         new CustomError(
-          "RAZORPAY_PLAN_ID is not defined in the environment variables.",
+          "Selected Razorpay plan ID is not defined in the environment variables.",
           400,
         ),
       );
     }
 
-    const duration = Number(req.query.duration);
-
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
       customer_notify: 1,
-      quantity: duration, // Use the converted duration here
-      total_count: 12,
+      quantity: 1, 
+      total_count: planType, 
     });
 
-    console.log(subscription, "Hello");
     user.subscription.id = subscription.id;
-    console.log("idseeted");
     user.subscription.status = subscription.status;
-    user.subscription.type = "1";
+    user.subscription.type = planType.toString(); 
 
-    // Assuming you want to save the updated user document
     await user.save();
 
     res.status(200).json({
       success: true,
       subscription,
     });
+
   } catch (error: any) {
     next(new CustomError(error.message, 500));
   }
