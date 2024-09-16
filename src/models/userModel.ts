@@ -102,6 +102,7 @@ const userSchema = new Schema<IUser>({
     id: { type: String, default: null },
     status: { type: String, default: null },
     dateOfActivation: { type: Date, default: null },
+    coupon: {type: String, default: null}
   },
   freeTrial: {
     availed: { type: Boolean, default: false },

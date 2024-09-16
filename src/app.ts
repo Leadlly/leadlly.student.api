@@ -57,7 +57,7 @@ app.use(cors(corsOptions));
 // routes
 app.use('/api/auth', authRoutes);
 app.use('/api/google', googleRoutes);
-app.use('/api/subscribe', subscriptionRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/course', courseRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/planner', plannerRoutes);

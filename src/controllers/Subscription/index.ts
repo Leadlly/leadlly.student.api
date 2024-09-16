@@ -6,6 +6,8 @@ import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
 import { Options } from "../../utils/sendMail";
+import { Pricing } from "../../models/pricingModel";
+import { Coupon } from "../../models/couponModel";
 
 export const buySubscription = async (
   req: Request,
@@ -18,54 +20,66 @@ export const buySubscription = async (
       return next(new CustomError("User not found", 404));
     }
 
-    const planType = Number(req.query.duration);
-    let planId: string;
-
-    switch (planType) {
-      case 3:
-        planId = process.env.RAZORPAY_PLAN_ID_3_MONTH!;
-        break;
-      case 6:
-        planId = process.env.RAZORPAY_PLAN_ID_6_MONTH!;
-        break;
-      case 12:
-        planId = process.env.RAZORPAY_PLAN_ID_12_MONTH!;
-        break;
-      default:
-        return next(new CustomError("Invalid subscription plan selected", 400));
+    const planId = req.query.planId as string;
+  
+    const pricing = await Pricing.findOne({ planId });
+    if (!pricing) {
+      return next(new CustomError("Invalid plan duration selected", 400));
     }
 
-    if (!planId) {
-      return next(
-        new CustomError(
-          "Selected Razorpay plan ID is not defined in the environment variables.",
-          400,
-        ),
-      );
+    let amount = pricing.amount * 100; //converting it into paise
+    const couponCode = req.query.coupon as string;
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode });
+      if (!coupon) {
+        return next(new CustomError("Invalid coupon code", 400));
+      }
+
+      if (coupon.expiryDate && coupon.expiryDate < new Date()) {
+        return next(new CustomError("Coupon has expired", 400));
+      }
+
+      if (coupon.usageLimit && coupon.usageLimit <= 0) {
+        return next(new CustomError("Coupon usage limit reached", 400));
+      }
+
+      if (coupon.discountType === 'percentage') {
+        amount -= (amount * coupon.discountValue) / 100;
+      } else {
+        amount -= coupon.discountValue;
+      }
+
+      // Update coupon usage limit
+      if (coupon.usageLimit) {
+        coupon.usageLimit -= 1;
+        await coupon.save();
+      }
     }
 
-    const subscription = await razorpay.subscriptions.create({
-      plan_id: planId,
-      customer_notify: 1,
-      quantity: 1, 
-      total_count: planType, 
+    const subscription = await razorpay.orders.create({
+      amount,
+      currency: "INR",
+      receipt: crypto.randomBytes(16).toString("hex"),
+      payment_capture: true,
     });
 
     user.subscription.id = subscription.id;
-    user.subscription.status = subscription.status;
-    user.subscription.type = planType.toString(); 
-
+    user.subscription.status = "pending";
+    user.subscription.type = planId;
+    user.subscription.coupon = couponCode
     await user.save();
 
     res.status(200).json({
       success: true,
       subscription,
     });
-
   } catch (error: any) {
+    console.log(error)
     next(new CustomError(error.message, 500));
   }
 };
+
 
 export const verifySubscription = async (
   req: Request,
@@ -75,47 +89,51 @@ export const verifySubscription = async (
   try {
     const {
       razorpay_payment_id,
-      razorpay_subscription_id,
+      razorpay_order_id,
       razorpay_signature,
     } = req.body;
 
     const user = await User.findById(req.user._id);
-    if (!user) return next(new CustomError("User not found", 404)); // Ensure user exists
+    if (!user) return next(new CustomError("User not found", 404));
 
-    const subscription_id = user?.subscription.id;
+    const order_id = user.subscription?.id;
 
     const secret = process.env.RAZORPAY_API_SECRET;
     if (!secret)
       return next(new CustomError("Razorpay secret is not defined", 400));
 
+    // Verify signature
     const generated_signature = crypto
       .createHmac("sha256", secret)
-      .update(razorpay_payment_id + "|" + subscription_id, "utf-8")
+      .update(order_id + "|" + razorpay_payment_id, "utf-8")
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
       return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
     }
 
+    // Save payment info in the database
     await Payment.create({
       razorpay_payment_id,
-      razorpay_subscription_id,
+      razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
+      planId: user.subscription?.type, 
+      coupon: user.subscription?.coupon,
     });
 
-    user.subscription.status = "active";
-
+    user.subscription.status = "active"; 
     await user.save();
 
-    await subQueue.add("subscrition", {
+    // Send confirmation email
+    await subQueue.add("payment_success", {
       options: {
         email: user.email,
-        subject: "Leadlly Subscription",
-        message: 'Subscription',
+        subject: "Leadlly Payment Success",
+        message: `Your payment for the plan is successful.`,
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "subscription_active"
+        tag: "payment_success",
       } as Options,
     });
 
