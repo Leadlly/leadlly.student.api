@@ -17,28 +17,39 @@ export const createCustomQuiz = async (req: Request, res: Response, next: NextFu
             return next(new CustomError("Not subscribed", 400));
         }
 
-        const { subjects, chapters, topics } = req.body;
+        const { subjects, chapters, topics, numberOfQuestions } = req.body;
 
-        const Questions: Collection = questions_db.collection("questionbanks");
-        const results: { [key: string]: any[] } = {};
-
-        for (let subject of subjects) {
-            const query = {
-                subject: subject,
-                topics: { $in: topics },
-                chapter: { $in: chapters }
-            };
-
-            const subjectQuestions = await Questions.find(query).toArray();
- 
-            results[subject] = subjectQuestions;
+        if (!numberOfQuestions || numberOfQuestions <= 0) {
+            return next(new CustomError("Invalid number of questions", 400));
         }
 
-        const allQuestions = Object.values(results).flat();
+        const Questions: Collection = questions_db.collection("questionbanks");
+        let allQuestions: any[] = [];
+
+        for (let subject of subjects) {
+            for (let chapter of chapters) {
+                for (let topic of topics) {
+                    const query = {
+                        subject: subject,
+                        chapter: chapter,
+                        topics: topic
+                    };
+
+                    const questions = await Questions.find(query).toArray();
+                    allQuestions = allQuestions.concat(questions);
+                }
+            }
+        }
+
+        // Shuffle the questions
+        allQuestions = allQuestions.sort(() => Math.random() - 0.5);
+
+        // Slice to get the required number of questions
+        const selectedQuestions = allQuestions.slice(0, numberOfQuestions);
 
         const customQuiz = await Quiz.create({
             user: user._id,
-            questions: allQuestions,
+            questions: selectedQuestions,
             quizType: "custom",
             createdAt: new Date(),
             endDate: moment().add(7, 'days').toDate(),
@@ -51,6 +62,7 @@ export const createCustomQuiz = async (req: Request, res: Response, next: NextFu
                 customQuiz,
                 startDate: customQuiz.createdAt,
                 endDate: customQuiz.endDate,
+                totalQuestions: selectedQuestions.length,
             },
         });
 
