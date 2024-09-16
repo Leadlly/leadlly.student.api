@@ -6,6 +6,8 @@ import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
 import { Options } from "../../utils/sendMail";
+import { Pricing } from "../../models/pricingModel";
+import { Coupon } from "../../models/couponModel";
 
 export const buySubscription = async (
   req: Request,
@@ -18,45 +20,66 @@ export const buySubscription = async (
       return next(new CustomError("User not found", 404));
     }
 
-    const planType = Number(req.query.duration); 
-    let amount: number;
-
-    switch (planType) {
-      case 3:
-        amount = 149900; // Example: ₹1,499 for 3 months
-        break;
-      case 6:
-        amount = 299900; // Example: ₹2,799 for 6 months
-        break;
-      case 12:
-        amount = 499900; // Example: ₹4,999 for 12 months
-        break;
-      default:
-        return next(new CustomError("Invalid plan duration selected", 400));
+    const planId = req.query.planId as string;
+  
+    const pricing = await Pricing.findOne({ planId });
+    if (!pricing) {
+      return next(new CustomError("Invalid plan duration selected", 400));
     }
 
-  
+    let amount = pricing.amount * 100; //converting it into paise
+    const couponCode = req.query.coupon as string;
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode });
+      if (!coupon) {
+        return next(new CustomError("Invalid coupon code", 400));
+      }
+
+      if (coupon.expiryDate && coupon.expiryDate < new Date()) {
+        return next(new CustomError("Coupon has expired", 400));
+      }
+
+      if (coupon.usageLimit && coupon.usageLimit <= 0) {
+        return next(new CustomError("Coupon usage limit reached", 400));
+      }
+
+      if (coupon.discountType === 'percentage') {
+        amount -= (amount * coupon.discountValue) / 100;
+      } else {
+        amount -= coupon.discountValue;
+      }
+
+      // Update coupon usage limit
+      if (coupon.usageLimit) {
+        coupon.usageLimit -= 1;
+        await coupon.save();
+      }
+    }
+
     const subscription = await razorpay.orders.create({
-      amount, 
+      amount,
       currency: "INR",
-      receipt: crypto.randomBytes(16).toString("hex"), 
-      payment_capture: true, 
+      receipt: crypto.randomBytes(16).toString("hex"),
+      payment_capture: true,
     });
 
     user.subscription.id = subscription.id;
-    user.subscription.status = "pending"; 
-    user.subscription.type = planType.toString(); 
-    user.subscription.amount = amount; 
+    user.subscription.status = "pending";
+    user.subscription.type = planId;
+    user.subscription.coupon = couponCode
     await user.save();
 
     res.status(200).json({
       success: true,
-      subscription, // Returning the Razorpay order details
+      subscription,
     });
   } catch (error: any) {
+    console.log(error)
     next(new CustomError(error.message, 500));
   }
 };
+
 
 export const verifySubscription = async (
   req: Request,
@@ -69,8 +92,6 @@ export const verifySubscription = async (
       razorpay_order_id,
       razorpay_signature,
     } = req.body;
-
-    console.log(req.body, "here is the body")
 
     const user = await User.findById(req.user._id);
     if (!user) return next(new CustomError("User not found", 404));
@@ -87,7 +108,6 @@ export const verifySubscription = async (
       .update(order_id + "|" + razorpay_payment_id, "utf-8")
       .digest("hex");
 
-      console.log(razorpay_signature, generated_signature, "here")
     if (generated_signature !== razorpay_signature) {
       return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
     }
@@ -98,8 +118,8 @@ export const verifySubscription = async (
       razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
-      amount: user.subscription?.amount,
-      planType: user.subscription?.type, 
+      planId: user.subscription?.type, 
+      coupon: user.subscription?.coupon,
     });
 
     user.subscription.status = "active"; 

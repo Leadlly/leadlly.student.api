@@ -6,6 +6,7 @@ import {
   getFreeTrialActive,
   verifySubscription,
 } from "../controllers/Subscription";
+import { getPricing } from "../controllers/Subscription/pricing";
 
 const router = express.Router();
 
@@ -19,4 +20,6 @@ router.post("/verify", checkAuth, verifySubscription);
 router.post("/cancel", checkAuth, cancelSubscription);
 
 router.get("/freetrial", checkAuth, getFreeTrialActive);
+
+router.get("/pricing/get", checkAuth, getPricing);
 export default router;

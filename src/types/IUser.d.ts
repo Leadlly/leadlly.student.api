@@ -81,7 +81,7 @@ interface IUser extends Document {
     type?: string;
     id?: string;
     status?: string;
-    amount?: number;
+    coupon?: string;
     dateOfActivation?: Date;
   };
   freeTrial: {
