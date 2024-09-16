@@ -18,50 +18,41 @@ export const buySubscription = async (
       return next(new CustomError("User not found", 404));
     }
 
-    const planType = Number(req.query.duration);
-    let planId: string;
+    const planType = Number(req.query.duration); 
+    let amount: number;
 
     switch (planType) {
       case 3:
-        planId = process.env.RAZORPAY_PLAN_ID_3_MONTH!;
+        amount = 149900; // Example: ₹1,499 for 3 months
         break;
       case 6:
-        planId = process.env.RAZORPAY_PLAN_ID_6_MONTH!;
+        amount = 299900; // Example: ₹2,799 for 6 months
         break;
       case 12:
-        planId = process.env.RAZORPAY_PLAN_ID_12_MONTH!;
+        amount = 499900; // Example: ₹4,999 for 12 months
         break;
       default:
-        return next(new CustomError("Invalid subscription plan selected", 400));
+        return next(new CustomError("Invalid plan duration selected", 400));
     }
 
-    if (!planId) {
-      return next(
-        new CustomError(
-          "Selected Razorpay plan ID is not defined in the environment variables.",
-          400,
-        ),
-      );
-    }
-
-    const subscription = await razorpay.subscriptions.create({
-      plan_id: planId,
-      customer_notify: 1,
-      quantity: 1, 
-      total_count: planType, 
+  
+    const subscription = await razorpay.orders.create({
+      amount, 
+      currency: "INR",
+      receipt: crypto.randomBytes(16).toString("hex"), 
+      payment_capture: true, 
     });
 
     user.subscription.id = subscription.id;
-    user.subscription.status = subscription.status;
+    user.subscription.status = "pending"; 
     user.subscription.type = planType.toString(); 
-
+    user.subscription.amount = amount; 
     await user.save();
 
     res.status(200).json({
       success: true,
-      subscription,
+      subscription, // Returning the Razorpay order details
     });
-
   } catch (error: any) {
     next(new CustomError(error.message, 500));
   }
@@ -75,47 +66,54 @@ export const verifySubscription = async (
   try {
     const {
       razorpay_payment_id,
-      razorpay_subscription_id,
+      razorpay_order_id,
       razorpay_signature,
     } = req.body;
 
-    const user = await User.findById(req.user._id);
-    if (!user) return next(new CustomError("User not found", 404)); // Ensure user exists
+    console.log(req.body, "here is the body")
 
-    const subscription_id = user?.subscription.id;
+    const user = await User.findById(req.user._id);
+    if (!user) return next(new CustomError("User not found", 404));
+
+    const order_id = user.subscription?.id;
 
     const secret = process.env.RAZORPAY_API_SECRET;
     if (!secret)
       return next(new CustomError("Razorpay secret is not defined", 400));
 
+    // Verify signature
     const generated_signature = crypto
       .createHmac("sha256", secret)
-      .update(razorpay_payment_id + "|" + subscription_id, "utf-8")
+      .update(order_id + "|" + razorpay_payment_id, "utf-8")
       .digest("hex");
 
+      console.log(razorpay_signature, generated_signature, "here")
     if (generated_signature !== razorpay_signature) {
       return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
     }
 
+    // Save payment info in the database
     await Payment.create({
       razorpay_payment_id,
-      razorpay_subscription_id,
+      razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
+      amount: user.subscription?.amount,
+      planType: user.subscription?.type, 
     });
 
-    user.subscription.status = "active";
-
+    user.subscription.status = "active"; 
     await user.save();
 
-    await subQueue.add("subscrition", {
+    // Send confirmation email
+    await subQueue.add("payment_success", {
       options: {
         email: user.email,
-        subject: "Leadlly Subscription",
-        message: 'Subscription',
+        subject: "Leadlly Payment Success",
+        message: `Your payment for the plan is successful.`,
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "subscription_active"
+        tag: "payment_success",
       } as Options,
     });
 
