@@ -268,16 +268,15 @@ export const getReport = async (
       ),
     ];
     const topicsWithEfficiency: any[] = [];
-    let questionsID: any[] = [];
+    let questions;
     await Promise.all(
       topics.map(async (topic: any) => {
-        const questions = await SolvedQuestions.find({
+        questions = await SolvedQuestions.find({
           "question.topics": topic,
           quizId,
           student: req.user,
         });
 
-        questions.forEach((question) => questionsID.push(question._id));
         const totalQuestions = questions.length;
         const correctAnswers = questions.filter((q: any) => q.isCorrect).length;
 
@@ -291,7 +290,7 @@ export const getReport = async (
     res.status(200).json({
       status: 200,
       topicsWithEfficiency,
-      questions: questionsID,
+      questions,
     });
   } catch (error: any) {
     console.error(error);
