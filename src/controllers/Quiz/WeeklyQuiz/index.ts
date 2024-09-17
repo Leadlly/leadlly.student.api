@@ -267,8 +267,14 @@ export const getReport = async (
         )
       ),
     ];
+
     const topicsWithEfficiency: any[] = [];
     let questions;
+    let totalQuestions = 0;
+    let score = 0;
+    let correctAnswers = 0;
+    let inCorrectAnswers = 0;
+
     await Promise.all(
       topics.map(async (topic: any) => {
         questions = await SolvedQuestions.find({
@@ -277,20 +283,34 @@ export const getReport = async (
           student: req.user,
         });
 
-        const totalQuestions = questions.length;
-        const correctAnswers = questions.filter((q: any) => q.isCorrect).length;
+        totalQuestions += questions.length;
 
-        const efficiency = (correctAnswers / totalQuestions) * 100;
+        score += questions.reduce(
+          (acc, q: any) => acc + (q.isCorrect ? 4 : -1),
+          0
+        );
+
+        correctAnswers = questions.filter((q: any) => q.isCorrect).length;
+        inCorrectAnswers = questions.filter((q: any) => !q.isCorrect).length;
+
+        const efficiency =
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+
         topicsWithEfficiency.push({
           topic,
-          efficiency: isNaN(efficiency) ? 0 : efficiency.toFixed(2),
+          efficiency: efficiency.toFixed(2),
         });
       })
     );
+
     res.status(200).json({
       status: 200,
       topicsWithEfficiency,
       questions,
+      score,
+      correctAnswers,
+      inCorrectAnswers,
+      totalQuestions,
     });
   } catch (error: any) {
     console.error(error);
