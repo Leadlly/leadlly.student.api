@@ -12,7 +12,7 @@ import { Coupon } from "../../models/couponModel";
 export const buySubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -21,7 +21,7 @@ export const buySubscription = async (
     }
 
     const planId = req.query.planId as string;
-  
+
     const pricing = await Pricing.findOne({ planId });
     if (!pricing) {
       return next(new CustomError("Invalid plan duration selected", 400));
@@ -44,7 +44,7 @@ export const buySubscription = async (
         return next(new CustomError("Coupon usage limit reached", 400));
       }
 
-      if (coupon.discountType === 'percentage') {
+      if (coupon.discountType === "percentage") {
         amount -= (amount * coupon.discountValue) / 100;
       } else {
         amount -= coupon.discountValue;
@@ -67,7 +67,7 @@ export const buySubscription = async (
     user.subscription.id = subscription.id;
     user.subscription.status = "pending";
     user.subscription.type = planId;
-    user.subscription.coupon = couponCode
+    user.subscription.coupon = couponCode;
     await user.save();
 
     res.status(200).json({
@@ -75,23 +75,21 @@ export const buySubscription = async (
       subscription,
     });
   } catch (error: any) {
-    console.log(error)
+    console.log(error);
     next(new CustomError(error.message, 500));
   }
 };
 
-
 export const verifySubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const {
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature,
-    } = req.body;
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+      req.body;
+
+    const { appRedirectURI } = req.query;
 
     const user = await User.findById(req.user._id);
     if (!user) return next(new CustomError("User not found", 404));
@@ -108,8 +106,10 @@ export const verifySubscription = async (
       .update(order_id + "|" + razorpay_payment_id, "utf-8")
       .digest("hex");
 
-    if (generated_signature !== razorpay_signature) {
+    if (generated_signature !== razorpay_signature && !appRedirectURI) {
       return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
+    } else if (generated_signature !== razorpay_signature && appRedirectURI) {
+      return res.redirect(`${appRedirectURI}?payment=failed`);
     }
 
     // Save payment info in the database
@@ -118,11 +118,11 @@ export const verifySubscription = async (
       razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
-      planId: user.subscription?.type, 
+      planId: user.subscription?.type,
       coupon: user.subscription?.coupon,
     });
 
-    user.subscription.status = "active"; 
+    user.subscription.status = "active";
     await user.save();
 
     // Send confirmation email
@@ -137,9 +137,15 @@ export const verifySubscription = async (
       } as Options,
     });
 
-    res.redirect(
-      `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`,
-    );
+    if (!appRedirectURI) {
+      res.redirect(
+        `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
+      );
+    } else {
+      res.redirect(
+        `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
+      );
+    }
   } catch (error: any) {
     next(new CustomError(error.message, 500));
   }
@@ -148,7 +154,7 @@ export const verifySubscription = async (
 export const cancelSubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -176,7 +182,7 @@ export const cancelSubscription = async (
     // Check if the gap is less than 7 days
     if (gap > refundTime) {
       return next(
-        new CustomError("Cannot cancel subscription after 7 days.", 400),
+        new CustomError("Cannot cancel subscription after 7 days.", 400)
       );
     } else {
       // Cancel the subscription goes here
@@ -187,7 +193,7 @@ export const cancelSubscription = async (
         payment.razorpay_payment_id,
         {
           speed: "normal",
-        },
+        }
       );
 
       await payment.deleteOne();
@@ -203,7 +209,7 @@ export const cancelSubscription = async (
       await user.save();
 
       await subQueue.add("SubcriptionCancel", {
-          options: {
+        options: {
           email: user.email,
           subject: "Leadlly Subscription",
           message: `Hello ${user.firstname}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
@@ -223,7 +229,7 @@ export const cancelSubscription = async (
 export const getFreeTrialActive = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -238,15 +244,14 @@ export const getFreeTrialActive = async (
 
     await user.save();
 
-
     await subQueue.add("freetrial", {
       options: {
         email: user.email,
         subject: "Leadlly Free-Trial",
-        message: 'Free-Trail',
+        message: "Free-Trail",
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "subscription_active"
+        tag: "subscription_active",
       } as Options,
     });
 
