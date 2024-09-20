@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface IPricing extends Document {
+export interface IPricing extends Document {
   planId: string; 
   amount: number;
   type: 'main' | 'temporary'; 
-  currency: string
+  currency: string;
+  "duration(months)": string;
 }
 
 const PricingSchema: Schema = new Schema({
@@ -16,6 +17,7 @@ const PricingSchema: Schema = new Schema({
     enum: ['main', 'temporary'], 
     required: true,
   },
+  "duration(months)": String
 });
 
 export const Pricing = mongoose.model<IPricing>('Pricing', PricingSchema);

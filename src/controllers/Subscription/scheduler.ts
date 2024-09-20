@@ -23,3 +23,22 @@ cron.schedule("0 0 * * *", async () => {
     console.error("Error deactivating free trials:", error);
   }
 });
+
+
+cron.schedule("0 0 * * *", async () => {
+  const now = new Date();
+  const usersToDeactivate = await User.find({
+    "subscription.status": "active",
+    "subscription.endDate": { $lte: now },
+  });
+
+  for (const user of usersToDeactivate) {
+    user.subscription.status = "inactive";
+    user.subscription.dateOfDeactivation = undefined;
+    user.subscription.dateOfActivation = undefined;
+    user.subscription.id = undefined;
+    user.subscription.planId= undefined;
+    user.subscription.duration = undefined
+    await user.save();
+  }
+});

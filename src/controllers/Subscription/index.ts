@@ -6,7 +6,7 @@ import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
 import { Options } from "../../utils/sendMail";
-import { Pricing } from "../../models/pricingModel";
+import { IPricing, Pricing } from "../../models/pricingModel";
 import { Coupon } from "../../models/couponModel";
 
 export const buySubscription = async (
@@ -22,7 +22,7 @@ export const buySubscription = async (
 
     const planId = req.query.planId as string;
   
-    const pricing = await Pricing.findOne({ planId });
+    const pricing = await Pricing.findOne({ planId }) as IPricing;
     if (!pricing) {
       return next(new CustomError("Invalid plan duration selected", 400));
     }
@@ -66,7 +66,8 @@ export const buySubscription = async (
 
     user.subscription.id = subscription.id;
     user.subscription.status = "pending";
-    user.subscription.type = planId;
+    user.subscription.planId = planId;
+    user.subscription.duration = pricing["duration(months)"];
     user.subscription.coupon = couponCode
     await user.save();
 
@@ -118,12 +119,17 @@ export const verifySubscription = async (
       razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
-      planId: user.subscription?.type, 
+      planId: user.subscription?.planId, 
       coupon: user.subscription?.coupon,
     });
 
     user.subscription.status = "active"; 
-    await user.save();
+    user.subscription.dateOfActivation = new Date(Date.now())
+    const durationInMonths = Number(user.subscription.duration); 
+    const deactivationDate = new Date();
+    deactivationDate.setMonth(deactivationDate.getMonth() + durationInMonths);
+    
+    user.subscription.dateOfDeactivation = deactivationDate;    await user.save();
 
     // Send confirmation email
     await subQueue.add("payment_success", {
@@ -194,11 +200,11 @@ export const cancelSubscription = async (
 
       user.refund.status = refund.status;
       user.refund.type = refund.speed_processed;
-      user.refund.subscriptionType = user.subscription.type;
+      user.refund.subscriptionType = user.subscription.planId;
 
       user.subscription.status = subscription.status;
       user.subscription.id = undefined;
-      user.subscription.type = undefined;
+      user.subscription.planId = undefined;
 
       await user.save();
 

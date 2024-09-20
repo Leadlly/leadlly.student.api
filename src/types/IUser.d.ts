@@ -78,11 +78,13 @@ interface IUser extends Document {
   }>;
   points?: number;
   subscription: {
-    type?: string;
+    planId?: string;
     id?: string;
+    duration?: string;
     status?: string;
     coupon?: string;
     dateOfActivation?: Date;
+    dateOfDeactivation?: Date;
   };
   freeTrial: {
     availed?: boolean;
