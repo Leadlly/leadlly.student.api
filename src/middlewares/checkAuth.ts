@@ -27,13 +27,3 @@ export const checkAuth = async (
   next();
 };
 
-export const authoriseSubscriber = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  if (req.user.subscripiton.status !== "active" || req.user.freeTrial.active !== true)
-    return next(new CustomError("You are not subscribed", 400));
-
-  next();
-};

@@ -318,6 +318,7 @@ export const getFreeTrialActive = async (
      user.freeTrial.dateOfDeactivation = new Date(user.freeTrial.dateOfActivation);
      user.freeTrial.dateOfDeactivation.setDate(user.freeTrial.dateOfDeactivation.getDate() + 7);
 
+     user.category = 'free'
     await user.save();
 
     await subQueue.add("freetrial", {
