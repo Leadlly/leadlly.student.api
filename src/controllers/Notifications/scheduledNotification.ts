@@ -2,7 +2,6 @@ import cron from "node-cron";
 import { Push_Token } from "../../models/push_token";
 import { sendPushNotification } from "../../utils/sendPushNotification";
 
-// Define messages for different times
 const dailyMessages = {
   "9AM": "Good morning! Here's your first update of the day!",
   "5PM": "Good evening! Here's an update for your evening.",
@@ -30,17 +29,21 @@ cron.schedule("45 23 * * *", async () => {
   await sendScheduledNotification(dailyMessages["11:45PM"]);
 });
 
+// Function to send scheduled notifications with chunking
 const sendScheduledNotification = async (message: string) => {
   try {
-    const tokens = await Push_Token.find(); 
+    const tokens = await Push_Token.find();
+    const pushTokens = tokens.map(tokenData => tokenData.push_token);
 
-    if (tokens.length > 0) {
-      for (const tokenData of tokens) {
-        await sendPushNotification(tokenData.push_token, message);
-      }
-    } else {
+    if (pushTokens.length === 0) {
       console.log("No push tokens found.");
+      return;
     }
+
+    // Send the notifications in chunks
+    await sendPushNotification(pushTokens, message);
+
+    console.log(`Scheduled notification sent: ${message}`);
   } catch (error) {
     console.error("Error sending scheduled notification:", error);
   }

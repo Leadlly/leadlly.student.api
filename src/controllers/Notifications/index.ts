@@ -7,15 +7,16 @@ export const sendCustomNotification = async (req: Request, res: Response, next: 
   try {
     const { message, userId } = req.body;
 
-    // If userId is provided, send to that specific user
     if (userId) {
+      // Find the push token for a specific user
       const tokenData = await Push_Token.findOne({ user: userId });
 
       if (!tokenData) {
         return res.status(404).json({ success: false, message: "Push token not found for the specified user" });
       }
 
-      await sendPushNotification(tokenData.push_token, message);
+      // Send the notification to a single user
+      await sendPushNotification([tokenData.push_token], message);  
 
       return res.status(200).json({
         success: true,
@@ -23,16 +24,15 @@ export const sendCustomNotification = async (req: Request, res: Response, next: 
       });
     }
 
-    // If no userId is provided, send to all users
+    // If no specific userId is provided, send to all users
     const tokens = await Push_Token.find();
+    const pushTokens = tokens.map(tokenData => tokenData.push_token);
 
-    if (tokens.length === 0) {
+    if (pushTokens.length === 0) {
       return res.status(404).json({ success: false, message: "No push tokens found" });
     }
 
-    for (const tokenData of tokens) {
-      await sendPushNotification(tokenData.push_token, message);
-    }
+    await sendPushNotification(pushTokens, message);
 
     res.status(200).json({
       success: true,
