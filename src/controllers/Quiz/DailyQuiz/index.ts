@@ -4,6 +4,7 @@ import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calc
 import { CustomError } from "../../../middlewares/error";
 import { calculateStudentReport } from "../../../helpers/studentReport";
 import { insertCompletedTopics } from "./helpers/insertCompletedTopics";
+import { updateStreak } from "../helpers/updateUserDetails";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -40,7 +41,8 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
     await Promise.all(createQuestionPromises);
     await calculateTopicMetrics(topics, req.user);
     await calculateStudentReport(req.user._id);
-
+    await updateStreak(req.user)
+  
     res.status(200).json({
       success: true,
       message: "Saved",

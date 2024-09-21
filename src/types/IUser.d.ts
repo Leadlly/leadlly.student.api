@@ -55,10 +55,10 @@ interface IUser extends Document {
     gender: string;
   };
   role?: string;
-  details?: {
+  details: {
     level?: { number: number};
     points?: { number: number};
-    streak?: { number: number};
+    streak?: { number: number, updatedAt: Date};
     mood?: Array<{
       day: string;
       emoji: string;
