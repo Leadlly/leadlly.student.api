@@ -69,13 +69,14 @@ const userSchema = new Schema<IUser>({
   },
   details: {
     level: { 
-      number: {type: Number, default: null} 
+      number: {type: Number, default: 1} 
     },
     points: {
-      number: {type: Number, default: null} 
+      number: {type: Number, default: 0} 
      },
     streak: {
-      number: {type: Number, default: null} 
+      number: {type: Number, default: 0},
+      updatedAt: { type: Date }
      },
     mood: [
       {
