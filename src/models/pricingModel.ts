@@ -5,7 +5,7 @@ export interface IPricing extends Document {
   amount: number;
   type: 'main' | 'temporary'; 
   currency: string;
-  "duration(months)": string;
+  "duration(months)": number;
 }
 
 const PricingSchema: Schema = new Schema({
@@ -17,7 +17,7 @@ const PricingSchema: Schema = new Schema({
     enum: ['main', 'temporary'], 
     required: true,
   },
-  "duration(months)": String
+  "duration(months)": Number
 });
 
 export const Pricing = mongoose.model<IPricing>('Pricing', PricingSchema);

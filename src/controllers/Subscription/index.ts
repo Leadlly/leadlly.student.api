@@ -8,6 +8,7 @@ import Payment from "../../models/paymentModel";
 import { Options } from "../../utils/sendMail";
 import { IPricing, Pricing } from "../../models/pricingModel";
 import { Coupon } from "../../models/couponModel";
+import { Order } from "../../models/order_created";
 
 export const buySubscription = async (
   req: Request,
@@ -21,16 +22,16 @@ export const buySubscription = async (
     }
 
     const planId = req.query.planId as string;
-  
     const pricing = await Pricing.findOne({ planId }) as IPricing;
 
     if (!pricing) {
       return next(new CustomError("Invalid plan duration selected", 400));
     }
 
-    let amount = pricing.amount * 100; //converting it into paise
+    let amount = pricing.amount * 100; // Convert amount to paise
     const couponCode = req.query.coupon as string;
 
+    // Handle coupon discount 
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode });
       if (!coupon) {
@@ -58,6 +59,7 @@ export const buySubscription = async (
       }
     }
 
+    // Create Razorpay order
     const subscription = await razorpay.orders.create({
       amount,
       currency: "INR",
@@ -65,12 +67,32 @@ export const buySubscription = async (
       payment_capture: true,
     });
 
-    user.subscription.id = subscription.id;
-    user.subscription.status = "pending";
-    user.subscription.planId = planId;
-    user.subscription.duration = pricing["duration(months)"];
-    user.subscription.coupon = couponCode
+    const order = await Order.findOne({user: user._id})
+    if(order) {
+      order.user = user._id,
+      order.order_id= subscription.id,
+      order.planId= planId,
+      order.duration= pricing["duration(months)"],
+      order.coupon= couponCode,
 
+      await order.save();
+      } else {
+        await Order.create({
+          user: user._id,
+          order_id: subscription.id,
+          planId: planId,
+          duration: pricing["duration(months)"],
+          coupon: couponCode,
+        })
+      }
+
+ 
+    if(user.subscription.status === "active") {
+      user.subscription.status = "active"
+    } else {
+
+      user.subscription.status = "pending";
+    }
     await user.save();
 
     res.status(200).json({
@@ -97,41 +119,87 @@ export const verifySubscription = async (
     const user = await User.findById(req.user._id);
     if (!user) return next(new CustomError("User not found", 404));
 
-    const order_id = user.subscription?.id;
+    const order = await Order.findOne({ user: user._id });
+    if (!order) return next(new CustomError("Order not found", 404));
+    
+
+    const order_id = order?.order_id;
 
     const secret = process.env.RAZORPAY_API_SECRET;
     if (!secret)
       return next(new CustomError("Razorpay secret is not defined", 400));
 
-    // Verify signature
+    // Verify Razorpay signature
     const generated_signature = crypto
       .createHmac("sha256", secret)
       .update(order_id + "|" + razorpay_payment_id, "utf-8")
       .digest("hex");
 
-    if (generated_signature !== razorpay_signature && !appRedirectURI) {
-      return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
-    } else if (generated_signature !== razorpay_signature && appRedirectURI) {
-      return res.redirect(`${appRedirectURI}?payment=failed`);
+    if (generated_signature !== razorpay_signature) {
+      return appRedirectURI
+        ? res.redirect(`${appRedirectURI}?payment=failed`)
+        : res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
     }
 
-    // Save payment info in the database
+    // Save payment info
     await Payment.create({
       razorpay_payment_id,
       razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
-      planId: user.subscription?.planId, 
+      planId: user.subscription?.planId,
       coupon: user.subscription?.coupon,
     });
 
-    user.subscription.status = "active"; 
-    user.subscription.dateOfActivation = new Date(Date.now())
-    const durationInMonths = Number(user.subscription.duration); 
-    const deactivationDate = new Date();
-    deactivationDate.setMonth(deactivationDate.getMonth() + durationInMonths);
-    
-    user.subscription.dateOfDeactivation = deactivationDate;    await user.save();
+    const pricing = await Pricing.findOne({ planId: order?.planId }) as IPricing;
+
+    if (!pricing) {
+      return next(new CustomError("Invalid plan duration selected", 400));
+    }
+
+    const currentDeactivationDate = user.subscription.dateOfDeactivation;
+    const durationInMonths = pricing["duration(months)"]
+
+    console.log(user.subscription.status, "hello")
+    if (user.subscription.status === "active") {
+      // Handle subscription extension on upgrade
+      console.log("hello hi")
+      user.subscription.upgradation = {
+        previousPlanId: user.subscription.planId,
+        previousDuration: user.subscription.duration,
+        dateOfUpgradation: new Date(),
+        addedDuration: durationInMonths, 
+      };
+
+      // Update the subscription duration
+      user.subscription.duration += durationInMonths;
+      user.subscription.id = order?.order_id;
+      user.subscription.planId = order?.planId;
+      user.subscription.coupon = order?.coupon;
+
+        const addedDuration = durationInMonths || 0;
+        if (currentDeactivationDate) {
+          const newDeactivationDate = new Date(currentDeactivationDate);
+          newDeactivationDate.setMonth(newDeactivationDate.getMonth() + addedDuration);
+          user.subscription.dateOfDeactivation = newDeactivationDate;
+      }
+    } else {
+      // New subscription
+      console.log("hello bye")
+
+      user.subscription.status = "active";
+      user.subscription.id = order?.order_id;
+      user.subscription.planId = order?.planId;
+      user.subscription.duration = durationInMonths;
+      user.subscription.coupon = order?.coupon;
+      user.subscription.dateOfActivation = new Date();
+
+      const newDeactivationDate = new Date();
+      newDeactivationDate.setMonth(newDeactivationDate.getMonth() + durationInMonths);
+      user.subscription.dateOfDeactivation = newDeactivationDate;
+    }
+
+    await user.save();
 
     // Send confirmation email
     await subQueue.add("payment_success", {
@@ -145,15 +213,11 @@ export const verifySubscription = async (
       } as Options,
     });
 
-    if (!appRedirectURI) {
-      res.redirect(
-        `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
-      );
-    } else {
-      res.redirect(
-        `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
-      );
-    }
+    res.redirect(
+      appRedirectURI
+        ? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
+        : `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
+    );
   } catch (error: any) {
     next(new CustomError(error.message, 500));
   }
@@ -194,39 +258,39 @@ export const cancelSubscription = async (
       );
     } else {
       // Cancel the subscription goes here
-      const subscription = await razorpay.subscriptions.cancel(subscriptionId);
+      // const subscription = await razorpay.subscriptions.cancel(subscriptionId);
 
-      //Refund the amount
-      const refund = await razorpay.payments.refund(
-        payment.razorpay_payment_id,
-        {
-          speed: "normal",
-        }
-      );
+      // //Refund the amount
+      // const refund = await razorpay.payments.refund(
+      //   payment.razorpay_payment_id,
+      //   {
+      //     speed: "normal",
+      //   }
+      // );
 
-      await payment.deleteOne();
+      // await payment.deleteOne();
 
-      user.refund.status = refund.status;
-      user.refund.type = refund.speed_processed;
-      user.refund.subscriptionType = user.subscription.planId;
+      // user.refund.status = refund.status;
+      // user.refund.type = refund.speed_processed;
+      // user.refund.subscriptionType = user.subscription.planId;
 
-      user.subscription.status = subscription.status;
-      user.subscription.id = undefined;
-      user.subscription.planId = undefined;
+      // user.subscription.status = subscription.status;
+      // user.subscription.id = undefined;
+      // user.subscription.planId = undefined;
 
-      await user.save();
+      // await user.save();
 
       await subQueue.add("SubcriptionCancel", {
         options: {
           email: user.email,
           subject: "Leadlly Subscription",
-          message: `Hello ${user.firstname}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
+          message: `Hello ${user.firstname}! Your refund request is send to our team. You can will get call in 3 - 4 working days`,
         },
       });
 
       res.status(200).json({
         success: true,
-        message: "Subscription cancelled successfully.",
+        message: "Subscription Cancel Request successfully.",
       });
     }
   } catch (error: any) {
