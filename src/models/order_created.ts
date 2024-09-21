@@ -6,6 +6,7 @@ interface IOrder extends Document {
   planId?: string; 
   duration?: number; 
   coupon?: string; 
+  createdAt: Date
 }
 
 const OrderSchema: Schema = new Schema({
@@ -14,6 +15,7 @@ const OrderSchema: Schema = new Schema({
   planId: { type: String },
   duration: { type: Number },
   coupon: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
 export const Order = mongoose.model<IOrder>('Order', OrderSchema);
