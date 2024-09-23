@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface IOrder extends Document {
+export interface IOrder extends Document {
   user: mongoose.Types.ObjectId; 
   order_id: string; 
-  planId?: string; 
-  duration?: number; 
+  planId: string; 
+  duration: number; 
+  categogy: 'basic' | 'pro' | 'premium' | 'free' | null;
   coupon?: string; 
 }
 
@@ -13,6 +14,7 @@ const OrderSchema: Schema = new Schema({
   order_id: { type: String, required: true },
   planId: { type: String },
   duration: { type: Number },
+  category: { type: String, enum: [ 'basic', 'pro', 'premium', 'free'  ]},
   coupon: { type: String },
 });
 

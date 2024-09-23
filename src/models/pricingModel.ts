@@ -5,7 +5,7 @@ export interface IPricing extends Document {
   amount: number;
   type: 'main' | 'temporary'; 
   currency: string;
-  category: string;
+  category: 'basic' | 'pro' | 'premium' | 'free' | null;
   status: string;
   "duration(months)": number;
 }
@@ -14,7 +14,7 @@ const PricingSchema: Schema = new Schema({
   planId: { type: String, required: true, unique: true },
   amount: { type: Number, required: true },
   currency: {type: String, default: "INR"},
-  category: { type: String },
+  category: { type: String, enum: [ 'basic', 'pro', 'premium', 'free'  ]},
   status: { type: String, enum: ['active', 'inactive'], default: "active"},
   type: {
     type: String,
