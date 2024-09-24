@@ -114,9 +114,14 @@ export const verifySubscription = async (
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
       req.body;
 
-    const { appRedirectURI } = req.query;
+    const { appRedirectURI, user: userData } = req.query;
+    console.log(userData)
 
-    const user = await User.findById(req.user._id);
+    if (!userData || typeof userData !== 'string') {
+      return next(new CustomError("Userdata not found or invalid"));
+    }
+    
+    const user = await User.findById(JSON.parse(userData)._id);
     if (!user) return next(new CustomError("User not found", 404));
 
     const order = await Order.findOne({ user: user._id });
