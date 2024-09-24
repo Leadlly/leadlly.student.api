@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/create", checkAuth, buySubscription);
 
 //verify subscription
-router.post("/verify", checkAuth, verifySubscription);
+router.post("/verify", verifySubscription);
 
 //cancel subscripiton
 router.post("/cancel", checkAuth, cancelSubscription);
