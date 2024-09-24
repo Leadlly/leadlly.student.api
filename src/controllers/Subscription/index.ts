@@ -138,7 +138,7 @@ export const verifySubscription = async (
       req.body;
 
     const { appRedirectURI } = req.query;
-
+    
     const user = await User.findById(req.user._id);
     if (!user) return next(new CustomError("User not found", 404));
 
@@ -234,7 +234,7 @@ export const verifySubscription = async (
       } as Options,
     });
 
-    res.redirect(
+    res.status(200).json(
       appRedirectURI
         ? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
         : `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`

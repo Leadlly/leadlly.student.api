@@ -18,6 +18,7 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "expo-server-sdk": "^3.11.0",
     "express": "^4.19.2",
     "express-winston": "^4.2.0",
     "ioredis": "^5.3.2",

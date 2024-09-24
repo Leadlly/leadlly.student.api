@@ -7,6 +7,7 @@ export interface IOrder extends Document {
   duration: number; 
   categogy: 'basic' | 'pro' | 'premium' | 'free' | null;
   coupon?: string; 
+  createdAt: Date
 }
 
 const OrderSchema: Schema = new Schema({
@@ -16,6 +17,7 @@ const OrderSchema: Schema = new Schema({
   duration: { type: Number },
   category: { type: String, enum: [ 'basic', 'pro', 'premium', 'free'  ]},
   coupon: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
 export const Order = mongoose.model<IOrder>('Order', OrderSchema);

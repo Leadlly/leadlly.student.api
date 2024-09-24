@@ -16,6 +16,8 @@ import quizRoutes from "./routes/quiz";
 import trackerRoutes from "./routes/tracker";
 import meetingRoutes from "./routes/meeting";
 import errorBookRoutes from "./routes/errorBook";
+import notificationRoutes from "./routes/notificationRoutes"
+
 config({
   path: "./.env",
 });
@@ -72,6 +74,7 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/tracker", trackerRoutes);
 app.use("/api/meeting", meetingRoutes);
 app.use("/api/errorBook", errorBookRoutes);
+app.use("/api/notification", notificationRoutes);
 
 app.get("/api", (req, res) => {
   res.send("Hello, world!");

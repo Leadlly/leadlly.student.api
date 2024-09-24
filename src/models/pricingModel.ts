@@ -8,6 +8,7 @@ export interface IPricing extends Document {
   category: 'basic' | 'pro' | 'premium' | 'free' | null;
   status: string;
   "duration(months)": number;
+  createdAt: Date
 }
 
 const PricingSchema: Schema = new Schema({
@@ -22,7 +23,8 @@ const PricingSchema: Schema = new Schema({
     required: true,
     default: "main"
   },
-  "duration(months)": Number
+  "duration(months)": Number,
+  createdAt: { type: Date, default: Date.now },
 });
 
 export const Pricing = mongoose.model<IPricing>('Pricing', PricingSchema);
