@@ -5,6 +5,8 @@ import { logger } from "./utils/winstonLogger";
 import serverless from "serverless-http";
 import { watchTrackerChanges } from "./events/Tracker";
 import "./controllers/Planner/scheduler";
+import "./controllers/Notifications/scheduledNotification"
+import "./controllers/Subscription/scheduler"
 import { watchMeetingChanges } from "./events/Meeting";
 
 const port = process.env.PORT || 4000;

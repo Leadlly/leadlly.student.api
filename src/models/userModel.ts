@@ -69,13 +69,14 @@ const userSchema = new Schema<IUser>({
   },
   details: {
     level: { 
-      number: {type: Number, default: null} 
+      number: {type: Number, default: 1} 
     },
     points: {
-      number: {type: Number, default: null} 
+      number: {type: Number, default: 0} 
      },
     streak: {
-      number: {type: Number, default: null} 
+      number: {type: Number, default: 0},
+      updatedAt: { type: Date }
      },
     mood: [
       {
@@ -99,9 +100,20 @@ const userSchema = new Schema<IUser>({
     },
   ],
   subscription: {
-    id: { type: String, default: null },
-    status: { type: String, default: null },
-    dateOfActivation: { type: Date, default: null },
+    id: { type: String, default: null }, 
+    status: { type: String, default: null }, 
+    planId: { type: String }, 
+    duration: { type: Number }, 
+    dateOfActivation: { type: Date, default: null }, 
+    dateOfDeactivation: { type: Date, default: null }, 
+    coupon: { type: String, default: null }, 
+
+    upgradation: {
+      previousPlanId: { type: String, default: null }, 
+      previousDuration: { type: Number, default: null }, 
+      dateOfUpgradation: { type: Date, default: null }, 
+      addedDuration: { type: Number, default: null }, 
+    },
   },
   freeTrial: {
     availed: { type: Boolean, default: false },

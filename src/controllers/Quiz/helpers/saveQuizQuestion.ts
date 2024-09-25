@@ -2,6 +2,7 @@ import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calc
 import SolvedQuestions from "../../../models/solvedQuestions";
 import { Topic } from "../../../types/IDataSchema";
 import IUser from "../../../types/IUser";
+import { updateStreak } from "./updateUserDetails";
 
 type IData = {
     user: IUser, 
@@ -38,6 +39,7 @@ export const saveQuizQuestions = async (data: IData) => {
 
         // Calculate topic metrics
         await calculateTopicMetrics(topics, user);
+        await updateStreak(user)
 
         return { success: true, message: "Saved" };
     } catch (error) {

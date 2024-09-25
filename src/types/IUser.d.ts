@@ -55,10 +55,10 @@ interface IUser extends Document {
     gender: string;
   };
   role?: string;
-  details?: {
+  details: {
     level?: { number: number};
     points?: { number: number};
-    streak?: { number: number};
+    streak?: { number: number, updatedAt: Date};
     mood?: Array<{
       day: string;
       emoji: string;
@@ -78,10 +78,20 @@ interface IUser extends Document {
   }>;
   points?: number;
   subscription: {
-    type?: string;
-    id?: string;
-    status?: string;
-    dateOfActivation?: Date;
+    id?: string; 
+    status?: string; 
+    planId?: string; 
+    duration: number; 
+    dateOfActivation?: Date; 
+    dateOfDeactivation?: Date; 
+    coupon?: string;
+  
+    upgradation?: {
+      previousPlanId?: string; 
+      previousDuration?: number; 
+      dateOfUpgradation?: Date; 
+      addedDuration?: number; 
+    };
   };
   freeTrial: {
     availed?: boolean;

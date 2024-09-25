@@ -7,11 +7,12 @@ import { otpQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import OTPModel from "../../models/otpModal";
 import { sendMail } from "../../utils/sendMail";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 export const register = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { name, email, password } = req.body;
@@ -30,11 +31,11 @@ export const register = async (
     // });
 
     await sendMail({
-        email,
-        subject: "Verification",
-        message: OTP,
-        tag: "otp"
-      })
+      email,
+      subject: "Verification",
+      message: OTP,
+      tag: "otp",
+    });
 
     const nameArray = name.split(" ");
     const newUser = {
@@ -84,7 +85,7 @@ export const register = async (
 export const resentOtp = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { email } = req.body;
@@ -102,13 +103,13 @@ export const resentOtp = async (
     //     message: `Your verification OTP for registration is ${OTP}`,
     //   },
     // });
-    
+
     await sendMail({
       email,
       subject: "Verification",
       message: OTP,
-      tag: "otp"
-    })
+      tag: "otp",
+    });
 
     otpRecord.otp = crypto.createHash("sha256").update(OTP).digest("hex");
     otpRecord.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
@@ -127,7 +128,7 @@ export const resentOtp = async (
 export const otpVerification = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { otp, email } = req.body;
@@ -163,7 +164,7 @@ export const otpVerification = async (
 export const login = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { email, password } = req.body;
@@ -188,10 +189,41 @@ export const login = async (
   }
 };
 
+export const verifyToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token } = req.body;
+    if (!token)
+      return next(
+        new CustomError("Invalid token received or has expired!", 400)
+      );
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
+
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    const user = await User.findById(decoded.id);
+    if (!user)
+      return next(new CustomError("Invalid token or has expired!", 400));
+
+    return res.status(200).json({
+      success: true,
+      isValidToken: true,
+      message: "Token verified successfully!",
+    });
+  } catch (error: any) {
+    console.log(error);
+    next(new CustomError(error.message));
+  }
+};
+
 export const forgotPassword = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { email } = req.body;
@@ -215,8 +247,8 @@ export const forgotPassword = async (
       email,
       subject: "Password Reset",
       message: url,
-      tag: 'password_reset'
-    })
+      tag: "password_reset",
+    });
 
     res.status(200).json({
       success: true,
@@ -230,7 +262,7 @@ export const forgotPassword = async (
 export const resetpassword = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const resetToken = req.params.token;
@@ -272,7 +304,7 @@ export const resetpassword = async (
           success: true,
           message: "You password has been changed",
         });
-      },
+      }
     );
   } catch (error: any) {
     next(new CustomError(error.message));
@@ -296,7 +328,7 @@ export const logout = async (req: Request, res: Response) => {
 export const getUser = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);

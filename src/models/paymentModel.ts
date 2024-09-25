@@ -17,7 +17,8 @@ const paymentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  type: String,
+  planId: String,
+  coupon: String,
   createdAt: {
     type: Date,
     default: Date.now,

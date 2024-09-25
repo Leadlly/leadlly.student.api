@@ -6,45 +6,93 @@ import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
 import { Options } from "../../utils/sendMail";
+import { IPricing, Pricing } from "../../models/pricingModel";
+import { Coupon } from "../../models/couponModel";
+import { Order } from "../../models/order_created";
 
 export const buySubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);
-
     if (!user) {
       return next(new CustomError("User not found", 404));
     }
 
-    const planId = process.env.RAZORPAY_PLAN_ID;
-    if (!planId) {
-      return next(
-        new CustomError(
-          "RAZORPAY_PLAN_ID is not defined in the environment variables.",
-          400,
-        ),
-      );
+    const planId = req.query.planId as string;
+    const pricing = await Pricing.findOne({ planId }) as IPricing;
+
+    if (!pricing) {
+      return next(new CustomError("Invalid plan duration selected", 400));
     }
 
-    const duration = Number(req.query.duration);
+    let amount = pricing.amount * 100; // Convert amount to paise
+    const couponCode = req.query.coupon as string;
 
-    const subscription = await razorpay.subscriptions.create({
-      plan_id: planId,
-      customer_notify: 1,
-      quantity: duration, // Use the converted duration here
-      total_count: 12,
+    // Handle coupon discount 
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode });
+      if (!coupon) {
+        return next(new CustomError("Invalid coupon code", 400));
+      }
+
+      if (coupon.expiryDate && coupon.expiryDate < new Date()) {
+        return next(new CustomError("Coupon has expired", 400));
+      }
+
+      if (coupon.usageLimit && coupon.usageLimit <= 0) {
+        return next(new CustomError("Coupon usage limit reached", 400));
+      }
+
+      if (coupon.discountType === "percentage") {
+        amount -= (amount * coupon.discountValue) / 100;
+      } else {
+        amount -= coupon.discountValue;
+      }
+
+      // Update coupon usage limit
+      if (coupon.usageLimit) {
+        coupon.usageLimit -= 1;
+        await coupon.save();
+      }
+    }
+
+    // Create Razorpay order
+    const subscription = await razorpay.orders.create({
+      amount,
+      currency: "INR",
+      receipt: crypto.randomBytes(16).toString("hex"),
+      payment_capture: true,
     });
 
-    console.log(subscription, "Hello");
-    user.subscription.id = subscription.id;
-    console.log("idseeted");
-    user.subscription.status = subscription.status;
-    user.subscription.type = "1";
+    const order = await Order.findOne({user: user._id})
+    if(order) {
+      order.user = user._id,
+      order.order_id= subscription.id,
+      order.planId= planId,
+      order.duration= pricing["duration(months)"],
+      order.coupon= couponCode,
 
-    // Assuming you want to save the updated user document
+      await order.save();
+      } else {
+        await Order.create({
+          user: user._id,
+          order_id: subscription.id,
+          planId: planId,
+          duration: pricing["duration(months)"],
+          coupon: couponCode,
+        })
+      }
+
+ 
+    if(user.subscription.status === "active") {
+      user.subscription.status = "active"
+    } else {
+
+      user.subscription.status = "pending";
+    }
     await user.save();
 
     res.status(200).json({
@@ -52,6 +100,7 @@ export const buySubscription = async (
       subscription,
     });
   } catch (error: any) {
+    console.log(error);
     next(new CustomError(error.message, 500));
   }
 };
@@ -59,57 +108,115 @@ export const buySubscription = async (
 export const verifySubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const {
-      razorpay_payment_id,
-      razorpay_subscription_id,
-      razorpay_signature,
-    } = req.body;
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+      req.body;
 
+    const { appRedirectURI } = req.query;
+    
     const user = await User.findById(req.user._id);
-    if (!user) return next(new CustomError("User not found", 404)); // Ensure user exists
+    if (!user) return next(new CustomError("User not found", 404));
 
-    const subscription_id = user?.subscription.id;
+    const order = await Order.findOne({ user: user._id });
+    if (!order) return next(new CustomError("Order not found", 404));
+    
+
+    const order_id = order?.order_id;
 
     const secret = process.env.RAZORPAY_API_SECRET;
     if (!secret)
       return next(new CustomError("Razorpay secret is not defined", 400));
 
+    // Verify Razorpay signature
     const generated_signature = crypto
       .createHmac("sha256", secret)
-      .update(razorpay_payment_id + "|" + subscription_id, "utf-8")
+      .update(order_id + "|" + razorpay_payment_id, "utf-8")
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      return res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
+      return appRedirectURI
+        ? res.redirect(`${appRedirectURI}?payment=failed`)
+        : res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
     }
 
+    // Save payment info
     await Payment.create({
       razorpay_payment_id,
-      razorpay_subscription_id,
+      razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
+      planId: user.subscription?.planId,
+      coupon: user.subscription?.coupon,
     });
 
-    user.subscription.status = "active";
+    const pricing = await Pricing.findOne({ planId: order?.planId }) as IPricing;
+
+    if (!pricing) {
+      return next(new CustomError("Invalid plan duration selected", 400));
+    }
+
+    const currentDeactivationDate = user.subscription.dateOfDeactivation;
+    const durationInMonths = pricing["duration(months)"]
+
+    console.log(user.subscription.status, "hello")
+    if (user.subscription.status === "active") {
+      // Handle subscription extension on upgrade
+      console.log("hello hi")
+      user.subscription.upgradation = {
+        previousPlanId: user.subscription.planId,
+        previousDuration: user.subscription.duration,
+        dateOfUpgradation: new Date(),
+        addedDuration: durationInMonths, 
+      };
+
+      // Update the subscription duration
+      user.subscription.duration += durationInMonths;
+      user.subscription.id = order?.order_id;
+      user.subscription.planId = order?.planId;
+      user.subscription.coupon = order?.coupon;
+
+        const addedDuration = durationInMonths || 0;
+        if (currentDeactivationDate) {
+          const newDeactivationDate = new Date(currentDeactivationDate);
+          newDeactivationDate.setMonth(newDeactivationDate.getMonth() + addedDuration);
+          user.subscription.dateOfDeactivation = newDeactivationDate;
+      }
+    } else {
+      // New subscription
+      console.log("hello bye")
+
+      user.subscription.status = "active";
+      user.subscription.id = order?.order_id;
+      user.subscription.planId = order?.planId;
+      user.subscription.duration = durationInMonths;
+      user.subscription.coupon = order?.coupon;
+      user.subscription.dateOfActivation = new Date();
+
+      const newDeactivationDate = new Date();
+      newDeactivationDate.setMonth(newDeactivationDate.getMonth() + durationInMonths);
+      user.subscription.dateOfDeactivation = newDeactivationDate;
+    }
 
     await user.save();
 
-    await subQueue.add("subscrition", {
+    // Send confirmation email
+    await subQueue.add("payment_success", {
       options: {
         email: user.email,
-        subject: "Leadlly Subscription",
-        message: 'Subscription',
+        subject: "Leadlly Payment Success",
+        message: `Your payment for the plan is successful.`,
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "subscription_active"
+        tag: "payment_success",
       } as Options,
     });
 
-    res.redirect(
-      `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`,
+    res.status(200).json(
+      appRedirectURI
+        ? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
+        : `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
     );
   } catch (error: any) {
     next(new CustomError(error.message, 500));
@@ -119,7 +226,7 @@ export const verifySubscription = async (
 export const cancelSubscription = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -147,43 +254,43 @@ export const cancelSubscription = async (
     // Check if the gap is less than 7 days
     if (gap > refundTime) {
       return next(
-        new CustomError("Cannot cancel subscription after 7 days.", 400),
+        new CustomError("Cannot cancel subscription after 7 days.", 400)
       );
     } else {
       // Cancel the subscription goes here
-      const subscription = await razorpay.subscriptions.cancel(subscriptionId);
+      // const subscription = await razorpay.subscriptions.cancel(subscriptionId);
 
-      //Refund the amount
-      const refund = await razorpay.payments.refund(
-        payment.razorpay_payment_id,
-        {
-          speed: "normal",
-        },
-      );
+      // //Refund the amount
+      // const refund = await razorpay.payments.refund(
+      //   payment.razorpay_payment_id,
+      //   {
+      //     speed: "normal",
+      //   }
+      // );
 
-      await payment.deleteOne();
+      // await payment.deleteOne();
 
-      user.refund.status = refund.status;
-      user.refund.type = refund.speed_processed;
-      user.refund.subscriptionType = user.subscription.type;
+      // user.refund.status = refund.status;
+      // user.refund.type = refund.speed_processed;
+      // user.refund.subscriptionType = user.subscription.planId;
 
-      user.subscription.status = subscription.status;
-      user.subscription.id = undefined;
-      user.subscription.type = undefined;
+      // user.subscription.status = subscription.status;
+      // user.subscription.id = undefined;
+      // user.subscription.planId = undefined;
 
-      await user.save();
+      // await user.save();
 
       await subQueue.add("SubcriptionCancel", {
-          options: {
+        options: {
           email: user.email,
           subject: "Leadlly Subscription",
-          message: `Hello ${user.firstname}! Your subscription is cancelled. Refund will be processed in 5 - 7 working `,
+          message: `Hello ${user.firstname}! Your refund request is send to our team. You can will get call in 3 - 4 working days`,
         },
       });
 
       res.status(200).json({
         success: true,
-        message: "Subscription cancelled successfully.",
+        message: "Subscription Cancel Request successfully.",
       });
     }
   } catch (error: any) {
@@ -194,7 +301,7 @@ export const cancelSubscription = async (
 export const getFreeTrialActive = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user._id);
@@ -207,17 +314,20 @@ export const getFreeTrialActive = async (
     user.freeTrial.dateOfActivation = new Date();
     user.freeTrial.availed = true;
 
-    await user.save();
+     // Calculate the deactivation date (7 days from now)
+     user.freeTrial.dateOfDeactivation = new Date(user.freeTrial.dateOfActivation);
+     user.freeTrial.dateOfDeactivation.setDate(user.freeTrial.dateOfDeactivation.getDate() + 7);
 
+    await user.save();
 
     await subQueue.add("freetrial", {
       options: {
         email: user.email,
         subject: "Leadlly Free-Trial",
-        message: 'Free-Trail',
+        message: "Free-Trail",
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "subscription_active"
+        tag: "subscription_active",
       } as Options,
     });
 
