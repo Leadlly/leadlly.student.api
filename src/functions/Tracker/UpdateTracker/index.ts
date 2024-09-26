@@ -1,10 +1,20 @@
+import { StudyData } from "../../../models/studentData";
 import Tracker from "../../../models/trackerModel";
 import IDataSchema from "../../../types/IDataSchema";
 import { calculateChapterMetrics } from '../../CalculateMetrices/calculateChapterMetrics';
 import createStudentTracker from "../CreateTracker";
+import IUser from "../../../types/IUser";
+import { CustomError } from "../../../middlewares/error";
 
-const updateStudentTracker = async (fullDocument: IDataSchema) => {
+const updateStudentTracker = async (topic: string, user: IUser) => {
   try {
+
+    const fullDocument = await StudyData.findOne({ user: user._id, "topic.name": topic }) as IDataSchema;
+    if (!fullDocument) {
+      throw new CustomError(`No study data found for the topic '${topic}' for user ${user._id}`, 404);
+    }
+
+
     const subjectName = fullDocument.subject.name.trim().toLowerCase();
     const chapterName = fullDocument.chapter.name.trim().toLowerCase();
     const topicName = fullDocument.topic.name.trim().toLowerCase();

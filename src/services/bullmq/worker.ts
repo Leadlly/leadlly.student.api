@@ -105,7 +105,7 @@ trackerWorker.on('completed', (job) => {
 export const updateTrackerWorker = new Worker(
   "update-tracker-queue",
   async (job) => {
-    await updateStudentTracker(job.data);
+    await updateStudentTracker(job.data?.topic, job.data?.user);
     logger.info(`Job ${job.id} completed successfully`);
   },
   workerOptions
