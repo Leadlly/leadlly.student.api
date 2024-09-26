@@ -6,7 +6,7 @@ import Tracker from '../../models/trackerModel';
 import SolvedQuestions from '../../models/solvedQuestions';
 import mongoose from 'mongoose';
 
-export const calculateSubjectMetrics = async (subjectName: string, user: IUser) => {
+export const calculateSubjectMetrics = async (subjectName: string, userId: mongoose.Types.ObjectId) => {
     try {
         const chapters = await questions_db.collection("chapters").aggregate([
             { $match: { subjectName: subjectName } }
@@ -25,7 +25,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
         for (let chapter of chapters) {
             // Calculate efficiency
             const studyData = await StudyData.findOne({
-                user: user._id,
+                user: userId,
                 'chapter.name': chapter.name,
                 'subject.name': subjectName,
             });
@@ -36,7 +36,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
 
             // Calculate progress
             const tracker = await Tracker.findOne({
-                user: user._id,
+                user: userId,
                 "subject.name": subjectName,
                 'chapter.name': chapter.name
             });
@@ -53,7 +53,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
         const overallProgress = totalProgress / chapterCount;
 
         const solvedQuestionCount = await SolvedQuestions.countDocuments({
-            student: new mongoose.Types.ObjectId(user._id),
+            student: new mongoose.Types.ObjectId(userId),
             "question.subject": subjectName
         });
 
@@ -65,7 +65,7 @@ export const calculateSubjectMetrics = async (subjectName: string, user: IUser) 
             ? Math.round((solvedQuestionCount / totalQuestionInBankCount) * 100)
             : 0;
 
-        const userDoc = await User.findById(user._id) as IUser;
+        const userDoc = await User.findById(userId) as IUser;
 
         if (userDoc) {
             const subject = userDoc.academic.subjects.find(sub => sub.name === subjectName);

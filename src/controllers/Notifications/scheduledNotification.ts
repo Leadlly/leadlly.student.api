@@ -57,3 +57,4 @@ cron.schedule("0 22 * * *", async () => {
 cron.schedule("0 23 * * *", async () => {
   await sendScheduledNotification(dailyMessages["11PM"]);
 });
+

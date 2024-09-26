@@ -22,7 +22,7 @@ updateTrackerWorker;
 meetingWorker;
 
 // Triggers
-watchTrackerChanges()
+// watchTrackerChanges()
 watchMeetingChanges()
 
 const handler = serverless(app);

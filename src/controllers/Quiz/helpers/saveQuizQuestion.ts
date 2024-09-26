@@ -1,4 +1,5 @@
 import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calculateTopicMetrics";
+import updateStudentTracker from "../../../functions/Tracker/UpdateTracker";
 import SolvedQuestions from "../../../models/solvedQuestions";
 import { Topic } from "../../../types/IDataSchema";
 import IUser from "../../../types/IUser";
@@ -37,7 +38,7 @@ export const saveQuizQuestions = async (data: IData) => {
             quizId,
         });
 
-        // Calculate topic metrics
+        await updateStudentTracker(topic.name, user),
         await calculateTopicMetrics(topics, user);
         await updateStreak(user)
 

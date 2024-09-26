@@ -46,7 +46,7 @@ export const watchingForUpdateTracker = async () => {
 
                     // Check for chapter.overall_efficiency update
                     if (updatedFields['chapter.overall_efficiency'] !== undefined) {
-                        await calculateSubjectMetrics(subjectName, user);
+                        await calculateSubjectMetrics(subjectName, user._id);
                     }
                 }
 
