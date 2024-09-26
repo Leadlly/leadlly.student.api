@@ -15,6 +15,7 @@ cron.schedule("0 0 * * *", async () => {
       user.freeTrial.active = false;
       user.freeTrial.dateOfActivation = undefined;
       user.freeTrial.dateOfDeactivation = undefined
+      user.category = null
       return user.save();
     });
 
@@ -35,6 +36,7 @@ cron.schedule("0 0 * * *", async () => {
       user.subscription.id = undefined;
       user.subscription.planId = undefined; 
       user.subscription.duration = 0; 
+      user.category = null
       return user.save();
     });
 

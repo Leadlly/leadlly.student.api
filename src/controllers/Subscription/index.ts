@@ -5,7 +5,7 @@ import User from "../../models/userModel";
 import { subQueue } from "../../services/bullmq/producer";
 import crypto from "crypto";
 import Payment from "../../models/paymentModel";
-import { Options } from "../../utils/sendMail";
+import { Options, sendMail } from "../../utils/sendMail";
 import { IPricing, Pricing } from "../../models/pricingModel";
 import { Coupon } from "../../models/couponModel";
 import { Order } from "../../models/order_created";
@@ -25,13 +25,35 @@ export const buySubscription = async (
     const pricing = await Pricing.findOne({ planId }) as IPricing;
 
     if (!pricing) {
-      return next(new CustomError("Invalid plan duration selected", 400));
+      return next(new CustomError("Invalid plan selected", 400));
     }
 
-    let amount = pricing.amount * 100; // Convert amount to paise
-    const couponCode = req.query.coupon as string;
+    // Check if the user has an active subscription
+    let amount = pricing.amount * 100; // Convert amount to paise for Razorpay
+    if (user.subscription.status === 'active' && user.subscription.planId) {
+      // Fetch current active plan pricing
+      const currentActivePlan = await Pricing.findOne({ planId: user.subscription.planId });
+      if (!currentActivePlan) {
+        return next(new CustomError("Current subscription plan not found", 400));
+      }
 
-    // Handle coupon discount 
+      // Calculate the remaining value of the current subscription
+      const currentDate = new Date();
+      const deactivationDate = user.subscription.dateOfDeactivation!;
+      const timeRemaining = (deactivationDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24); // Remaining days
+
+      // Get price per day of the current plan
+      const pricePerDayCurrent = currentActivePlan.amount / (currentActivePlan["duration(months)"] * 30); // Assumes 30 days in a month
+      // Remaining value of the current subscription
+      const remainingValue = pricePerDayCurrent * timeRemaining;
+
+      // Calculate the difference amount
+      const differenceAmount = pricing.amount - remainingValue;
+      amount = Math.round(differenceAmount) * 100; // Convert to paise and ensure no negative values
+    }
+
+    // Handle coupon discount if available
+    const couponCode = req.query.coupon as string;
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode });
       if (!coupon) {
@@ -49,7 +71,7 @@ export const buySubscription = async (
       if (coupon.discountType === "percentage") {
         amount -= (amount * coupon.discountValue) / 100;
       } else {
-        amount -= coupon.discountValue;
+        amount -= coupon.discountValue * 100; // Convert flat discount to paise
       }
 
       // Update coupon usage limit
@@ -67,24 +89,24 @@ export const buySubscription = async (
       payment_capture: true,
     });
 
-    const order = await Order.findOne({user: user._id})
-    if(order) {
-      order.user = user._id,
-      order.order_id= subscription.id,
-      order.planId= planId,
-      order.duration= pricing["duration(months)"],
-      order.coupon= couponCode,
-
-      await order.save();
-      } else {
-        await Order.create({
-          user: user._id,
-          order_id: subscription.id,
-          planId: planId,
-          duration: pricing["duration(months)"],
-          coupon: couponCode,
-        })
-      }
+    const existingOrder = await Order.findOne({ user: user._id });
+    if (existingOrder) {
+      existingOrder.order_id = subscription.id;
+      existingOrder.planId = planId;
+      existingOrder.duration = pricing["duration(months)"];
+      existingOrder.coupon = couponCode;
+      existingOrder.categogy = pricing.category
+      await existingOrder.save();
+    } else {
+      await Order.create({
+        user: user._id,
+        order_id: subscription.id,
+        planId,
+        duration: pricing["duration(months)"],
+        coupon: couponCode,
+        categogy: pricing.category
+      });
+    }
 
  
     if(user.subscription.status === "active") {
@@ -160,10 +182,8 @@ export const verifySubscription = async (
     const currentDeactivationDate = user.subscription.dateOfDeactivation;
     const durationInMonths = pricing["duration(months)"]
 
-    console.log(user.subscription.status, "hello")
     if (user.subscription.status === "active") {
       // Handle subscription extension on upgrade
-      console.log("hello hi")
       user.subscription.upgradation = {
         previousPlanId: user.subscription.planId,
         previousDuration: user.subscription.duration,
@@ -172,6 +192,7 @@ export const verifySubscription = async (
       };
 
       // Update the subscription duration
+      user.category = order.categogy
       user.subscription.duration += durationInMonths;
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
@@ -185,8 +206,7 @@ export const verifySubscription = async (
       }
     } else {
       // New subscription
-      console.log("hello bye")
-
+      user.category = order.categogy
       user.subscription.status = "active";
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
@@ -251,46 +271,48 @@ export const cancelSubscription = async (
 
     const refundTime = Number(refundDays) * 24 * 60 * 60 * 1000;
 
-    // Check if the gap is less than 7 days
+    // Check if the gap is less than the refund time
     if (gap > refundTime) {
       return next(
         new CustomError("Cannot cancel subscription after 7 days.", 400)
       );
     } else {
-      // Cancel the subscription goes here
-      // const subscription = await razorpay.subscriptions.cancel(subscriptionId);
+      const options = {
+        email: "support@leadlly.in",
+        subject: `Request for subscription cancellation of ${user.email}`,
+        message: `
+        <h3>Subscription Cancellation Request</h3>
+        <p>User Details:</p>
+        <ul>
+          <li><strong>Name:</strong> ${user.firstname} ${user.lastname}</li>
+          <li><strong>Email:</strong> ${user.email}</li>
+        </ul>
+        <p><strong>Subscription ID:</strong> ${subscriptionId}</p>
+        <p><strong>Payment Details:</strong></p>
+        <ul>
+          <li><strong>Payment ID:</strong> ${payment.razorpay_payment_id}</li>
+          <li><strong>Subscription ID:</strong> ${payment.razorpay_subscription_id}</li>
+          <li><strong>Created At:</strong> ${payment.createdAt.toISOString()}</li>
+          <li><strong>Plan ID:</strong> ${payment.planId || 'N/A'}</li>
+          <li><strong>Coupon:</strong> ${payment.coupon || 'N/A'}</li>
+        </ul>
+        <p>This request is made within the refund period. Please process accordingly.</p>
+      `,
+     };
 
-      // //Refund the amount
-      // const refund = await razorpay.payments.refund(
-      //   payment.razorpay_payment_id,
-      //   {
-      //     speed: "normal",
-      //   }
-      // );
+      await sendMail(options);
 
-      // await payment.deleteOne();
-
-      // user.refund.status = refund.status;
-      // user.refund.type = refund.speed_processed;
-      // user.refund.subscriptionType = user.subscription.planId;
-
-      // user.subscription.status = subscription.status;
-      // user.subscription.id = undefined;
-      // user.subscription.planId = undefined;
-
-      // await user.save();
-
-      await subQueue.add("SubcriptionCancel", {
+      await subQueue.add("SubscriptionCancel", {
         options: {
           email: user.email,
           subject: "Leadlly Subscription",
-          message: `Hello ${user.firstname}! Your refund request is send to our team. You can will get call in 3 - 4 working days`,
+          message: `Hello ${user.firstname}! Your refund request has been sent to our team. You will receive a call in 3 - 4 working days. For any queries, please contact us at support@leadlly.in`,
         },
       });
 
       res.status(200).json({
         success: true,
-        message: "Subscription Cancel Request successfully.",
+        message: "Subscription cancel request successfully submitted.",
       });
     }
   } catch (error: any) {
@@ -314,10 +336,11 @@ export const getFreeTrialActive = async (
     user.freeTrial.dateOfActivation = new Date();
     user.freeTrial.availed = true;
 
-     // Calculate the deactivation date (7 days from now)
+     // Calculate the deactivation date (14 days from now)
      user.freeTrial.dateOfDeactivation = new Date(user.freeTrial.dateOfActivation);
-     user.freeTrial.dateOfDeactivation.setDate(user.freeTrial.dateOfDeactivation.getDate() + 7);
+     user.freeTrial.dateOfDeactivation.setDate(user.freeTrial.dateOfDeactivation.getDate() + 14);
 
+     user.category = 'free'
     await user.save();
 
     await subQueue.add("freetrial", {
