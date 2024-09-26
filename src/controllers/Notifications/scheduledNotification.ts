@@ -28,6 +28,34 @@ cron.schedule("0 23 * * *", async () => {
 cron.schedule("45 23 * * *", async () => {
   await sendScheduledNotification(dailyMessages["11:45PM"]);
 });
+// Schedule notification at 11:45 PM
+cron.schedule("45 23 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+// Schedule notification at 11:45 PM
+cron.schedule("45 23 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+
+//tests
+cron.schedule("0 19 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+cron.schedule("2 19 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+cron.schedule("5 19 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+cron.schedule("7 19 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+cron.schedule("9 19 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
+cron.schedule("11 19 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["11:45PM"]);
+});
 
 // Function to send scheduled notifications with chunking
 const sendScheduledNotification = async (message: string) => {
