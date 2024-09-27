@@ -2,61 +2,63 @@ import mongoose from 'mongoose';
 import Tracker from "../../../models/trackerModel";
 import IDataSchema from "../../../types/IDataSchema";
 import User from '../../../models/userModel';
+import { calculateChapterMetrics } from '../../CalculateMetrices/calculateChapterMetrics';
+import updateStudentTracker from '../UpdateTracker';
 
 const createStudentTracker = async (fullDocument: IDataSchema) => {
   console.log("worker executed");
-  const session = await mongoose.startSession();
-  session.startTransaction();
 
   try {
-    const user = await User.findById(fullDocument.user).session(session);
+    const user = await User.findById(fullDocument.user);
     if (!user) throw new Error('User not found');
 
     const subjectName = fullDocument.subject.name.trim().toLowerCase();
     const chapterName = fullDocument.chapter.name.trim().toLowerCase();
+    const topicName = fullDocument.topic.name.trim().toLowerCase();
+
+    // Calculate chapter metrics
+    const chapterProgress = await calculateChapterMetrics(chapterName, fullDocument.user);
 
     let tracker = await Tracker.findOne({
       user: fullDocument.user,
       "subject.name": subjectName,
       'chapter.name': chapterName
-    }).session(session);
+    });
 
     if (tracker) {
-      // Check if the topic already exists in the tracker
-      const topicExists = tracker.topics.some(
-        (topic) => topic.name === fullDocument.topic.name.trim().toLowerCase()
-      );
-
-      if (topicExists) {
-        console.log('Topic already exists in tracker, returning without updating');
-        await session.commitTransaction();
-        session.endSession();
-        return; // Topic already exists, return without making changes
-      }
-
-      // Topic does not exist, push the new topic into the chapter
-      tracker.topics.push(fullDocument.topic);
-      await tracker.save({ session });
-
-      console.log('New topic added to existing tracker');
+        await updateStudentTracker(topicName, user)
+        return 
     } else {
-      // Tracker does not exist, create a new tracker
+      // Tracker does not exist, create a new tracker with chapter progress and efficiency
       tracker = new Tracker({
         user: fullDocument.user,
         subject: { name: subjectName },
-        chapter: { name: chapterName },
+        chapter: {
+          name: chapterName,
+          overall_efficiency: chapterProgress.overall_efficiency,
+          overall_progress: chapterProgress.overall_progress,
+          total_questions_solved: chapterProgress.total_questions_solved
+        },
         topics: [fullDocument.topic]
       });
-      await tracker.save({ session });
-
       console.log('New tracker created');
     }
 
-    await session.commitTransaction();
-    session.endSession();
+    // Update tracker with additional details from fullDocument
+    const topicIndex = tracker.topics.findIndex(topic => topic.name === topicName);
+
+    if (topicIndex !== -1) {
+      tracker.topics[topicIndex].plannerFrequency = fullDocument.topic.plannerFrequency;
+      tracker.topics[topicIndex].overall_efficiency = fullDocument.topic.overall_efficiency;
+      tracker.topics[topicIndex].studiedAt = fullDocument.topic.studiedAt;
+    }
+
+    tracker.updatedAt = new Date();
+
+    // Save the updated tracker
+    await tracker.save();
+
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     console.log(error);
   }
 };
