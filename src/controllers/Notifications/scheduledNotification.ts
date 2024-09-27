@@ -8,31 +8,31 @@ const dailyMessages = {
   "9AM": (username: string) => ({
     heading: "🌅 Good Morning!",
     message: `Good Morning ${username}! 📝 View your today's planner!`,
-    action: "View Planner",
+    action: "**View Planner**", 
     url: "#" 
   }),
   "5PM": (username: string) => ({
     heading: "🕔 Time for Revision!",
     message: `Hi ${username}, it's time to start revision. 📚 Check out the planner!`,
-    action: "Start Revising",
+    action: "**Start Revising**", 
     url: "#" 
   }),
   "7PM": (username: string) => ({
     heading: "🕖 Have You Started?",
     message: `Hey ${username}, have you started your revision? Let's keep that momentum going! 🚀`,
-    action: "Revise Now",
+    action: "**Revise Now**",
     url: "#" 
   }),
   "10PM": (username: string) => ({
     heading: "🕙 Log Your Topics!",
     message: `Hi ${username}, time to log your today's topics studied in coaching/school. 🖊️`,
-    action: "Log Topics",
+    action: "**Log Topics**", 
     url: "#" 
   }),
   "11PM": (username: string) => ({
     heading: "⏰ Last Call!",
     message: `Time is running out, ${username}! ⏳ Log today's topics before 12 to optimize your planner.`,
-    action: "Log Now",
+    action: "**Log Now**", 
     url: "#" 
   }),
 };
@@ -54,7 +54,7 @@ const sendScheduledNotification = async (messageFunc: (username: string) => { he
       if (user) {
         const { heading, message, action, url } = messageFunc(user.firstname || "Buddy"); 
         // Combine heading, message, and action into the notification
-        const fullMessage = `${heading}\n\n${message}\n\n👉 [${action}](${url})`; 
+        const fullMessage = `${heading}\n\n${message}\n\n${action}`; 
         await sendPushNotification([tokenData.push_token], fullMessage); 
         console.log(`Scheduled notification sent to ${user.firstname}: ${fullMessage}`);
       } else {
@@ -77,7 +77,7 @@ cron.schedule("0 17 * * *", async () => {
 });
 
 // Schedule notification at 7 PM
-cron.schedule("15 19 * * *", async () => {
+cron.schedule("23 19 * * *", async () => {
   await sendScheduledNotification(dailyMessages["7PM"]);
 });
 
