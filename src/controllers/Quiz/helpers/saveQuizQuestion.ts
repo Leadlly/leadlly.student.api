@@ -1,9 +1,9 @@
 import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calculateTopicMetrics";
 import updateStudentTracker from "../../../functions/Tracker/UpdateTracker";
+import { updateStreak } from "../../../helpers/updateStreak";
 import SolvedQuestions from "../../../models/solvedQuestions";
 import { Topic } from "../../../types/IDataSchema";
 import IUser from "../../../types/IUser";
-import { updateStreak } from "./updateUserDetails";
 
 type IData = {
     user: IUser, 

@@ -4,25 +4,35 @@ import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calc
 import { CustomError } from "../../../middlewares/error";
 import { calculateStudentReport } from "../../../helpers/studentReport";
 import { insertCompletedTopics } from "./helpers/insertCompletedTopics";
-import { updateStreak } from "../helpers/updateUserDetails";
 import updateStudentTracker from "../../../functions/Tracker/UpdateTracker";
+import { updateStreak } from "../../../helpers/updateStreak";
+import { updatePointsNLevel } from "../../../helpers/updatePointsNLevel";
+import IUser from "../../../types/IUser";
+import User from "../../../models/userModel";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { topic, questions } = req.body;
+    const user = req.user as IUser;
 
     if (!topic || !Array.isArray(questions) || questions.length === 0) {
       return next(new CustomError("Invalid request body: 'topic' or 'questions' are missing or incorrectly formatted", 400));
     }
 
-    const invalidQuestion = questions.find((q) => !q.question || q.studentAnswer === undefined || q.isCorrect === undefined || !q.tag);
+    const invalidQuestion = questions.find(
+      (q) =>
+        !q.question ||
+        q.studentAnswer === undefined ||
+        q.isCorrect === undefined ||
+        !q.tag
+    );
     if (invalidQuestion) {
       return next(new CustomError("Invalid question format in the request", 400));
     }
 
     // Bulk insert questions
     const solvedQuestions = questions.map((ques) => ({
-      student: req.user._id,
+      student: user._id,
       question: ques.question,
       studentAnswer: ques.studentAnswer,
       isCorrect: ques.isCorrect,
@@ -31,19 +41,24 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
 
     await SolvedQuestions.insertMany(solvedQuestions);
 
-    await insertCompletedTopics(req.user._id, topic, questions);
-    
+    await insertCompletedTopics(user._id, topic, questions);
+
     // Calculate topic metrics first
-    await calculateTopicMetrics([topic], req.user);
+    await calculateTopicMetrics([topic], user);
 
-    //update the student tracker
-    await updateStudentTracker(topic.name, req.user);
+    // Update the student tracker
+    await updateStudentTracker(topic.name, user);
 
-    // Calculate the student report and update the streak in parallel
-    await Promise.all([
-      calculateStudentReport(req.user._id),
-      updateStreak(req.user),
-    ]);
+    // Calculate the student report and update streak
+    await Promise.all([calculateStudentReport(user._id), updateStreak(user)]);
+
+    // Re-fetch user details after calculateStudentReport
+    const updatedUser = await User.findById(user._id).select("details.report");
+
+    // If the session condition is met, update points and level
+    if (updatedUser?.details?.report?.dailyReport?.session === 100) {
+      await updatePointsNLevel(updatedUser._id);
+    }
 
     return res.status(200).json({
       success: true,

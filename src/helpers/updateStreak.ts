@@ -1,4 +1,4 @@
-import IUser from "../../../types/IUser";
+import IUser from "../types/IUser";
 
 export const updateStreak = async (user: IUser) => {
   try {
