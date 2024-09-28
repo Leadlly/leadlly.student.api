@@ -26,6 +26,7 @@ interface IUser extends Document {
   firstname: string;
   lastname?: string;
   email: string;
+  category: 'basic' | 'pro' | 'premium' | 'free' | null
   phone: {
     personal?: number;
     other?: number;

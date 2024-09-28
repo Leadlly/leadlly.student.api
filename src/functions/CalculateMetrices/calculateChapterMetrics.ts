@@ -3,6 +3,8 @@ import { questions_db } from '../../db/db';
 import mongoose from 'mongoose';
 import SolvedQuestions from '../../models/solvedQuestions';
 import IDataSchema from '../../types/IDataSchema';
+import { calculateSubjectMetrics } from './calculateSubjectMetrics';
+import { CustomError } from '../../middlewares/error';
 
 interface Result {
     overall_efficiency: number;
@@ -18,6 +20,9 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
         const topics = await questions_db.collection("topics").aggregate([
             { $match: { chapterName: chapterName } }
         ]).toArray();
+
+        const chapterData = await questions_db.collection("chapters").findOne( {name: chapterName} )
+        if(!chapterData) throw new CustomError('No chapter data', 404)
 
         let totalEfficiency = 0;
         let topicCount = topics.length;
@@ -55,6 +60,7 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
         }
 
         const chapterEfficiency = topicCount > 0 ? Math.round((totalEfficiency / topicCount) * 100) / 100 : 0;
+        
 
         // Update chapter efficiency in StudyData model
         await StudyData.updateMany(
@@ -71,6 +77,7 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
         );
 
         console.log(`Chapter ${chapterName} efficiency calculated: ${chapterEfficiency}`);
+        await calculateSubjectMetrics(chapterData.subjectName, userId);
 
         // Calculate total questions solved
         const result: Result = {

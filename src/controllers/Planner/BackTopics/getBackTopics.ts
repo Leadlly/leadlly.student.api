@@ -111,5 +111,5 @@ export const getBackRevisionTopics = async (
     mixedTopics.push(...topics);
   });
 
-  return mixedTopics.slice(0, 12); // Ensure the result is exactly 12 topics
+  return mixedTopics.slice(0, 18); // Ensure the result is exactly 12 topics
 };

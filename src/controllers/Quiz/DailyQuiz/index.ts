@@ -4,51 +4,68 @@ import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calc
 import { CustomError } from "../../../middlewares/error";
 import { calculateStudentReport } from "../../../helpers/studentReport";
 import { insertCompletedTopics } from "./helpers/insertCompletedTopics";
-import { updateStreak } from "../helpers/updateUserDetails";
+import updateStudentTracker from "../../../functions/Tracker/UpdateTracker";
+import { updateStreak } from "../../../helpers/updateStreak";
+import { updatePointsNLevel } from "../../../helpers/updatePointsNLevel";
+import IUser from "../../../types/IUser";
+import User from "../../../models/userModel";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { topic, questions } = req.body;
+    const user = req.user as IUser;
 
-    if (!topic || !questions || !Array.isArray(questions)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-      });
+    if (!topic || !Array.isArray(questions) || questions.length === 0) {
+      return next(new CustomError("Invalid request body: 'topic' or 'questions' are missing or incorrectly formatted", 400));
     }
 
-    const topics = [topic];
-    
-    const createQuestionPromises = questions.map((ques) => {
-      const { question, studentAnswer, isCorrect, tag } = ques;
+    const invalidQuestion = questions.find(
+      (q) =>
+        !q.question ||
+        q.studentAnswer === undefined ||
+        q.isCorrect === undefined ||
+        !q.tag
+    );
+    if (invalidQuestion) {
+      return next(new CustomError("Invalid question format in the request", 400));
+    }
 
-      if (!question || studentAnswer === undefined || isCorrect === undefined || !tag) {
-        return Promise.reject(new Error("Invalid question format"));
-      }
+    // Bulk insert questions
+    const solvedQuestions = questions.map((ques) => ({
+      student: user._id,
+      question: ques.question,
+      studentAnswer: ques.studentAnswer,
+      isCorrect: ques.isCorrect,
+      tag: ques.tag,
+    }));
 
-      return SolvedQuestions.create({
-        student: req.user._id,
-        question,
-        studentAnswer,
-        isCorrect,
-        tag,
-      });
-    });
+    await SolvedQuestions.insertMany(solvedQuestions);
 
+    await insertCompletedTopics(user._id, topic, questions);
 
-    await insertCompletedTopics(req.user._id, topic, questions)
+    // Calculate topic metrics first
+    await calculateTopicMetrics([topic], user);
 
-    await Promise.all(createQuestionPromises);
-    await calculateTopicMetrics(topics, req.user);
-    await calculateStudentReport(req.user._id);
-    await updateStreak(req.user)
-  
-    res.status(200).json({
+    // Update the student tracker
+    await updateStudentTracker(topic.name, user);
+
+    // Calculate the student report and update streak
+    await Promise.all([calculateStudentReport(user._id), updateStreak(user)]);
+
+    // Re-fetch user details after calculateStudentReport
+    const updatedUser = await User.findById(user._id).select("details.report");
+
+    // If the session condition is met, update points and level
+    if (updatedUser?.details?.report?.dailyReport?.session === 100) {
+      await updatePointsNLevel(updatedUser._id);
+    }
+
+    return res.status(200).json({
       success: true,
-      message: "Saved",
+      message: "Saved successfully",
     });
   } catch (error: any) {
     console.error(error);
-    next(new CustomError(error.message)); 
+    return next(new CustomError(`Error occurred while saving quiz: ${error.message}`, 500));
   }
 };

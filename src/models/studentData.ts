@@ -61,4 +61,6 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
   },
 });
 
+dataSchema.index({ user: 1, 'topic.name': 1 }, { unique: true });
+
 export const StudyData = mongoose.model<IDataSchema>("StudyData", dataSchema);

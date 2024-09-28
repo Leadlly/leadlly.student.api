@@ -7,8 +7,7 @@ export type Options = {
   message: string;
   username?: string;
   dashboardLink?: string;
-  
-  tag: string
+  tag?: string
 };
 export const sendMail = async (options: Options) => {
   try {
