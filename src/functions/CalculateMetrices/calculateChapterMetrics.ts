@@ -17,52 +17,65 @@ interface Result {
 
 export const calculateChapterMetrics = async (chapterName: string, userId: mongoose.Types.ObjectId) => {
     try {
+        // Fetch topics by chapter name
         const topics = await questions_db.collection("topics").aggregate([
             { $match: { chapterName: chapterName } }
         ]).toArray();
 
-        const chapterData = await questions_db.collection("chapters").findOne( {name: chapterName} )
-        if(!chapterData) throw new CustomError('No chapter data', 404)
+        // Fetch chapter data
+        const chapterData = await questions_db.collection("chapters").findOne({ name: chapterName });
+        if (!chapterData) throw new CustomError('No chapter data', 404);
 
         let totalEfficiency = 0;
-        let topicCount = topics.length;
-
+        const topicCount = topics.length;
         const solvedTopicsSet = new Set();
+
+        // Count total questions in the question bank for this chapter
         const totalQuestionsInBankCount = await questions_db.collection("questionbanks").countDocuments({
             "chapter": chapterName
         });
 
-        const solvedQuestionCount = await SolvedQuestions.countDocuments({
-            student: userId,
-            "question.chapter": chapterName
-        });
+        // Fetch all solved questions for this student
+        const solvedQuestions = await SolvedQuestions.find({
+            student: userId
+        }, 'question');  
 
+        // Extract all unique questionIds from solvedQuestions
+        const questionIds = solvedQuestions.map(q => q.question);
+
+        // Fetch all questions in one query from `questions_db` based on questionIds
+        const questions = await questions_db.collection("questionbanks").find({
+            _id: { $in: questionIds.map(id => new mongoose.Types.ObjectId(id)) },
+            chapter: chapterName
+        }).toArray();
+
+        let solvedQuestionCount = 0;
+
+        // Loop through each topic and calculate efficiency
         for (let topic of topics) {
-                const studyData = await StudyData.findOne({
-                    user: userId,
-                    'topic.name': topic.name,
-                    'chapter.name': chapterName,
-                }) as IDataSchema;
+            const studyData = await StudyData.findOne({
+                user: userId,
+                'topic.name': topic.name,
+                'chapter.name': chapterName,
+            }) as IDataSchema;
 
-                if (studyData) {
-                    totalEfficiency += studyData.topic.overall_efficiency || 0;
+            if (studyData) {
+                totalEfficiency += studyData.topic.overall_efficiency || 0;
+            }
+
+            // Check if any fetched questions match the current topic
+            for (let question of questions) {
+                if (question.topics.includes(topic.name)) {
+                    solvedQuestionCount += 1;
+                    solvedTopicsSet.add(topic.name);
                 }
-
-            const solvedCount = await SolvedQuestions.countDocuments({
-                student: userId,
-                "question.chapter": chapterName,
-                "question.topics": topic.name
-            });
-
-            if (solvedCount > 0) {
-                solvedTopicsSet.add(topic.name);
             }
         }
 
+        // Calculate chapter efficiency
         const chapterEfficiency = topicCount > 0 ? Math.round((totalEfficiency / topicCount) * 100) / 100 : 0;
-        
 
-        // Update chapter efficiency in StudyData model
+        // Update chapter efficiency in `StudyData`
         await StudyData.updateMany(
             {
                 user: userId,
@@ -77,9 +90,11 @@ export const calculateChapterMetrics = async (chapterName: string, userId: mongo
         );
 
         console.log(`Chapter ${chapterName} efficiency calculated: ${chapterEfficiency}`);
+
+        // Calculate subject metrics after updating chapter efficiency
         await calculateSubjectMetrics(chapterData.subjectName, userId);
 
-        // Calculate total questions solved
+        // Calculate total questions solved and progress
         const result: Result = {
             overall_efficiency: chapterEfficiency,
             total_questions_solved: {

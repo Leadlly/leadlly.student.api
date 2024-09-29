@@ -118,7 +118,7 @@ export const generateWeeklyPlanner = async (
           }
         }));
 
-        dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
+        dailyQuestions = await getDailyQuestions(day, date, dailyTopics, user);
         return {
           day,
           date,
@@ -241,7 +241,7 @@ export const generateWeeklyPlanner = async (
           }
         }));
 
-        dailyQuestions = await getDailyQuestions(day, date, dailyTopics);
+        dailyQuestions = await getDailyQuestions(day, date, dailyTopics, user);
         return {
           day,
           date,

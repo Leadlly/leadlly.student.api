@@ -2,12 +2,14 @@ import SolvedQuestions from "../../models/solvedQuestions";
 import IUser from "../../types/IUser";
 import IDataSchema, { Topic } from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
+import { questions_db } from "../../db/db"; // Assuming the questions are stored in a database collection
 
 export const calculateTopicMetrics = async (topics: Topic[], user: IUser) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Fetch solved questions for the current day
     const solvedQuestions = await SolvedQuestions.aggregate([
       {
         $match: {
@@ -31,20 +33,26 @@ export const calculateTopicMetrics = async (topics: Topic[], user: IUser) => {
       let correctCount = 0;
       let totalCount = 0;
 
-      solvedQuestions.forEach((question) => {
-        if (question.question.topics.includes(topic.name)) {
+      // Process each solved question and check if it belongs to the current topic
+      for (const solvedQuestion of solvedQuestions) {
+        // Fetch the full question details using the `questionId`
+        const question = await questions_db.collection("questionbanks").findOne({
+          _id: solvedQuestion.question,
+        });
+
+        if (question && question.topics.includes(topic.name)) {
           totalCount++;
-          if (question.isCorrect) {
+          if (solvedQuestion.isCorrect) {
             correctCount++;
           }
         }
-      });
+      }
 
       let efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
 
       // Increment the efficiency by 0.02 but cap it at 98%
       efficiency += 0.02;
-      efficiency = Math.min(efficiency, 98); // Cap at 98%
+      efficiency = Math.min(efficiency, 98);
 
       efficiency = Math.round(efficiency * 100) / 100;
 
@@ -83,25 +91,33 @@ export const calculateTopicMetrics = async (topics: Topic[], user: IUser) => {
 
 export const calculateOverallEfficiency = async (topic: Topic, user: IUser) => {
   try {
+    // Fetch solved questions that belong to the specified topic
     const solvedQuestions = await SolvedQuestions.find({
       student: user._id,
-      "question.topics": { $in: [topic.name] },
     });
 
     let correctCount = 0;
-    let totalCount = solvedQuestions.length;
+    let totalCount = 0;
 
-    solvedQuestions.forEach((question) => {
-      if (question.isCorrect) {
-        correctCount++;
+    for (const solvedQuestion of solvedQuestions) {
+      // Fetch the full question details using the `questionId`
+      const question = await questions_db.collection("questionbanks").findOne({
+        _id: solvedQuestion.question,
+      });
+
+      if (question && question.topics.includes(topic.name)) {
+        totalCount++;
+        if (solvedQuestion.isCorrect) {
+          correctCount++;
+        }
       }
-    });
+    }
 
     let efficiency = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
 
     // Increment the efficiency by 0.02 but cap it at 98%
     efficiency += 0.02;
-    efficiency = Math.min(efficiency, 98); // Cap at 98%
+    efficiency = Math.min(efficiency, 98);
 
     // Round efficiency to two decimal places
     efficiency = Math.round(efficiency * 100) / 100;
