@@ -43,7 +43,7 @@ export const calculateSubjectMetrics = async (subjectName: string, userId: mongo
 
             if (tracker && tracker.chapter && tracker.chapter.overall_progress) {
                 totalProgress += tracker.chapter.overall_progress;
-            }     
+            }
         }
 
         // Calculate subject efficiency
@@ -52,13 +52,25 @@ export const calculateSubjectMetrics = async (subjectName: string, userId: mongo
         // Calculate overall progress
         const overallProgress = totalProgress / chapterCount;
 
-        const solvedQuestionCount = await SolvedQuestions.countDocuments({
-            student: new mongoose.Types.ObjectId(userId),
-            "question.subject": subjectName
+        // Fetch solved questions and retrieve their full details
+        const solvedQuestions = await SolvedQuestions.find({
+            student: new mongoose.Types.ObjectId(userId)
         });
 
+        let solvedQuestionCount = 0;
+        for (const solvedQuestion of solvedQuestions) {
+            const questionData = await questions_db.collection("questionbanks").findOne({
+                _id: solvedQuestion.question,
+                subject: subjectName
+            });
+
+            if (questionData) {
+                solvedQuestionCount++;
+            }
+        }
+
         const totalQuestionInBankCount = await questions_db.collection("questionbanks").countDocuments({
-            "subject": subjectName
+            subject: subjectName
         });
 
         const totalQuestionsPercentage = totalQuestionInBankCount > 0

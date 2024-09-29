@@ -131,6 +131,7 @@ export const updateDailyPlanner = async (
       moment(nextDay).format("dddd"),
       nextDay.toDate(),
       dailyTopics,
+      user
     );
 
     console.log(dailyQuestions, "here are the questions")
@@ -239,6 +240,7 @@ export const allocateBackTopicsToExistingPlanner = async (
           moment(day.date).format("dddd"),
           day.date,
           dailyBackTopics,
+          user
         );
 
         // Create a clean day object
