@@ -83,7 +83,7 @@ export const createWeeklyQuiz = async (
           topicQuestions.map(async (topicData: any) => {
             const solvedQuestions = await SolvedQuestions.findOne({
               student: user._id,
-              "question.question": topicData.question,
+              "question.question": topicData.question._id,
             });
 
             if (!solvedQuestions) {
@@ -199,7 +199,8 @@ export const saveQuestions = async (
   next: NextFunction
 ) => {
   try {
-    const { topic, question, quizId } = req.body;
+
+    const { topic, question, quizId } = req.body
 
     if (!topic || !question || !quizId) {
       throw new Error("Invalid quiz entry format");
