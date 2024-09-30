@@ -66,7 +66,7 @@ const sendScheduledNotification = async (messageFunc: (username: string) => { he
 };
 
 // Usage example for 7.30 AM notification
-cron.schedule("30 7 * * *", async () => {
+cron.schedule("35 7 * * *", async () => {
   await sendScheduledNotification(dailyMessages["9AM"]);
 });
 
