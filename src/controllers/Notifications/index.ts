@@ -5,7 +5,7 @@ import { CustomError } from "../../middlewares/error";
 
 export const sendCustomNotification = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { message, userId } = req.body;
+    const { heading, message, action,  userId } = req.body;
 
     if (userId) {
       // Find the push token for a specific user
@@ -16,7 +16,7 @@ export const sendCustomNotification = async (req: Request, res: Response, next: 
       }
 
       // Send the notification to a single user
-      await sendPushNotification([tokenData.push_token], message);  
+      await sendPushNotification([tokenData.push_token], heading, message, action);  
 
       return res.status(200).json({
         success: true,
@@ -32,7 +32,7 @@ export const sendCustomNotification = async (req: Request, res: Response, next: 
       return res.status(404).json({ success: false, message: "No push tokens found" });
     }
 
-    await sendPushNotification(pushTokens, message);
+    await sendPushNotification(pushTokens, heading, message, action);
 
     res.status(200).json({
       success: true,
