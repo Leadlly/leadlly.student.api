@@ -4,7 +4,7 @@ import { Pricing } from "../../models/pricingModel";
 
 export const getPricing = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { pricingType } = req.query; // Destructure the query
+      const { pricingType } = req.query; 
   
       if (!pricingType) {
         return next(new CustomError("Pricing type not provided", 400));

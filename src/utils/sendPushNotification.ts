@@ -14,7 +14,7 @@ export const sendPushNotification = async (pushTokens: string[], heading: string
     to: pushToken,
     sound: "default",
     title: heading, 
-    body: message, 
+    body: `${message}\n\n${action}`, 
     data: {
       withSome: "data",
       action: action, 
