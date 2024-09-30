@@ -22,7 +22,7 @@ export const buySubscription = async (
     }
 
     const planId = req.query.planId as string;
-    const pricing = await Pricing.findOne({ planId }) as IPricing;
+    const pricing = (await Pricing.findOne({ planId })) as IPricing;
 
     if (!pricing) {
       return next(new CustomError("Invalid plan selected", 400));
@@ -30,20 +30,27 @@ export const buySubscription = async (
 
     // Check if the user has an active subscription
     let amount = pricing.amount * 100; // Convert amount to paise for Razorpay
-    if (user.subscription.status === 'active' && user.subscription.planId) {
+    if (user.subscription.status === "active" && user.subscription.planId) {
       // Fetch current active plan pricing
-      const currentActivePlan = await Pricing.findOne({ planId: user.subscription.planId });
+      const currentActivePlan = await Pricing.findOne({
+        planId: user.subscription.planId,
+      });
       if (!currentActivePlan) {
-        return next(new CustomError("Current subscription plan not found", 400));
+        return next(
+          new CustomError("Current subscription plan not found", 400)
+        );
       }
 
       // Calculate the remaining value of the current subscription
       const currentDate = new Date();
       const deactivationDate = user.subscription.dateOfDeactivation!;
-      const timeRemaining = (deactivationDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24); // Remaining days
+      const timeRemaining =
+        (deactivationDate.getTime() - currentDate.getTime()) /
+        (1000 * 60 * 60 * 24); // Remaining days
 
       // Get price per day of the current plan
-      const pricePerDayCurrent = currentActivePlan.amount / (currentActivePlan["duration(months)"] * 30); // Assumes 30 days in a month
+      const pricePerDayCurrent =
+        currentActivePlan.amount / (currentActivePlan["duration(months)"] * 30); // Assumes 30 days in a month
       // Remaining value of the current subscription
       const remainingValue = pricePerDayCurrent * timeRemaining;
 
@@ -95,7 +102,7 @@ export const buySubscription = async (
       existingOrder.planId = planId;
       existingOrder.duration = pricing["duration(months)"];
       existingOrder.coupon = couponCode;
-      existingOrder.categogy = pricing.category
+      existingOrder.category = pricing.category;
       await existingOrder.save();
     } else {
       await Order.create({
@@ -104,15 +111,13 @@ export const buySubscription = async (
         planId,
         duration: pricing["duration(months)"],
         coupon: couponCode,
-        categogy: pricing.category
+        category: pricing.category,
       });
     }
 
- 
-    if(user.subscription.status === "active") {
-      user.subscription.status = "active"
+    if (user.subscription.status === "active") {
+      user.subscription.status = "active";
     } else {
-
       user.subscription.status = "pending";
     }
     await user.save();
@@ -137,13 +142,12 @@ export const verifySubscription = async (
       req.body;
 
     const { appRedirectURI } = req.query;
-    
+
     const user = await User.findById(req.user._id);
     if (!user) return next(new CustomError("User not found", 404));
 
     const order = await Order.findOne({ user: user._id });
     if (!order) return next(new CustomError("Order not found", 404));
-    
 
     const order_id = order?.order_id;
 
@@ -173,14 +177,16 @@ export const verifySubscription = async (
       coupon: user.subscription?.coupon,
     });
 
-    const pricing = await Pricing.findOne({ planId: order?.planId }) as IPricing;
+    const pricing = (await Pricing.findOne({
+      planId: order?.planId,
+    })) as IPricing;
 
     if (!pricing) {
       return next(new CustomError("Invalid plan duration selected", 400));
     }
 
     const currentDeactivationDate = user.subscription.dateOfDeactivation;
-    const durationInMonths = pricing["duration(months)"]
+    const durationInMonths = pricing["duration(months)"];
 
     if (user.subscription.status === "active") {
       // Handle subscription extension on upgrade
@@ -188,25 +194,27 @@ export const verifySubscription = async (
         previousPlanId: user.subscription.planId,
         previousDuration: user.subscription.duration,
         dateOfUpgradation: new Date(),
-        addedDuration: durationInMonths, 
+        addedDuration: durationInMonths,
       };
 
       // Update the subscription duration
-      user.category = order.categogy
+      user.category = order.category;
       user.subscription.duration += durationInMonths;
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
       user.subscription.coupon = order?.coupon;
 
-        const addedDuration = durationInMonths || 0;
-        if (currentDeactivationDate) {
-          const newDeactivationDate = new Date(currentDeactivationDate);
-          newDeactivationDate.setMonth(newDeactivationDate.getMonth() + addedDuration);
-          user.subscription.dateOfDeactivation = newDeactivationDate;
+      const addedDuration = durationInMonths || 0;
+      if (currentDeactivationDate) {
+        const newDeactivationDate = new Date(currentDeactivationDate);
+        newDeactivationDate.setMonth(
+          newDeactivationDate.getMonth() + addedDuration
+        );
+        user.subscription.dateOfDeactivation = newDeactivationDate;
       }
     } else {
       // New subscription
-      user.category = order.categogy
+      user.category = order.category;
       user.subscription.status = "active";
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
@@ -215,7 +223,9 @@ export const verifySubscription = async (
       user.subscription.dateOfActivation = new Date();
 
       const newDeactivationDate = new Date();
-      newDeactivationDate.setMonth(newDeactivationDate.getMonth() + durationInMonths);
+      newDeactivationDate.setMonth(
+        newDeactivationDate.getMonth() + durationInMonths
+      );
       user.subscription.dateOfDeactivation = newDeactivationDate;
     }
 
@@ -233,11 +243,13 @@ export const verifySubscription = async (
       } as Options,
     });
 
-    res.status(200).json(
-      appRedirectURI
-        ? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
-        : `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
-    );
+    res
+      .status(200)
+      .json(
+        appRedirectURI
+          ? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
+          : `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
+      );
   } catch (error: any) {
     next(new CustomError(error.message, 500));
   }
@@ -291,14 +303,16 @@ export const cancelSubscription = async (
         <p><strong>Payment Details:</strong></p>
         <ul>
           <li><strong>Payment ID:</strong> ${payment.razorpay_payment_id}</li>
-          <li><strong>Subscription ID:</strong> ${payment.razorpay_subscription_id}</li>
+          <li><strong>Subscription ID:</strong> ${
+            payment.razorpay_subscription_id
+          }</li>
           <li><strong>Created At:</strong> ${payment.createdAt.toISOString()}</li>
-          <li><strong>Plan ID:</strong> ${payment.planId || 'N/A'}</li>
-          <li><strong>Coupon:</strong> ${payment.coupon || 'N/A'}</li>
+          <li><strong>Plan ID:</strong> ${payment.planId || "N/A"}</li>
+          <li><strong>Coupon:</strong> ${payment.coupon || "N/A"}</li>
         </ul>
         <p>This request is made within the refund period. Please process accordingly.</p>
       `,
-     };
+      };
 
       await sendMail(options);
 
@@ -336,11 +350,15 @@ export const getFreeTrialActive = async (
     user.freeTrial.dateOfActivation = new Date();
     user.freeTrial.availed = true;
 
-     // Calculate the deactivation date (14 days from now)
-     user.freeTrial.dateOfDeactivation = new Date(user.freeTrial.dateOfActivation);
-     user.freeTrial.dateOfDeactivation.setDate(user.freeTrial.dateOfDeactivation.getDate() + 14);
+    // Calculate the deactivation date (14 days from now)
+    user.freeTrial.dateOfDeactivation = new Date(
+      user.freeTrial.dateOfActivation
+    );
+    user.freeTrial.dateOfDeactivation.setDate(
+      user.freeTrial.dateOfDeactivation.getDate() + 14
+    );
 
-     user.category = 'free'
+    user.category = "free";
     await user.save();
 
     await subQueue.add("freetrial", {
