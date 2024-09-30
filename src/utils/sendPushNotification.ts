@@ -2,7 +2,7 @@ import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
 
 const expo = new Expo();
 
-export const sendPushNotification = async (pushTokens: string[], message: string) => {
+export const sendPushNotification = async (pushTokens: string[], heading: string, message: string, action: string) => {
   // Filter valid push tokens
   const validPushTokens = pushTokens.filter(pushToken => Expo.isExpoPushToken(pushToken));
 
@@ -13,8 +13,13 @@ export const sendPushNotification = async (pushTokens: string[], message: string
   const messages: ExpoPushMessage[] = validPushTokens.map(pushToken => ({
     to: pushToken,
     sound: "default",
-    body: message,
-    data: { withSome: "data" },  
+    title: heading, 
+    body: message, 
+    data: {
+      withSome: "data",
+      action: action, 
+      url: "#" 
+    },
   }));
 
   // Chunk the messages into batches
