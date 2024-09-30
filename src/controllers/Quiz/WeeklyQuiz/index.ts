@@ -40,12 +40,12 @@ export const createWeeklyQuiz = async (
       return new CustomError("Planner for current week does not exist!");
     }
 
-    // Get current weeks Back Revision Topics
+    // Get current week's Back Revision Topics
     const currentWeekBackRevisionTopics = currentWeekPlanner.days
       .map((day) => day.backRevisionTopics)
       .flatMap((item) => item);
 
-    // Get current weeks Continuous Revision Topics
+    // Get current week's Continuous Revision Topics
     const currentWeekContinuousRevisionTopics = currentWeekPlanner.days
       .map((day) => day.continuousRevisionTopics)
       .flatMap((item) => item);
@@ -65,6 +65,14 @@ export const createWeeklyQuiz = async (
       "jeeadvance",
     ];
 
+    // Determine which standards to include based on the user's standard
+    const userStandard = user.academic.standard;
+    let standardsToFetch = [userStandard];
+
+    if (userStandard === 13) {
+      standardsToFetch = [11, 12]; // Include questions for standards 11 and 12
+    }
+
     for (let topicData of weeklyTopics) {
       const topic = topicData.topic.name;
       results[topic] = [];
@@ -72,7 +80,11 @@ export const createWeeklyQuiz = async (
 
       for (let category of categories) {
         if (remainingQuestions > 0) {
-          const query = { topics: topic, level: category };
+          const query = {
+            topics: topic,
+            level: category,
+            standard: { $in: standardsToFetch },
+          };
           const topicQuestions = await questions
             .aggregate([
               { $match: query },
@@ -80,17 +92,18 @@ export const createWeeklyQuiz = async (
             ])
             .toArray();
 
-          topicQuestions.map(async (topicData) => {
+          for (const topicData of topicQuestions) {
             const solvedQuestions = await SolvedQuestions.findOne({
               student: user._id,
-              "question.question": topicData.question._id,
+              "question.question": topicData._id,
             });
 
             if (!solvedQuestions) {
-              results[topic].push(topicData);
+              // Store only the question ID instead of the full question
+              results[topic].push(topicData._id);
               remainingQuestions -= topicQuestions.length;
             }
-          });
+          }
         } else {
           break;
         }
@@ -120,6 +133,7 @@ export const createWeeklyQuiz = async (
     next(new CustomError(error.message));
   }
 };
+
 
 export const getWeeklyQuiz = async (
   req: Request,
@@ -166,6 +180,7 @@ export const getWeeklyQuizQuestions = async (
   next: NextFunction
 ) => {
   try {
+    // Fetch the specific quiz for the user based on quizId
     const weeklyQuiz = await Quiz.findOne({
       _id: req.query.quizId,
       user: req.user._id,
@@ -174,16 +189,24 @@ export const getWeeklyQuizQuestions = async (
     if (!weeklyQuiz) {
       return res.status(404).json({
         success: false,
-        message: "Quizzes does not exist for the current week",
+        message: "Quiz does not exist for the current week",
       });
     }
 
-    const weeklyQuestions = Object.values(weeklyQuiz.questions).flat();
+    // Extract question IDs from the quiz (flatten all questions across topics)
+    const questionIds: any = Object.values(weeklyQuiz.questions).flat();
 
+    // Fetch full question details from the questionbank collection
+    const questionsCollection = questions_db.collection("questionbanks");
+    const fullQuestionDetails = await questionsCollection
+      .find({ _id: { $in: questionIds } })
+      .toArray();
+
+    // Send the detailed quiz questions directly without grouping by topics
     res.status(200).json({
       success: true,
       data: {
-        weeklyQuestions,
+        weeklyQuestions: fullQuestionDetails,
         startDate: weeklyQuiz.createdAt,
         endDate: weeklyQuiz.endDate,
       },
@@ -193,31 +216,34 @@ export const getWeeklyQuizQuestions = async (
   }
 };
 
+
 export const saveQuestions = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+
     const { topic, question, quizId } = req.body
 
     if (!topic || !question || !quizId) {
       throw new Error("Invalid quiz entry format");
     }
 
-    await saveQuizQuestionsQueue.add('quizQuestion' , {
-        user: req.user,
-        topic,
-        ques: question,
-        quizId
-    })
+    await saveQuizQuestionsQueue.add("quizQuestion", {
+      user: req.user,
+      topic,
+      ques: question,
+      quizId,
+    });
 
     res.status(200).json({
       success: true,
-      message: "Question added to queue"
-    })
+      message: "Question added to queue",
+    });
   } catch (error: any) {
     console.error(error);
     next(new CustomError(error.message));
   }
 };
+
