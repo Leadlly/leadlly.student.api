@@ -17,17 +17,18 @@ export interface ISubjectWiseReport {
 }
 
 interface IQuizReport {
-  user:  mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   quizId: mongoose.Types.ObjectId;
   totalMarks: number;
   correctCount: number;
   incorrectCount: number;
   unattemptedCount: number;
-  maxScore: number; 
+  maxScore: number;
   overallEfficiency: number; 
   subjectWiseReport: {
     [subject: string]: ISubjectWiseReport; 
   };
+  questions: mongoose.Types.ObjectId[]; 
   updatedAt?: Date;
   createdAt?: Date; 
 }
@@ -50,7 +51,7 @@ const SubjectWiseReportSchema = new mongoose.Schema<ISubjectWiseReport>({
 });
 
 const reportSchema = new mongoose.Schema<IQuizReport>({
-  user: { type: mongoose.Schema.Types.ObjectId, required: true},
+  user: { type: mongoose.Schema.Types.ObjectId, required: true },
   quizId: { type: mongoose.Schema.Types.ObjectId, required: true },
   totalMarks: { type: Number, required: true },
   correctCount: { type: Number, required: true },
@@ -62,7 +63,8 @@ const reportSchema = new mongoose.Schema<IQuizReport>({
     type: Map,
     of: SubjectWiseReportSchema, 
   },
-  updatedAt: {type: Date, default: Date.now},
+  questions: [{ type: mongoose.Schema.Types.ObjectId }],  
+  updatedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
 });
 

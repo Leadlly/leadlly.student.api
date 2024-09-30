@@ -7,7 +7,7 @@ import Quiz_Report, { ISubjectWiseReport } from "../../../../models/quizReportMo
 import mongoose from "mongoose";
 
 // Function to get quiz report
-export const getQuizReport = async (
+export const generateQuizReport = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -36,6 +36,9 @@ export const getQuizReport = async (
     const subjectWiseReport: Record<string, ISubjectWiseReport> = {};
     const subjectTotalCounts: Record<string, { correct: number; total: number }> = {};
 
+    // To store all question IDs
+    const questionIds: mongoose.Types.ObjectId[] = [];
+
     // Loop over the quiz questions (grouped by topics)
     for (const topic in quiz.questions) {
       if (quiz.questions.hasOwnProperty(topic)) {
@@ -43,6 +46,8 @@ export const getQuizReport = async (
 
         // Loop through each question in the topic
         for (const question of questions) {
+          questionIds.push(new mongoose.Types.ObjectId(question));  // Store question ID
+
           const fetchedQuestion = await Question.findOne({ _id: question });
           if (!fetchedQuestion) {
             continue; // Skip if the question doesn't exist
@@ -76,7 +81,6 @@ export const getQuizReport = async (
             question: fetchedQuestion._id
           }) as ISolvedQuestion;
 
-          // Only process if solvedQuestions is defined
           if (solvedQuestions) {
             const topicReport = subjectWiseReport[subject].topics[topic];
 
@@ -110,7 +114,6 @@ export const getQuizReport = async (
 
             // Calculate topic efficiency after processing all questions for the topic
             const { correct, totalQuestions } = topicReport;
-
             if (totalQuestions > 0) {
               topicReport.efficiency = Math.max(0, Math.min(100, (correct / totalQuestions) * 100));
             }
@@ -119,24 +122,17 @@ export const getQuizReport = async (
       }
     }
 
-    // Calculate subject efficiency after processing all topics
     for (const subject in subjectTotalCounts) {
       const { correct, total } = subjectTotalCounts[subject];
-      console.log(total, correct, subject);
       if (total > 0) {
         subjectWiseReport[subject].efficiency = Math.max(0, Math.min(100, (correct / total) * 100));
-      } else {
-        subjectWiseReport[subject].efficiency = 0; // No questions attempted for this subject
       }
     }
 
-    // Calculate total score and overall efficiency
     const totalQuestions = Object.values(quiz.questions).flat().length;
-    const maxMarks = totalQuestions * 4; // 4 marks for each question
-
+    const maxMarks = totalQuestions * 4;
     const overallEfficiency = maxMarks > 0 ? Math.max(0, Math.min(100, (correctCount / totalQuestions) * 100)) : 0;
 
-    // Prepare the report object
     const report = {
       user: quiz.user,
       quizId,
@@ -147,36 +143,53 @@ export const getQuizReport = async (
       maxScore: maxMarks,
       overallEfficiency: Math.round(overallEfficiency),
       subjectWiseReport,
+      questions: questionIds, 
     };
 
-    // Check if the report already exists
     const existingReport = await Quiz_Report.findOne({ user: new mongoose.Types.ObjectId(quiz.user!), quizId }).lean();
-
     if (existingReport) {
-      // Update the existing report
-      await Quiz_Report.updateOne(
-        { _id: existingReport._id },
-        {
-          ...report,
-          updatedAt: new Date() 
-        }
-      );
+      await Quiz_Report.updateOne({ _id: existingReport._id }, { ...report, updatedAt: new Date() });
     } else {
-      // Save a new report in the database
       await new Quiz_Report(report).save();
     }
 
+    // Fetch full question details and include them in the response
+    const fullQuestions = await Question.find({ _id: { $in: questionIds } }).toArray();
+
     return res.status(200).json({
       message: "Quiz report generated successfully",
-      report
+      report: { ...report, questions: fullQuestions}  
     });
   } catch (error: any) {
-    console.error(error);
-    next(
-      new CustomError(
-        error.message || "An error occurred while generating the report",
-        500
-      )
-    );
+    console.error("Error generating quiz report:", error);
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const getQuizReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { quizId } = req.query;
+
+    if (!quizId || typeof quizId !== "string") {
+      return next(new CustomError("Invalid QuizId"));
+    }
+
+    const quizReport = await Quiz_Report.findOne({ quizId: quizId as string, user: req.user._id }).lean();
+    if (!quizReport) {
+      return next(new CustomError("No Report exists for the corresponding quiz"));
+    }
+
+    const Question = questions_db.collection("questionbanks"); // Assuming you're using MongoDB for questions
+    const questionIds = quizReport.questions || [];
+
+    const fullQuestions = await Question.find({ _id: { $in: questionIds } }).toArray();
+
+    return res.status(200).json({
+      message: "Quiz report fetched successfully",
+      report : { ...quizReport, questions: fullQuestions},
+    });
+  } catch (error) {
+    console.error("Error generating quiz report:", error);
+    return next(new CustomError((error as Error).message));
   }
 };
