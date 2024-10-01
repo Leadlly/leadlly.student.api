@@ -7,6 +7,7 @@ interface ISolvedQuestion extends Document {
   isCorrect: boolean;
   tag?: string;
   quizId: mongoose.Types.ObjectId;
+  timeTaken?: number;
   createdAt: Date;
 }
 
@@ -36,6 +37,7 @@ const questionSchema: Schema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Quiz",
   },
+  timeTaken: { type: Number},
   createdAt: {
     type: Date,
     default: Date.now,

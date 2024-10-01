@@ -28,6 +28,7 @@ interface IQuizReport {
   subjectWiseReport: {
     [subject: string]: ISubjectWiseReport; 
   };
+  timeTaken: number;
   questions: mongoose.Types.ObjectId[]; 
   updatedAt?: Date;
   createdAt?: Date; 
@@ -63,6 +64,7 @@ const reportSchema = new mongoose.Schema<IQuizReport>({
     type: Map,
     of: SubjectWiseReportSchema, 
   },
+  timeTaken: { type: Number},
   questions: [{ type: mongoose.Schema.Types.ObjectId }],  
   updatedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },

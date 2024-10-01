@@ -18,9 +18,6 @@ export const updateErrorBook = async (req: Request, res: Response, next: NextFun
 		const { solvedQuestions } = validation.data;
 
 
-	
-
-
 		await SolvedQuestions.updateMany({ _id: { $in: solvedQuestions } }, { $set: { isCorrect: true } });
 
 		const updatedQuestions = await SolvedQuestions.find({

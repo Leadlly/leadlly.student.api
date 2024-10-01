@@ -13,7 +13,7 @@ export const generateQuizReport = async (
   next: NextFunction
 ) => {
   try {
-    const { quizId } = req.query;
+    const { quizId, timeTaken } = req.query;
 
     const Question = questions_db.collection("questionbanks");
 
@@ -143,6 +143,7 @@ export const generateQuizReport = async (
       maxScore: maxMarks,
       overallEfficiency: Math.round(overallEfficiency),
       subjectWiseReport,
+      timeTaken,
       questions: questionIds, 
     };
 

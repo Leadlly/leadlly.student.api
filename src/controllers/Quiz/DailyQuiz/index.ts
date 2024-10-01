@@ -37,6 +37,7 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
       studentAnswer: ques.studentAnswer,
       isCorrect: ques.isCorrect,
       tag: ques.tag,
+      timeTaken: ques?.timeTaken
     }));
 
     await SolvedQuestions.insertMany(solvedQuestions);

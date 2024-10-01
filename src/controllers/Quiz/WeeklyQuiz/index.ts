@@ -2,12 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { CustomError } from "../../../middlewares/error";
 import { questions_db } from "../../../db/db";
 import IUser from "../../../types/IUser";
-import moment from "moment-timezone";
-import Planner from "../../../models/plannerModel";
-import { Collection } from "mongodb";
-import SolvedQuestions from "../../../models/solvedQuestions";
+
 import { Quiz } from "../../../models/quizModel";
 import { saveQuizQuestionsQueue } from "../../../services/bullmq/producer";
+import { create_weekly_quiz } from "./functions/create_weekly_quiz";
 
 export const createWeeklyQuiz = async (
   req: Request,
@@ -17,112 +15,7 @@ export const createWeeklyQuiz = async (
   try {
     const user: IUser = req.user;
 
-    const activationDate =
-      user.freeTrial.dateOfActivation || user.subscription.dateOfActivation;
-    if (!activationDate) {
-      return next(new CustomError("Not subscribed", 400));
-    }
-
-    const timezone = "Asia/Kolkata";
-    const currentMoment = moment.tz(timezone);
-
-    // Calculate the start and end of next week
-    const startDate = moment(currentMoment).startOf("isoWeek").toDate();
-    const endDate = moment(startDate).endOf("isoWeek").toDate();
-
-    const currentWeekPlanner = await Planner.findOne({
-      student: user._id,
-      startDate,
-      endDate,
-    });
-
-    if (!currentWeekPlanner) {
-      return new CustomError("Planner for current week does not exist!");
-    }
-
-    // Get current week's Back Revision Topics
-    const currentWeekBackRevisionTopics = currentWeekPlanner.days
-      .map((day) => day.backRevisionTopics)
-      .flatMap((item) => item);
-
-    // Get current week's Continuous Revision Topics
-    const currentWeekContinuousRevisionTopics = currentWeekPlanner.days
-      .map((day) => day.continuousRevisionTopics)
-      .flatMap((item) => item);
-
-    const weeklyTopics = [
-      ...currentWeekContinuousRevisionTopics,
-      ...currentWeekBackRevisionTopics,
-    ];
-
-    const questions: Collection = questions_db.collection("questionbanks");
-    const results: { [key: string]: any[] } = {};
-    const categories = [
-      "jeemains_easy",
-      "neet",
-      "boards",
-      "jeemains",
-      "jeeadvance",
-    ];
-
-    // Determine which standards to include based on the user's standard
-    const userStandard = user.academic.standard;
-    let standardsToFetch = [userStandard];
-
-    if (userStandard === 13) {
-      standardsToFetch = [11, 12]; // Include questions for standards 11 and 12
-    }
-
-    for (let topicData of weeklyTopics) {
-      const topic = topicData.topic.name;
-      results[topic] = [];
-      let remainingQuestions = 2;
-
-      for (let category of categories) {
-        if (remainingQuestions > 0) {
-          const query = {
-            topics: topic,
-            level: category,
-            standard: { $in: standardsToFetch },
-          };
-          const topicQuestions = await questions
-            .aggregate([
-              { $match: query },
-              { $sample: { size: remainingQuestions } },
-            ])
-            .toArray();
-
-          for (const topicData of topicQuestions) {
-            const solvedQuestions = await SolvedQuestions.findOne({
-              student: user._id,
-              "question.question": topicData._id,
-            });
-
-            if (!solvedQuestions) {
-              // Store only the question ID instead of the full question
-              results[topic].push(topicData._id);
-              remainingQuestions -= topicQuestions.length;
-            }
-          }
-        } else {
-          break;
-        }
-      }
-    }
-
-    function getNextSaturday(date: Date) {
-      const result = new Date(date);
-      result.setDate(result.getDate() + ((6 - result.getDay() + 7) % 7));
-      return result;
-    }
-
-    const weeklyQuiz = await Quiz.create({
-      user: user._id,
-      questions: results,
-      quizType: "weekly",
-      createdAt: new Date(),
-      endDate: getNextSaturday(new Date()),
-    });
+    const weeklyQuiz = await create_weekly_quiz(user) 
 
     return res.status(200).json({
       success: true,

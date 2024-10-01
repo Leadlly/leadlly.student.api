@@ -10,9 +10,9 @@ const getMeetingLimit = (subscriptionCategory: string): number => {
     switch (subscriptionCategory) {
       case 'free':
       case 'basic':
-        return 1;
+        return 0;
       case 'pro':
-        return 3;
+        return 1;
       case 'premium':
         return Infinity;
       default:

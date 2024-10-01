@@ -14,12 +14,13 @@ type IData = {
         isCorrect: boolean,
         tag: string
     },
+    timeTaken?: number,
     quizId: string
 }
 
 export const saveQuizQuestions = async (data: IData) => {
     try {
-        const { user, topic, ques, quizId } = data;
+        const { user, topic, ques, quizId, timeTaken } = data;
 
         const topics = [topic];
 
@@ -35,6 +36,7 @@ export const saveQuizQuestions = async (data: IData) => {
             studentAnswer,
             isCorrect,
             tag,
+            timeTaken,
             quizId,
         });
 
