@@ -26,6 +26,6 @@ router.get("/pricing/get", checkAuth, getPricing);
 
 router.get("/coupons/get", checkAuth, getCoupon);
 
-router.get("/coupons/check", checkAuth, checkCoupon);
+router.post("/coupons/check", checkAuth, checkCoupon);
 
 export default router;
