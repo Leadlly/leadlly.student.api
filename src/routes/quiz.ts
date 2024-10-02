@@ -7,6 +7,7 @@ import {
   getWeeklyQuizQuestions,
   saveQuestions,
 } from "../controllers/Quiz/WeeklyQuiz";
+import { createCustomQuiz, getCreatedCustomQuiz, getCustomQuizQuestions, getTopicsForChapters, saveCustomQuizAnswers } from "../controllers/Quiz/CustomQuiz";
 
 const router = express.Router();
 
@@ -16,4 +17,10 @@ router.get("/weekly/get", checkAuth, getWeeklyQuiz);
 router.get("/weekly/questions/get", checkAuth, getWeeklyQuizQuestions);
 router.post("/weekly/questions/save", checkAuth, saveQuestions);
 
+
+router.post("/custom/create" ,checkAuth ,createCustomQuiz)
+router.get("/custom/get" ,checkAuth ,getCreatedCustomQuiz)
+router.get("/custom/questions/get" , checkAuth , getCustomQuizQuestions)
+router.post("/custom/questions/save" , checkAuth , saveCustomQuizAnswers)
+router.post("/custom/getTopicsForChapters" ,checkAuth , getTopicsForChapters)
 export default router;

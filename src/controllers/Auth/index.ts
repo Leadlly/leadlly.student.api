@@ -332,6 +332,7 @@ export const getUser = async (
 ) => {
   try {
     const user = await User.findById(req.user._id);
+    
     if (!user) return next(new CustomError("User not found", 400));
 
     res.status(200).json({
