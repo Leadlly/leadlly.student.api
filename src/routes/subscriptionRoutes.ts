@@ -7,7 +7,7 @@ import {
   verifySubscription,
 } from "../controllers/Subscription";
 import { getPricing } from "../controllers/Subscription/pricing";
-import { getCoupon } from "../controllers/Subscription/coupon";
+import { checkCoupon, getCoupon } from "../controllers/Subscription/coupon";
 
 const router = express.Router();
 
@@ -25,4 +25,7 @@ router.get("/freetrial", checkAuth, getFreeTrialActive);
 router.get("/pricing/get", checkAuth, getPricing);
 
 router.get("/coupons/get", checkAuth, getCoupon);
+
+router.get("/coupons/check", checkAuth, checkCoupon);
+
 export default router;

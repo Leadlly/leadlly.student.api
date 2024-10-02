@@ -29,3 +29,35 @@ export const getCoupon = async (req: Request, res: Response, next: NextFunction)
     next(new CustomError((error as Error).message, 500)); 
   }
 };
+
+export const checkCoupon = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { code } = req.body; 
+    
+    if (!code) {
+      return next(new CustomError("Coupon code not provided", 400));
+    }
+
+    const coupon = await Coupon.findOne({ code });
+
+    if (!coupon) {
+      return next(new CustomError("Invalid or expired coupon code", 404));
+    }
+
+    if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+      return next(new CustomError("This coupon has expired", 400));
+    }
+
+    if (coupon.usageLimit <= 0) {
+      return next(new CustomError("Coupon usage limit has been reached", 400));
+    }
+
+    res.status(200).json({
+      success: true,
+      coupon,
+    });
+  } catch (error) {
+    console.error(error);
+    next(new CustomError((error as Error).message, 500));
+  }
+};
