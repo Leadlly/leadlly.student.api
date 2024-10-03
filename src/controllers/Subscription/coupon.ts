@@ -2,17 +2,22 @@ import { NextFunction, Request, Response } from "express";
 import { CustomError } from "../../middlewares/error";
 import { Coupon } from "../../models/couponModel";
 
-export const getCoupon = async (req: Request, res: Response, next: NextFunction) => {
+export const getCoupon = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { plan, category } = req.query; 
+    const { plan, category } = req.query;
 
     if (!category) {
       return next(new CustomError("Pricing type (category) not provided", 400));
     }
 
-    const query: { category: string; plan?: string } = { category: category as string };
+    const query: { category: string; plan?: string } = {
+      category: category as string,
+    };
     if (plan) query.plan = plan as string;
-
 
     const coupons = await Coupon.find(query);
 
@@ -25,20 +30,24 @@ export const getCoupon = async (req: Request, res: Response, next: NextFunction)
       coupons,
     });
   } catch (error) {
-    console.error(error); 
-    next(new CustomError((error as Error).message, 500)); 
+    console.error(error);
+    next(new CustomError((error as Error).message, 500));
   }
 };
 
-export const checkCoupon = async (req: Request, res: Response, next: NextFunction) => {
+export const checkCoupon = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { code } = req.body; 
-    
+    const { code } = req.body;
+
     if (!code) {
       return next(new CustomError("Coupon code not provided", 400));
     }
 
-    const coupon = await Coupon.findOne({ code });
+    const coupon = await Coupon.findOne({ code, category: "custom" });
 
     if (!coupon) {
       return next(new CustomError("Invalid or expired coupon code", 404));
