@@ -1,6 +1,7 @@
 import { questions_db } from "../../db/db";
 import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../../middlewares/error";
+import IUser from "../../types/IUser";
 
 
 const getExamTags = (competitiveExam?: string): string[] => {
@@ -32,9 +33,11 @@ export const getChapter = async (
       });
     }
 
+    const standardNumber = parseInt(standard as string, 10)
+
     let standardQuery: any;
-    if (standard === "13") {
-      standardQuery = { $in: ["11", "12"] };
+    if (standardNumber === 13) {
+      standardQuery = { $in: [11, 12] };
     } else {
       standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
     }
@@ -86,8 +89,11 @@ export const getTopic = async (
     }
 
     let standardQuery: any;
-    if (standard === "13") {
-      standardQuery = { $in: ["11", "12"] };
+
+    const standardNumber = parseInt(standard as string, 10)
+
+    if (standardNumber === 13) {
+      standardQuery = { $in: [11, 12] };
     } else {
       standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
     }
@@ -123,6 +129,59 @@ export const getTopic = async (
     next(new CustomError(error.message));
   }
 };
+
+export const getSubtopics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user: IUser = req.user
+
+    const Subject = questions_db.collection("subjects");
+    const Subtopic = questions_db.collection("subtopics");
+
+    // Destructure the required parameters from request body
+    const { subjectName, chapterName, topicName } = req.query;
+
+    const standard = user.academic.standard
+
+    console.log(subjectName, chapterName, topicName, standard)
+
+    // Check if all required parameters are provided
+    if (!subjectName || !standard || !chapterName || !topicName) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required query parameters (subjectName, standard, chapterName, topicName).",
+      });
+    }
+
+
+    // Find the subject based on subjectName and standard
+    const subject = await Subject.findOne({
+      name: subjectName,
+      standard,
+    });
+
+    if (!subject) {
+      return res.status(400).json({ success: false, message: "Subject not found" });
+    }
+
+
+    // Fetch subtopics from the subtopics collection using the array of subtopic IDs
+    const subtopics = await Subtopic.find({ topicName: topicName }).toArray();
+
+    // Return the fetched subtopics
+    res.status(200).json({
+      success: true,
+      subtopics,
+    });
+  } catch (error) {
+    // Pass any caught errors to the next middleware (error handling)
+    next(new CustomError((error as Error).message, 500));
+  }
+};
+
 
 
 export const getStreakQuestion = async (

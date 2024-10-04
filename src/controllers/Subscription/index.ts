@@ -182,6 +182,7 @@ export const verifySubscription = async (
     })) as IPricing;
 
     if (!pricing) {
+      console.log("3")
       return next(new CustomError("Invalid plan duration selected", 400));
     }
 

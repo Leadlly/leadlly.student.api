@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose"; // Import mongoose for ObjectId validation
 import SolvedQuestions from "../../../models/solvedQuestions";
 import { calculateTopicMetrics } from "../../../functions/CalculateMetrices/calculateTopicMetrics";
 import { CustomError } from "../../../middlewares/error";
@@ -15,33 +16,44 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
     const { topic, questions } = req.body;
     const user = req.user as IUser;
 
+    // Validate request body
     if (!topic || !Array.isArray(questions) || questions.length === 0) {
       return next(new CustomError("Invalid request body: 'topic' or 'questions' are missing or incorrectly formatted", 400));
     }
 
+    // Validate question structure and check if each question has a valid ObjectId
     const invalidQuestion = questions.find(
       (q) =>
         !q.question ||
+        !mongoose.Types.ObjectId.isValid(q.question) || // Check if question is a valid ObjectId
         q.studentAnswer === undefined ||
         q.isCorrect === undefined ||
         !q.tag
     );
     if (invalidQuestion) {
-      return next(new CustomError("Invalid question format in the request", 400));
+      return next(new CustomError("Invalid question format or question ID in the request", 400));
     }
 
-    // Bulk insert questions
-    const solvedQuestions = questions.map((ques) => ({
-      student: user._id,
-      question: ques.question,
-      studentAnswer: ques.studentAnswer,
-      isCorrect: ques.isCorrect,
-      tag: ques.tag,
-      timeTaken: ques?.timeTaken
-    }));
+    // Process each question: Update if it exists, otherwise create a new entry
+    for (const ques of questions) {
+      await SolvedQuestions.findOneAndUpdate(
+        {
+          student: user._id,
+          question: ques.question, // Ensure we update based on question and student ID
+        },
+        {
+          $set: {
+            studentAnswer: ques.studentAnswer,
+            isCorrect: ques.isCorrect,
+            tag: ques.tag,
+            timeTaken: ques?.timeTaken,
+          },
+        },
+        { upsert: true, new: true } // Use upsert to create a new document if none exists
+      );
+    }
 
-    await SolvedQuestions.insertMany(solvedQuestions);
-
+    // After all questions are processed, handle further operations
     await insertCompletedTopics(user._id, topic, questions);
 
     // Calculate topic metrics first
