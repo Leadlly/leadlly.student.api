@@ -39,7 +39,7 @@ export const getChapter = async (
     if (standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
     } else {
-      standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
+      standardQuery = standardNumber;
     }
 
     const examTags = getExamTags(competitiveExam);
@@ -95,7 +95,7 @@ export const getTopic = async (
     if (standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
     } else {
-      standardQuery = { $regex: new RegExp(`^${standard}$`, "i") };
+      standardQuery = standardNumber;
     }
 
     const examTags = getExamTags(competitiveExam);
