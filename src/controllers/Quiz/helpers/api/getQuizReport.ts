@@ -17,7 +17,6 @@ export const generateQuizReport = async (
 
     const Question = questions_db.collection("questionbanks");
 
-    // Validate quizId
     if (typeof quizId !== "string") {
       return next(new CustomError("Invalid quizId", 400));
     }
@@ -27,7 +26,6 @@ export const generateQuizReport = async (
       return next(new CustomError("Quiz not found", 404));
     }
 
-    // Initialize counters
     let totalMarks = 0;
     let correctCount = 0;
     let incorrectCount = 0;
@@ -36,25 +34,44 @@ export const generateQuizReport = async (
     const subjectWiseReport: Record<string, ISubjectWiseReport> = {};
     const subjectTotalCounts: Record<string, { correct: number; total: number }> = {};
 
-    // To store all question IDs
-    const questionIds: mongoose.Types.ObjectId[] = [];
+    // Gather all question IDs from the quiz
+    const questionIds = Object.values(quiz.questions).flat();
 
-    // Loop over the quiz questions (grouped by topics)
+    // Batch fetch questions and solved questions
+    const [fetchedQuestions, solvedQuestions] = await Promise.all([
+      Question.find({ _id: { $in: questionIds } }).toArray(),
+      SolvedQuestions.find({
+        student: req.user._id,
+        quizId: new mongoose.Types.ObjectId(quizId),
+        question: { $in: questionIds }
+      })
+    ]);
+
+    // Create maps for fast lookup
+    const questionMap = fetchedQuestions.reduce((map, question) => {
+      map[question._id.toString()] = question;
+      return map;
+    }, {} as Record<string, any>);
+
+    const solvedQuestionMap = solvedQuestions.reduce((map, solved) => {
+      map[solved.question.toString()] = solved;
+      return map;
+    }, {} as Record<string, ISolvedQuestion>);
+
+    // Process each topic and its questions
     for (const topic in quiz.questions) {
       if (quiz.questions.hasOwnProperty(topic)) {
         const questions = quiz.questions[topic];
 
-        // Loop through each question in the topic
-        for (const question of questions) {
-          questionIds.push(new mongoose.Types.ObjectId(question));  // Store question ID
-
-          const fetchedQuestion = await Question.findOne({ _id: question });
+        for (const questionId of questions) {
+          const fetchedQuestion = questionMap[questionId.toString()];
           if (!fetchedQuestion) {
-            continue; // Skip if the question doesn't exist
+            continue;
           }
 
-          // Ensure subject is assigned correctly
-          const subject = fetchedQuestion.subject; 
+          const subject = fetchedQuestion.subject;
+
+          // Initialize subject and topic reports if not already present
           if (!subjectWiseReport[subject]) {
             subjectWiseReport[subject] = {
               efficiency: 0,
@@ -62,7 +79,6 @@ export const generateQuizReport = async (
             };
           }
 
-          // Initialize topic report if not already
           if (!subjectWiseReport[subject].topics[topic]) {
             subjectWiseReport[subject].topics[topic] = {
               correct: 0,
@@ -74,54 +90,49 @@ export const generateQuizReport = async (
             };
           }
 
-          // Process the answer correctness
-          const solvedQuestions = await SolvedQuestions.findOne({
-            student: req.user._id,
-            quizId: new mongoose.Types.ObjectId(quizId),
-            question: fetchedQuestion._id
-          }) as ISolvedQuestion;
+          const solvedQuestion = solvedQuestionMap[questionId.toString()];
+          const topicReport = subjectWiseReport[subject].topics[topic];
 
-          if (solvedQuestions) {
-            const topicReport = subjectWiseReport[subject].topics[topic];
-
-            if (solvedQuestions.isCorrect === true) {
+          if (solvedQuestion) {
+            // Process based on whether the question was answered correctly, incorrectly, or unattempted
+            if (solvedQuestion.isCorrect === true) {
               correctCount++;
               topicReport.correct++;
               totalMarks += 4;
               topicReport.totalMarks += 4;
 
-              // Track correct answers for subject
               if (!subjectTotalCounts[subject]) {
                 subjectTotalCounts[subject] = { correct: 0, total: 0 };
               }
               subjectTotalCounts[subject].correct++;
-              subjectTotalCounts[subject].total++; // Increment total for correct answer
-            } else if (solvedQuestions.isCorrect === false) {
+              subjectTotalCounts[subject].total++;
+            } else if (solvedQuestion.isCorrect === false) {
               incorrectCount++;
               topicReport.incorrect++;
               totalMarks -= 1;
               topicReport.totalMarks -= 1;
 
-              // Track attempted answers for subject
               if (!subjectTotalCounts[subject]) {
                 subjectTotalCounts[subject] = { correct: 0, total: 0 };
               }
-              subjectTotalCounts[subject].total++; // Increment total for incorrect answer
-            } else {
-              unattemptedCount++;
-              topicReport.unattempted++;
+              subjectTotalCounts[subject].total++;
             }
+          } else {
+            // Unattempted case
+            unattemptedCount++;
+            topicReport.unattempted++;
+          }
 
-            // Calculate topic efficiency after processing all questions for the topic
-            const { correct, totalQuestions } = topicReport;
-            if (totalQuestions > 0) {
-              topicReport.efficiency = Math.max(0, Math.min(100, (correct / totalQuestions) * 100));
-            }
+          // Calculate efficiency for the topic
+          const { correct, totalQuestions } = topicReport;
+          if (totalQuestions > 0) {
+            topicReport.efficiency = Math.max(0, Math.min(100, (correct / totalQuestions) * 100));
           }
         }
       }
     }
 
+    // Calculate efficiency for each subject
     for (const subject in subjectTotalCounts) {
       const { correct, total } = subjectTotalCounts[subject];
       if (total > 0) {
@@ -129,10 +140,12 @@ export const generateQuizReport = async (
       }
     }
 
-    const totalQuestions = Object.values(quiz.questions).flat().length;
+    // Overall efficiency calculation
+    const totalQuestions = questionIds.length;
     const maxMarks = totalQuestions * 4;
     const overallEfficiency = maxMarks > 0 ? Math.max(0, Math.min(100, (correctCount / totalQuestions) * 100)) : 0;
 
+    // Build the final report object
     const report = {
       user: quiz.user,
       quizId,
@@ -144,9 +157,10 @@ export const generateQuizReport = async (
       overallEfficiency: Math.round(overallEfficiency),
       subjectWiseReport,
       timeTaken,
-      questions: questionIds, 
+      questions: solvedQuestions.map(q => q._id),  // Store solvedQuestion IDs in the report
     };
 
+    // Update or create the quiz report in the database
     const existingReport = await Quiz_Report.findOne({ user: new mongoose.Types.ObjectId(quiz.user!), quizId }).lean();
     if (existingReport) {
       await Quiz_Report.updateOne({ _id: existingReport._id }, { ...report, updatedAt: new Date() });
@@ -154,18 +168,23 @@ export const generateQuizReport = async (
       await new Quiz_Report(report).save();
     }
 
-    // Fetch full question details and include them in the response
-    const fullQuestions = await Question.find({ _id: { $in: questionIds } }).toArray();
+    // Generate full question details for the response
+    const fullQuestions = solvedQuestions.map(solved => {
+      const fetchedQuestion = questionMap[solved.question.toString()];
+      return { ...solved.toObject(), question: fetchedQuestion };
+    });
 
     return res.status(200).json({
       message: "Quiz report generated successfully",
-      report: { ...report, questions: fullQuestions}  
+      report: { ...report, questions: fullQuestions }  
     });
+
   } catch (error: any) {
     console.error("Error generating quiz report:", error);
     next(new CustomError((error as Error).message));
   }
 };
+
 
 export const getQuizReport = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -181,9 +200,27 @@ export const getQuizReport = async (req: Request, res: Response, next: NextFunct
     }
 
     const Question = questions_db.collection("questionbanks"); // Assuming you're using MongoDB for questions
-    const questionIds = quizReport.questions || [];
+    const solvedQuestionIds = quizReport.questions || [];
 
-    const fullQuestions = await Question.find({ _id: { $in: questionIds } }).toArray();
+    const solvedQuestions = await SolvedQuestions.find({ _id: { $in: solvedQuestionIds } });
+    const fullQuestions: any[] = [];
+    
+    for (let solvedQuestion of solvedQuestions) {
+      // Fetch the full question details from the questions collection
+      const fetchedQuestion = await Question.findOne({ _id: solvedQuestion.question });
+    
+      if (fetchedQuestion) {
+        // Replace the question field in the solved question with the full question details
+        const solvedQuestionWithFullQuestion = {
+          ...solvedQuestion.toObject(), 
+          question: fetchedQuestion      
+        };
+    
+        // Push the modified solved question into the fullQuestions array
+        fullQuestions.push(solvedQuestionWithFullQuestion);
+      }
+    }
+
 
     return res.status(200).json({
       message: "Quiz report fetched successfully",

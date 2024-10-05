@@ -173,8 +173,8 @@ export const verifySubscription = async (
       razorpay_subscription_id: razorpay_order_id,
       razorpay_signature,
       user: user._id,
-      planId: user.subscription?.planId,
-      coupon: user.subscription?.coupon,
+      planId: order?.planId,
+      coupon: order?.coupon,
     });
 
     const pricing = (await Pricing.findOne({
@@ -182,7 +182,6 @@ export const verifySubscription = async (
     })) as IPricing;
 
     if (!pricing) {
-      console.log("3")
       return next(new CustomError("Invalid plan duration selected", 400));
     }
 
@@ -195,24 +194,22 @@ export const verifySubscription = async (
         previousPlanId: user.subscription.planId,
         previousDuration: user.subscription.duration,
         dateOfUpgradation: new Date(),
-        addedDuration: durationInMonths,
+        // addedDuration: durationInMonths,
       };
 
       // Update the subscription duration
       user.category = order.category;
-      user.subscription.duration += durationInMonths;
+      user.subscription.duration = durationInMonths;
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
       user.subscription.coupon = order?.coupon;
+  
+      const newDeactivationDate = new Date();
+      newDeactivationDate.setMonth(
+        newDeactivationDate.getMonth() + durationInMonths
+      );
+      user.subscription.dateOfDeactivation = newDeactivationDate;
 
-      const addedDuration = durationInMonths || 0;
-      if (currentDeactivationDate) {
-        const newDeactivationDate = new Date(currentDeactivationDate);
-        newDeactivationDate.setMonth(
-          newDeactivationDate.getMonth() + addedDuration
-        );
-        user.subscription.dateOfDeactivation = newDeactivationDate;
-      }
     } else {
       // New subscription
       user.category = order.category;

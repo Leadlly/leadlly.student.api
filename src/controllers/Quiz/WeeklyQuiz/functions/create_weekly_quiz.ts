@@ -18,7 +18,7 @@ export const create_weekly_quiz = async(user: IUser) => {
     const endDate = moment(startDate).endOf("isoWeek").toDate();
 
     const existingQuiz = await Quiz.findOne({createdAt: startDate, endDate})
-    if(!existingQuiz) return {message: "Quiz for current week already exists"}
+    if(existingQuiz) return {message: "Quiz for current week already exists"}
 
     const currentWeekPlanner = await Planner.findOne({
       student: user._id,
