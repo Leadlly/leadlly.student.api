@@ -77,7 +77,7 @@ cron.schedule("0 17 * * *", async () => {
 });
 
 // Schedule notification at 7 PM
-cron.schedule("23 19 * * *", async () => {
+cron.schedule("0 19 * * *", async () => {
   await sendScheduledNotification(dailyMessages["7PM"]);
 });
 

@@ -26,3 +26,27 @@ export const getPricing = async (req: Request, res: Response, next: NextFunction
     }
   };
   
+  export const getPricingByPlanId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { planId } = req.params;
+  
+      if (!planId) {
+        return next(new CustomError("Plan ID not provided", 400));
+      }
+  
+      const pricing = await Pricing.findOne({ planId });
+  
+      if (!pricing) {
+        return next(new CustomError("No pricing exists for this plan ID", 404));
+      }
+  
+      res.status(200).json({
+        success: true,
+        pricing,
+      });
+    } catch (error) {
+      console.log(error);
+      next(new CustomError((error as Error).message, 500));
+    }
+  };
+  
