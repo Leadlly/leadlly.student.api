@@ -8,6 +8,8 @@ import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
+router.post("/profile/save", checkAuth, convertToLowercase, studentPersonalInfo);
+
 router.use(checkAuth, authorizeSubscriber('basic'));
 
 router.post(
@@ -23,7 +25,6 @@ router.delete(
   "/topics/delete",
   deleteUnrevisedTopics
 );
-router.post("/profile/save", convertToLowercase, studentPersonalInfo);
 router.post("/todaysVibe/save", setTodaysVibe);
 router.get("/report/week", getWeeklyReport);
 router.get("/report/month", getMonthlyReport);
