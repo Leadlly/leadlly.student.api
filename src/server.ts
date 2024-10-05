@@ -7,6 +7,8 @@ import { watchTrackerChanges } from "./events/Tracker";
 import "./controllers/Planner/scheduler";
 import "./controllers/Notifications/scheduledNotification"
 import "./controllers/Subscription/scheduler"
+import "./controllers/Quiz/WeeklyQuiz/schedular"
+import "./helpers/updateStreak"
 import { watchMeetingChanges } from "./events/Meeting";
 
 const port = process.env.PORT || 4000;

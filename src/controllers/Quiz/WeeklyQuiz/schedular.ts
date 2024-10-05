@@ -51,7 +51,7 @@ const runJobWithRetries = async (jobFunction: Function, retries: number, nextWee
 };
 
 // Schedule the createWeeklyQuiz task to run every Saturday at 12:40 AM IST 
-cron.schedule("37 2 * * 0", () => {
+cron.schedule("41 2 * * 0", () => {
   runJobWithRetries(create_weekly_quiz, maxRetries, true);
 });
 
