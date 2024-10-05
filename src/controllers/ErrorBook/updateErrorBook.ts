@@ -16,13 +16,15 @@ export const updateErrorBook = async (req: Request, res: Response, next: NextFun
 		}
 
 		const { solvedQuestions } = validation.data;
+      
 
 
-		await SolvedQuestions.updateMany({ _id: { $in: solvedQuestions } }, { $set: { isCorrect: true } });
+		await SolvedQuestions.updateMany({ question: { $in: solvedQuestions }, student: req.user._id }, { $set: { isCorrect: true } });
 
 		const updatedQuestions = await SolvedQuestions.find({
 			_id: { $in: solvedQuestions },
 		});
+
 
 		return res.status(200).json({
 			success: true,
