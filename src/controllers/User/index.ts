@@ -104,6 +104,11 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
 };
 
 export const setTodaysVibe = async (req: Request, res: Response, next: NextFunction) => {
+  const isSunday = () => {
+    const today = new Date();
+    return today.getDay() === 0; // Sunday is 0 in JavaScript
+  };
+
   const parsedResult = todaysVibeSchema.safeParse(req.body);
 
   if (!parsedResult.success) {
@@ -117,8 +122,11 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
     return res.status(404).json({ message: "User not found" });
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date();
+  const formattedToday = today.toISOString().split("T")[0]; // Format today's date (YYYY-MM-DD)
+  const dayOfWeek = today.toLocaleString('en-US', { weekday: 'long' }); // e.g., 'Monday', 'Tuesday'
 
+  // Initialize mood field if missing
   if (!user.details) {
     user.details = { mood: [] };
   }
@@ -127,24 +135,54 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
     user.details.mood = [];
   }
 
-  const todaysMoodIndex = user.details.mood.findIndex(
-    (moodEntry) => moodEntry.day === today,
-  );
+  // Check if today's mood is already set
+  const todaysMoodIndex = user.details.mood.findIndex((moodEntry) => moodEntry.day === dayOfWeek);
 
-  if (todaysMoodIndex >= 0) {
-    user.details.mood[todaysMoodIndex].emoji = todaysVibe;
+  // If today is Sunday, clear mood for the entire week
+  if (isSunday()) {
+    user.details.mood = [];
+  }
+
+  // Check if the update date is next week
+  const nextWeekDate = new Date();
+  nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Get the date for one week ahead
+  const targetDate = new Date(formattedToday); // User provided date
+
+  if (targetDate > nextWeekDate) {
+    // Reset all fields to null except the current day
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    user.details.mood = daysOfWeek.map((day) => {
+      return {
+        day: day,
+        date: day === dayOfWeek ? formattedToday : null,
+        emoji: day === dayOfWeek ? todaysVibe : null,
+      };
+    });
   } else {
-    user.details.mood.push({ day: today, emoji: todaysVibe });
+    // Update today's mood
+    if (todaysMoodIndex >= 0) {
+      user.details.mood[todaysMoodIndex] = {
+        day: dayOfWeek,
+        emoji: todaysVibe,
+        date: formattedToday,
+      };
+    } else {
+      user.details.mood.push({
+        day: dayOfWeek,
+        emoji: todaysVibe,
+        date: formattedToday,
+      });
+    }
   }
 
   try {
     await user.save();
     return res.status(200).json({
-      message: "todays Vibe updated successfully",
-      todaysVibe: todaysVibe,
+      message: "Today's Vibe updated successfully",
+      todaysVibe,
     });
   } catch (error: any) {
-    next(new CustomError(error.message))
+    next(new CustomError(error.message));
   }
 };
 

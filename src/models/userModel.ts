@@ -78,11 +78,12 @@ const userSchema = new Schema<IUser>({
       number: {type: Number, default: 0},
       updatedAt: { type: Date }
      },
-    mood: [
+     mood: [
       {
-        day: { type: String, default: null },
-        emoji: { type: String, default: null },
-      },
+        day: { type: String, enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] },
+        date: { type: String, default: null },
+        emoji: { type: String, default: null }
+      }
     ],
     report: {
       dailyReport: {
@@ -139,6 +140,23 @@ userSchema.pre("save", function (next) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(this.email)) {
     return next(new Error("Please enter a valid email address"));
+  }
+  next();
+});
+
+// Prepopulate mood field for new users
+userSchema.pre("save", function (next) {
+  if (this.isNew) {
+    // If it's a new user, initialize the mood field for seven days
+    this.details.mood = [
+      { day: 'Sunday', date: null, emoji: null },
+      { day: 'Monday', date: null, emoji: null },
+      { day: 'Tuesday', date: null, emoji: null },
+      { day: 'Wednesday', date: null, emoji: null },
+      { day: 'Thursday', date: null, emoji: null },
+      { day: 'Friday', date: null, emoji: null },
+      { day: 'Saturday', date: null,  emoji: null },
+    ];
   }
   next();
 });

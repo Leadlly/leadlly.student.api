@@ -62,7 +62,8 @@ interface IUser extends Document {
     streak?: { number: number, updatedAt: Date};
     mood?: Array<{
       day: string;
-      emoji: string;
+      date: string | null;
+      emoji: string | null;
     }>;
     report?: {
       dailyReport?: {

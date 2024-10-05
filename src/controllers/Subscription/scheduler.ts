@@ -3,7 +3,7 @@ import moment from "moment";
 import User from "../../models/userModel";
 
 // Job runs at midnight every day
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("15 0 * * *", async () => {
   try {
     // Deactivate free trials older than 21 days
     const usersWithFreeTrials = await User.find({
