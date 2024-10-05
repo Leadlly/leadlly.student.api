@@ -1,10 +1,13 @@
 import express from "express";
 import { checkAuth } from "../middlewares/checkAuth";
 import { getMeetings, requestMeeting } from "../controllers/Meeting";
+import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.post("/request", checkAuth, requestMeeting);
-router.post("/get", checkAuth, getMeetings);
+router.use(checkAuth, authorizeSubscriber('pro'));
+
+router.post("/request", requestMeeting);
+router.post("/get", getMeetings);
 
 export default router;

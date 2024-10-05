@@ -6,12 +6,15 @@ import {
   getPlanner,
   updateDailyPlanner,
 } from "../controllers/Planner";
+import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.get("/create", checkAuth, createPlanner);
-router.get("/update", checkAuth, updateDailyPlanner);
-router.get("/get", checkAuth, getPlanner);
-router.get("/allocateTopics", checkAuth, allocateBackTopicsToExistingPlanner);
+router.use(checkAuth, authorizeSubscriber('basic'));
+
+router.get("/create", createPlanner);
+router.get("/update", updateDailyPlanner);
+router.get("/get", getPlanner);
+router.get("/allocateTopics", allocateBackTopicsToExistingPlanner);
 
 export default router;

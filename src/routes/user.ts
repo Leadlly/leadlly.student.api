@@ -4,30 +4,30 @@ import { deleteUnrevisedTopics, getUnrevisedTopics, storeUnrevisedTopics } from 
 import { checkAuth } from "../middlewares/checkAuth";
 import convertToLowercase from "../middlewares/lowercase";
 import { studentPersonalInfo } from "../controllers/User";
+import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
+router.use(checkAuth, authorizeSubscriber('basic'));
+
 router.post(
   "/progress/save",
-  checkAuth,
   convertToLowercase,
   storeUnrevisedTopics,
 );
 router.get(
   "/topics/get",
-  checkAuth,
   getUnrevisedTopics,
 );
 router.delete(
   "/topics/delete",
-  checkAuth,
   deleteUnrevisedTopics
 );
-router.post("/profile/save", checkAuth, convertToLowercase, studentPersonalInfo);
-router.post("/todaysVibe/save", checkAuth, setTodaysVibe);
-router.get("/report/week", checkAuth, getWeeklyReport);
-router.get("/report/month", checkAuth, getMonthlyReport);
-router.get("/report/overall", checkAuth, getOverallReport);
-router.get("/mentor/info", checkAuth, getMentorInfo);
+router.post("/profile/save", convertToLowercase, studentPersonalInfo);
+router.post("/todaysVibe/save", setTodaysVibe);
+router.get("/report/week", getWeeklyReport);
+router.get("/report/month", getMonthlyReport);
+router.get("/report/overall", getOverallReport);
+router.get("/mentor/info", getMentorInfo);
 
 export default router;

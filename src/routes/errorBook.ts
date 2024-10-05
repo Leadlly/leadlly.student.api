@@ -5,13 +5,15 @@ import { getChapterErrorBook } from '../controllers/ErrorBook/getChapterErrorBoo
 import { createErrorNote } from '../controllers/ErrorBook/ErrorNotes/CreateErrorNotes';
 import { toggleErrorNotes } from '../controllers/ErrorBook/ErrorNotes/toggleErrorNotes';
 import { updateErrorBook } from '../controllers/ErrorBook/updateErrorBook';
+import { authorizeSubscriber } from '../middlewares/checkCategory';
 
 const router = express.Router();
 
-router.get('/get', checkAuth, getErrorBook);
-router.get('/chapter/:chapter', checkAuth, getChapterErrorBook);
-router.post('/errorNote', checkAuth, createErrorNote);
+router.use(checkAuth, authorizeSubscriber('pro'));
 
-router.put('/errorNote/toggle/:errorNote', checkAuth, toggleErrorNotes);
-router.put('/update', checkAuth, updateErrorBook);
+router.get('/get', getErrorBook);
+router.get('/chapter/:chapter', getChapterErrorBook);
+router.post('/errorNote', createErrorNote);
+router.put('/errorNote/toggle/:errorNote', toggleErrorNotes);
+router.put('/update', updateErrorBook);
 export default router;
