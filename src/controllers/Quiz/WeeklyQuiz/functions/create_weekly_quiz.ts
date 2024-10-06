@@ -17,8 +17,12 @@ export const create_weekly_quiz = async(user: IUser) => {
     const startDate = moment(currentMoment).startOf("isoWeek").toDate();
     const endDate = moment(startDate).endOf("isoWeek").toDate();
 
-    const existingQuiz = await Quiz.findOne({createdAt: startDate, endDate})
-    if(existingQuiz) return {message: "Quiz for current week already exists"}
+    const existingQuiz = await Quiz.findOne({
+      user: user._id,
+      createdAt: { $gte: startDate, $lt: endDate },
+    });
+
+    if(existingQuiz) return {status: 400, message: "Quiz for current week already exists"}
 
     const currentWeekPlanner = await Planner.findOne({
       student: user._id,
@@ -39,6 +43,14 @@ export const create_weekly_quiz = async(user: IUser) => {
     const currentWeekContinuousRevisionTopics = currentWeekPlanner.days
       .map((day) => day.continuousRevisionTopics)
       .flatMap((item) => item);
+
+    if (
+      currentWeekBackRevisionTopics.length === 0 &&
+      currentWeekContinuousRevisionTopics.length === 0
+    ) {
+      return { status: 400, message: "No topics found in planner for this week" };
+    }
+    
 
     const weeklyTopics = [
       ...currentWeekContinuousRevisionTopics,
@@ -114,9 +126,9 @@ export const create_weekly_quiz = async(user: IUser) => {
       endDate: getNextSaturday(new Date()),
     });
 
-    return weeklyQuiz
+    return {status: 200, message: "Weekly quiz created successfully", data: weeklyQuiz}
     } catch (error: any) {
         console.log(error)
-        throw new Error(error)
+        return {status: 500, message: error.message}
     }
 }

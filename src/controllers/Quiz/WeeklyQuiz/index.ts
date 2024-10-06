@@ -15,12 +15,12 @@ export const createWeeklyQuiz = async (
   try {
     const user: IUser = req.user;
 
-    const weeklyQuiz = await create_weekly_quiz(user) 
+    const result = await create_weekly_quiz(user) as { status: number, message?: string,  data?: any };
 
-    return res.status(200).json({
+    return res.status(result.status).json({
       success: true,
-      message: "Weekly quiz created successfully!",
-      weeklyQuiz,
+      message: result?.message,
+      weeklyQuiz: result?.data,
     });
   } catch (error: any) {
     next(new CustomError(error.message));
