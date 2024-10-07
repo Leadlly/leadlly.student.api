@@ -21,7 +21,7 @@ export const generateQuizReport = async (
       return next(new CustomError("Invalid quizId", 400));
     }
 
-    const quiz = await Quiz.findById(quizId).lean();
+    const quiz = await Quiz.findById(quizId)
     if (!quiz) {
       return next(new CustomError("Quiz not found", 404));
     }
