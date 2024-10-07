@@ -173,6 +173,9 @@ export const generateQuizReport = async (
       const fetchedQuestion = questionMap[solved.question.toString()];
       return { ...solved.toObject(), question: fetchedQuestion };
     });
+    
+    quiz.attempted = true
+    await quiz.save()
 
     return res.status(200).json({
       message: "Quiz report generated successfully",
