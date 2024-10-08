@@ -19,7 +19,8 @@ const daysOfWeek = [
 export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
-  nextWeek: boolean
+  nextWeek: boolean,
+  chapters?: []
 ) => {
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;
@@ -84,12 +85,13 @@ export const generateWeeklyPlanner = async (
           };
         }
 
-        const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
+        const { dailyContinuousTopics, dailyBackTopics, dailyBackChapters } = getDailyTopics(
           [],
           backRevisionTopics,
           user,
+          chapters,
         );
-
+  
         const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
 
         // Fetch and update topics in the StudyData collection
@@ -124,6 +126,7 @@ export const generateWeeklyPlanner = async (
           date,
           continuousRevisionTopics: dailyContinuousTopics,
           backRevisionTopics: dailyBackTopics,
+          chapters: dailyBackChapters,
           questions: dailyQuestions,
         };
       }),
@@ -151,8 +154,8 @@ export const generateWeeklyPlanner = async (
     console.log("Generating planner for current week");
 
     let startDateLocal, endDateLocal;
-    // Start from the next day of activation date
-    const nextDay = activationMoment.add(1, 'days').startOf('day');
+    // Start from the next(for now its current) day of activation date
+    const nextDay = activationMoment.add(0, 'days').startOf('day');
 
     if (nextDay.isSame(currentMoment, 'week')) {
       startDateLocal = nextDay;
@@ -207,10 +210,11 @@ export const generateWeeklyPlanner = async (
           };
         }
 
-        const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
+        const { dailyContinuousTopics, dailyBackTopics, dailyBackChapters } = getDailyTopics(
           [],
           backRevisionTopics,
           user,
+          chapters,
         );
 
         const dailyTopics = [...dailyContinuousTopics, ...dailyBackTopics];
@@ -247,6 +251,7 @@ export const generateWeeklyPlanner = async (
           date,
           continuousRevisionTopics: dailyContinuousTopics,
           backRevisionTopics: dailyBackTopics,
+          chapters: dailyBackChapters,
           questions: dailyQuestions,
         };
       }),

@@ -10,8 +10,9 @@ const daySchema = new mongoose.Schema<IDay>({
     type: String,
     required: true,
   },
-  continuousRevisionTopics: Array,
+  continuousRevisionTopics: Array, 
   backRevisionTopics: Array,
+  chapters: Array,
   completedTopics: [],
   incompletedTopics: [],
   questions: {
