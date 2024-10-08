@@ -11,7 +11,9 @@ const ConnectToDB = async () => {
   const questionsDbUrl = process.env.LEADLLY_QUESTIONS_DB_URL as string;
 
   try {
-    await mongoose.connect(DatabaseUrl);
+    await mongoose.connect(DatabaseUrl, {
+      autoIndex: true, // Enable automatic index creation
+    });
     db = mongoose.connection;
     console.log("Leadlly_DB Connected.");
 

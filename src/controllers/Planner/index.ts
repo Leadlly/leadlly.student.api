@@ -25,12 +25,12 @@ export const createPlanner = async (
       return next(new CustomError("Not subscribed", 400));
     }
 
-    const backRevisionTopics = await getBackRevisionTopics(
+    const {backRevisionTopics, chapters} = await getBackRevisionTopics(
       user._id,
       activationDate,
     );
 
-    const result = await generateWeeklyPlanner(user, backRevisionTopics, req.body.nextWeek);
+    const result = await generateWeeklyPlanner(user, backRevisionTopics, req.body.nextWeek, chapters);
 
     user.planner = true
     await user.save()

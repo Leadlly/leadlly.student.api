@@ -3,6 +3,7 @@ import { StudyData } from "../../../models/studentData";
 import IDataSchema from "../../../types/IDataSchema";
 import User from "../../../models/userModel";
 import IUser, { ISubject } from "../../../types/IUser";
+import { getBackChapters } from "./getBackChapters";
 
 const getWeekNumber = (startDate: Date, currentDate: Date) => {
   const start = moment.tz(startDate, "Asia/Kolkata");
@@ -41,6 +42,9 @@ export const getBackRevisionTopics = async (
     user: studentId,
     tag: "active_unrevised_topic",
   }).exec()) as IDataSchema[];
+
+  const topics = [...activeContinuousRevisionTopics, ...activeUnrevisedTopics]
+  let chapters = await getBackChapters(topics)
 
   const continuousLowEfficiency = activeContinuousRevisionTopics.filter(
     (data) => data.topic.overall_efficiency! < 40,
@@ -111,5 +115,5 @@ export const getBackRevisionTopics = async (
     mixedTopics.push(...topics);
   });
 
-  return mixedTopics.slice(0, 18); // Ensure the result is exactly 12 topics
+  return {backRevisionTopics: mixedTopics.slice(0, 18), chapters}; // Ensure the result is exactly 12 topics
 };
