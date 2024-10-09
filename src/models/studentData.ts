@@ -11,6 +11,10 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     required: true,
   },
   topic: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      // required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -26,6 +30,10 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     ],
   },
   chapter: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      // required: true,
+    },
     name: {
       type: String,
       required: true,

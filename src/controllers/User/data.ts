@@ -8,7 +8,7 @@ export const storeUnrevisedTopics = async (
   next: NextFunction,
 ) => {
   try {
-    const { topics, tag, subject, ...restBody } = req.body;
+    const { topics, tag, subject, chapter, ...restBody } = req.body;
 
     // Check if topics is an array and not empty
     if (!Array.isArray(topics) || topics.length === 0) {
@@ -28,7 +28,6 @@ export const storeUnrevisedTopics = async (
 
     for (let topic of topics) {
       const normalizedTopicName = topic.name.toLowerCase();
-      console.log(normalizedTopicName)
       const existingDocument = await StudyData.findOne({
         "topic.name": normalizedTopicName,
         tag,
@@ -46,7 +45,12 @@ export const storeUnrevisedTopics = async (
         ...restBody,
         topic: {
           ...topic,
+          id: topic._id,
           name: normalizedTopicName
+        },
+        chapter: {
+          name: chapter.name,
+          id: chapter._id
         },
         tag,
         "subject.name": subject.toLowerCase(),

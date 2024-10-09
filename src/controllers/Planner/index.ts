@@ -134,7 +134,7 @@ export const updateDailyPlanner = async (
       user
     );
 
-    console.log(dailyQuestions, "here are the questions")
+    // console.log(dailyQuestions, "here are the questions")
 
     const existingQuestions = existingDay?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
