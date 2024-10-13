@@ -117,6 +117,7 @@ export const calculateStudentReport = async (userId: string) => {
             overall: Math.round((completionPercentage + quizCompletionPercentage) / 2),
         };
 
+        user.updatedAt = new Date()
         await user.save();
 
     } catch (error) {

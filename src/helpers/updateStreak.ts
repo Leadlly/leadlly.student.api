@@ -45,6 +45,7 @@ const resetStreaksDaily = async () => {
           // If more than one day has passed since the last update, reset the streak
           user.details.streak.number = 0;
           user.details.streak.updatedAt = new Date();
+          user.updatedAt = new Date()
           await user.save();
           console.log(`Streak reset for user ${user._id}:`, user.details.streak);
         }
