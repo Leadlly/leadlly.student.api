@@ -1,11 +1,12 @@
 import IDataSchema from "../../../types/IDataSchema";
+import { PlannerChapter } from "../../../types/IPlanner";
 import IUser from "../../../types/IUser";
 
 export const getDailyTopics = (
   continuousRevisionTopics: IDataSchema[],
   backRevisionTopics: IDataSchema[],
   user: IUser,
-  chapters?: [],
+  chapters?: PlannerChapter[],
 ) => {
   const dailyBackTopics: IDataSchema[] = [];
 
@@ -28,7 +29,7 @@ export const getDailyTopics = (
     }
   }
 
-  const dailyChapter: any[] = [];
+  const dailyChapter: PlannerChapter[] = [];
 
   // Ensure only one chapter is added per day
   if (chapters && chapters.length > 0) {

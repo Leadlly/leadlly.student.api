@@ -5,6 +5,7 @@ import IDataSchema from "../../../types/IDataSchema";
 import { getDailyTopics } from "../DailyTopics/getDailyTopics";
 import IUser from "../../../types/IUser";
 import { getDailyQuestions } from "../DailyQuestions/getDailyQuestions";
+import { PlannerChapter } from "../../../types/IPlanner";
 
 const daysOfWeek = [
   "Monday",
@@ -20,7 +21,7 @@ export const generateWeeklyPlanner = async (
   user: IUser,
   backRevisionTopics: IDataSchema[],
   nextWeek: boolean,
-  chapters?: []
+  chapters?: PlannerChapter[]
 ) => {
   const activationDate =
     user.freeTrial?.dateOfActivation || user.subscription?.dateOfActivation;

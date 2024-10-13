@@ -4,6 +4,7 @@ import IDataSchema from "../../../types/IDataSchema";
 import User from "../../../models/userModel";
 import IUser, { ISubject } from "../../../types/IUser";
 import { getBackChapters } from "./getBackChapters";
+import { PlannerChapter } from "../../../types/IPlanner";
 
 const getWeekNumber = (startDate: Date, currentDate: Date) => {
   const start = moment.tz(startDate, "Asia/Kolkata");
@@ -43,8 +44,13 @@ export const getBackRevisionTopics = async (
     tag: "active_unrevised_topic",
   }).exec()) as IDataSchema[];
 
-  const topics = [...activeContinuousRevisionTopics, ...activeUnrevisedTopics]
-  let chapters = await getBackChapters(topics)
+
+  let chapters: PlannerChapter[] = [];
+  try {
+    chapters = await getBackChapters(user);
+  } catch (error) {
+    console.error("Failed to get back chapters:", error);
+  }
 
   const continuousLowEfficiency = activeContinuousRevisionTopics.filter(
     (data) => data.topic.overall_efficiency! < 40,

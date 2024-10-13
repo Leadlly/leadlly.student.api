@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import { IDay, IPlanner } from "../types/IPlanner";
 
 const daySchema = new mongoose.Schema<IDay>({
@@ -12,7 +12,11 @@ const daySchema = new mongoose.Schema<IDay>({
   },
   continuousRevisionTopics: Array, 
   backRevisionTopics: Array,
-  chapters: Array,
+  chapters: [{
+    id: mongoose.Schema.Types.ObjectId,
+    name: String,
+    quizId: mongoose.Schema.Types.ObjectId
+  }],
   completedTopics: [],
   incompletedTopics: [],
   questions: {
