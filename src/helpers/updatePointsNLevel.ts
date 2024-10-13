@@ -73,6 +73,7 @@ export const updatePointsNLevel = async (userId: string, questions?: any, quizEf
       user.details.points.number = newPoints; // Update points after level-up
     }
 
+    user.updatedAt = new Date()
     await user.save();
     console.log(`level ${user.details.level.number} and points ${user.details.points.number} updated`)
 

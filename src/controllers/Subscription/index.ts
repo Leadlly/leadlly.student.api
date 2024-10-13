@@ -43,7 +43,7 @@ export const buySubscription = async (
 
       // Calculate the remaining value of the current subscription
       const currentDate = new Date();
-      const deactivationDate = user.subscription.dateOfDeactivation!;
+      const deactivationDate = new Date(user.subscription.dateOfDeactivation!);
       const timeRemaining =
         (deactivationDate.getTime() - currentDate.getTime()) /
         (1000 * 60 * 60 * 24); // Remaining days
