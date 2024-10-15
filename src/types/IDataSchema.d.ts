@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 interface Topic {
+  id: mongoose.Types.ObjectId;
   name: string;
   plannerFrequency?: number;
   level?: string;
@@ -12,6 +13,7 @@ interface Topic {
 }
 
 interface Chapter {
+  id: mongoose.Types.ObjectId;
   name: string;
   plannerFrequency?: number;
   level?: string;

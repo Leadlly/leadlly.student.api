@@ -34,6 +34,7 @@ const createStudentTracker = async (fullDocument: IDataSchema) => {
         user: fullDocument.user,
         subject: { name: subjectName },
         chapter: {
+          id: fullDocument.chapter.id,
           name: chapterName,
           overall_efficiency: chapterProgress.overall_efficiency,
           overall_progress: chapterProgress.overall_progress,

@@ -43,7 +43,7 @@ export const buySubscription = async (
 
       // Calculate the remaining value of the current subscription
       const currentDate = new Date();
-      const deactivationDate = user.subscription.dateOfDeactivation!;
+      const deactivationDate = new Date(user.subscription.dateOfDeactivation!);
       const timeRemaining =
         (deactivationDate.getTime() - currentDate.getTime()) /
         (1000 * 60 * 60 * 24); // Remaining days
@@ -79,12 +79,6 @@ export const buySubscription = async (
         amount -= (amount * coupon.discountValue) / 100;
       } else {
         amount -= coupon.discountValue * 100; // Convert flat discount to paise
-      }
-
-      // Update coupon usage limit
-      if (coupon.usageLimit) {
-        coupon.usageLimit -= 1;
-        await coupon.save();
       }
     }
 
@@ -229,6 +223,13 @@ export const verifySubscription = async (
 
     await user.save();
 
+    const coupon = await Coupon.findOne({code: order.coupon})
+       
+      if (coupon && coupon.usageLimit) {
+      coupon.usageLimit -= 1;
+      await coupon.save();
+    }
+
     // Send confirmation email
     await subQueue.add("payment_success", {
       options: {
@@ -237,7 +238,7 @@ export const verifySubscription = async (
         message: `Your payment for the plan is successful.`,
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "payment_success",
+        tag: "subscription_active",
       } as Options,
     });
 
