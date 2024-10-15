@@ -80,12 +80,6 @@ export const buySubscription = async (
       } else {
         amount -= coupon.discountValue * 100; // Convert flat discount to paise
       }
-
-      // Update coupon usage limit
-      if (coupon.usageLimit) {
-        coupon.usageLimit -= 1;
-        await coupon.save();
-      }
     }
 
     // Create Razorpay order
@@ -229,6 +223,13 @@ export const verifySubscription = async (
 
     await user.save();
 
+    const coupon = await Coupon.findOne({code: order.coupon})
+       
+      if (coupon && coupon.usageLimit) {
+      coupon.usageLimit -= 1;
+      await coupon.save();
+    }
+
     // Send confirmation email
     await subQueue.add("payment_success", {
       options: {
@@ -237,7 +238,7 @@ export const verifySubscription = async (
         message: `Your payment for the plan is successful.`,
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "payment_success",
+        tag: "subscription_active",
       } as Options,
     });
 

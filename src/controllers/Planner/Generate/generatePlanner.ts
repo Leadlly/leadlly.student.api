@@ -152,7 +152,7 @@ export const generateWeeklyPlanner = async (
 
     let startDateLocal, endDateLocal;
     // Start from the next day of activation date
-    const nextDay = activationMoment.add(1, 'days').startOf('day');
+    const nextDay = activationMoment.add(0, 'days').startOf('day'); //temporary putted current day(0)
 
     if (nextDay.isSame(currentMoment, 'week')) {
       startDateLocal = nextDay;
@@ -197,7 +197,10 @@ export const generateWeeklyPlanner = async (
 
         console.log(`Processing ${day}: ${date}`);
 
-        if (day === "Sunday") {
+        const isFirstWeekAfterActivation = nextDay.isSame(user.freeTrial.dateOfActivation, 'week');
+        console.log(isFirstWeekAfterActivation, 'first week')
+
+        if (day === "Sunday" && !isFirstWeekAfterActivation) {
           return {
             day,
             date,
