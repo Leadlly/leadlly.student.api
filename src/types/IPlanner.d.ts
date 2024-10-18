@@ -9,6 +9,7 @@ interface IDay {
   date: Date;
   day: string;
   continuousRevisionTopics: any[];
+  continuousRevisionSubTopics: any[];
   backRevisionTopics: any[];
   chapters: PlannerChapter[]
   completedTopics: any[],
