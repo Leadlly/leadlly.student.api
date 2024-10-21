@@ -230,18 +230,18 @@ export const verifySubscription = async (
       await coupon.save();
     }
 
-    // Send confirmation email
-    await subQueue.add("payment_success", {
-      options: {
-        email: user.email,
-        subject: "Leadlly Payment Success",
-        message: `Your payment for the plan is successful.`,
-        username: user.firstname,
-        dashboardLink: `${process.env.FRONTEND_URL}`,
-        tag: "subscription_active",
-      } as Options,
-    });
-
+      // Send confirmation email
+      await subQueue.add("payment_success", {
+        options: {
+          email: user.email,
+          subject: "Leadlly Payment Success",
+          message: `Your payment for the ${order.category} plan is successful.`,
+          username: user.firstname,
+          dashboardLink: `${process.env.FRONTEND_URL}`,
+          tag: "subscription_active",
+        } as Options,
+      });
+      
     res
       .status(200)
       .json(
@@ -364,7 +364,7 @@ export const getFreeTrialActive = async (
       options: {
         email: user.email,
         subject: "Leadlly Free-Trial",
-        message: "Free-Trail",
+        message: "Free-Trail Activated",
         username: user.firstname,
         dashboardLink: `${process.env.FRONTEND_URL}`,
         tag: "subscription_active",

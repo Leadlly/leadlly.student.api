@@ -22,8 +22,8 @@ export const getTemplate = (options: Options) => {
     case "subscription_active":
       return `
         <div style="font-family: Arial, sans-serif; text-align: center;">
-          <img src="https://avatars.githubusercontent.com/u/157880099?s=400&u=506807b28d88bfb69b9edf53fd830400a9446230&v=4" alt="Company Logo" style="width: 150px; margin-bottom: 20px;">
-          <h2 style="color: #9652f4;">${options.message} Activated!</h2>
+          <img src="https://avatars.githubusercontent.com/u/157880099?s=400&u=506807b28d88bfb69b9edf53fd830400a9446230&v=4" alt="Company Logo" style="width: 80px; margin-bottom: 20px; border-radius: 10px">
+          <h2 style="color: #9652f4;">${options.message}</h2>
           <p>Dear ${options.username},</p>
           <p>Your subscription is now active. Enjoy all the benefits of our service.</p>
           <a href="${options.dashboardLink}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #9652f4; text-decoration: none; border-radius: 5px; margin-top: 20px;">Go to Dashboard</a>

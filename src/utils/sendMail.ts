@@ -7,7 +7,13 @@ export type Options = {
   message: string;
   username?: string;
   dashboardLink?: string;
-  tag?: string
+  tag?: string;
+  description?: string;
+  attachments?: Array<{   
+    filename: string;
+    path: string;
+    contentType?: string;
+  }>;
 };
 export const sendMail = async (options: Options) => {
   try {
@@ -27,6 +33,7 @@ export const sendMail = async (options: Options) => {
       to: options.email,
       subject: options.subject,
       html: getTemplate(options),
+      attachments: options.attachments || [] 
     };
 
     await transporter.sendMail(mailOptions);
