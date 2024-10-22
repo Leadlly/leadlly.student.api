@@ -1,6 +1,6 @@
 import { getMentorInfo, getMonthlyReport, getOverallReport, getWeeklyReport, setTodaysVibe } from "./../controllers/User/index";
 import express from "express";
-import { deleteUnrevisedTopics, getUnrevisedTopics, storeUnrevisedTopics } from "../controllers/User/data";
+import { deleteUnrevisedTopics, getUnrevisedTopics, storeSubTopics, storeUnrevisedTopics } from "../controllers/User/data";
 import { checkAuth } from "../middlewares/checkAuth";
 import convertToLowercase from "../middlewares/lowercase";
 import { studentPersonalInfo } from "../controllers/User";
@@ -16,6 +16,11 @@ router.post(
   "/progress/save",
   convertToLowercase,
   storeUnrevisedTopics,
+);
+router.post(
+  "/progress/save/subtopics",
+  convertToLowercase,
+  storeSubTopics,
 );
 router.get(
   "/topics/get",

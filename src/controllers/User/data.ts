@@ -71,7 +71,7 @@ export const storeUnrevisedTopics = async (
   }
 };
 
-export const storeUnrevisedSubTopics = async (
+export const storeSubTopics = async (
   req: Request,
   res: Response,
   next: NextFunction,
