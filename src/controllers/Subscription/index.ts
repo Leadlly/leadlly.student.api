@@ -349,12 +349,12 @@ export const getFreeTrialActive = async (
     user.freeTrial.dateOfActivation = new Date();
     user.freeTrial.availed = true;
 
-    // Calculate the deactivation date (14 days from now)
+    // Calculate the deactivation date (7 days from now)
     user.freeTrial.dateOfDeactivation = new Date(
       user.freeTrial.dateOfActivation
     );
     user.freeTrial.dateOfDeactivation.setDate(
-      user.freeTrial.dateOfDeactivation.getDate() + 14
+      user.freeTrial.dateOfDeactivation.getDate() + 7
     );
 
     user.category = "free";
