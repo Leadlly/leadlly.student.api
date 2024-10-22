@@ -5,6 +5,7 @@ export const getDailyTopics = (
   continuousRevisionTopics: IDataSchema[],
   backRevisionTopics: IDataSchema[],
   user: IUser,
+  continuousRevisionSubTopics?: any,
 ) => {
   const dailyBackTopics: IDataSchema[] = [];
 
@@ -29,6 +30,7 @@ export const getDailyTopics = (
 
   return {
     dailyContinuousTopics: continuousRevisionTopics,
+    dailyContinuousSubtopics: continuousRevisionSubTopics,
     dailyBackTopics,
   };
 };

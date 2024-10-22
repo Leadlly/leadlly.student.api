@@ -11,6 +11,7 @@ import { getDailyTopics } from "./DailyTopics/getDailyTopics";
 import IDataSchema from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
 import mongoose from "mongoose";
+import { SubtopicsData } from "../../models/subtopics_data";
 
 export const createPlanner = async (
   req: Request,
@@ -63,6 +64,12 @@ export const updateDailyPlanner = async (
       createdAt: { $gte: today.toDate() },
     }).exec() as IDataSchema[];
 
+    const continuousRevisionSubTopics = await SubtopicsData.find({
+      user: new mongoose.Types.ObjectId(user._id),
+      tag: "continuous_revision",
+      createdAt: { $gte: today.toDate() },
+    }).exec();
+
     const startDate = moment().startOf("isoWeek").toDate();
     const endDate = moment(startDate).endOf("isoWeek").toDate();
 
@@ -78,10 +85,11 @@ export const updateDailyPlanner = async (
       );
     }
 
-    const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
+    const { dailyContinuousTopics, dailyContinuousSubtopics, dailyBackTopics } = getDailyTopics(
       continuousRevisionTopics,
       [],
       user,
+      continuousRevisionSubTopics
     );
 
     const nextDayString = nextDay.format("YYYY-MM-DD");
@@ -113,6 +121,7 @@ export const updateDailyPlanner = async (
       });
     }
 
+    // Increasing planner frequency and updating studied date
     newContinuousTopics.forEach((data) => {
       if (!data.topic.studiedAt) {
         data.topic.studiedAt = [];
@@ -125,13 +134,37 @@ export const updateDailyPlanner = async (
       data.topic.plannerFrequency += 1;
     });
 
+        
+    const existingContinuousSubTopics = new Set(
+      existingDay?.continuousRevisionSubTopics
+        .map(data => data.subtopic.name.toLowerCase()) || []
+    );
+
+     // Filter out subtopics that are already present for the day
+     const newContinuousSubTopics = dailyContinuousSubtopics.filter(
+      (data: any) => !existingContinuousSubTopics.has(data.subtopic.name.toLowerCase())
+    );
+
+    newContinuousSubTopics.forEach((data: any) => {
+      if (!data.subtopic.studiedAt) {
+        data.subtopic.studiedAt = [];
+      }
+      data.subtopic.studiedAt.push({ date: nextDay.toDate(), efficiency: 0 });
+
+      if (!data.subtopic.plannerFrequency) {
+        data.subtopic.plannerFrequency = 0;
+      }
+      data.subtopic.plannerFrequency += 1;
+    });
+
     const dailyTopics = [...newContinuousTopics, ...dailyBackTopics];
 
     const dailyQuestions = await getDailyQuestions(
       moment(nextDay).format("dddd"),
       nextDay.toDate(),
       dailyTopics,
-      user
+      user,
+      newContinuousSubTopics
     );
 
     // console.log(dailyQuestions, "here are the questions")
@@ -144,6 +177,7 @@ export const updateDailyPlanner = async (
       {
         $push: {
           "days.$.continuousRevisionTopics": { $each: newContinuousTopics },
+          "days.$.continuousRevisionSubTopics": { $each: newContinuousSubTopics },
         },
         $set: {
           "days.$.questions": mergedQuestions,
