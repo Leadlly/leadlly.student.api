@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { StudyData } from "../../models/studentData";
 import { CustomError } from "../../middlewares/error";
+import { SubtopicsData } from "../../models/subtopics_data";
 
 export const storeUnrevisedTopics = async (
   req: Request,
@@ -47,6 +48,78 @@ export const storeUnrevisedTopics = async (
           ...topic,
           id: topic._id,
           name: normalizedTopicName
+        },
+        chapter: {
+          name: chapter.name,
+          id: chapter._id
+        },
+        tag,
+        "subject.name": subject.toLowerCase(),
+        user: req.user._id,
+      });
+
+      createdDocuments.push(data);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Saved",
+      data: createdDocuments,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};
+
+export const storeUnrevisedSubTopics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { subtopics, tag, subject, chapter, topic, ...restBody } = req.body;
+
+    // Check if topics is an array and not empty
+    if (!Array.isArray(subtopics) || subtopics.length === 0) {
+      throw new CustomError("Topics must be a non-empty array");
+    }
+
+    const subTopicIds = new Set();
+    for (let subtopic of subtopics) {
+      const normalizedSubTopicId = subtopic._id;
+      if (subTopicIds.has(normalizedSubTopicId)) {
+        throw new CustomError(`Duplicate topic found: "${subtopic._id}"`);
+      }
+      subTopicIds.add(normalizedSubTopicId);
+    }
+
+    const createdDocuments = [];
+
+    for (let subtopic of subtopics) {
+      const normalizedSubTopicId = subtopic._id;
+      const existingDocument = await SubtopicsData.findOne({
+        "subtopic._id": normalizedSubTopicId,
+        tag,
+        user: req.user._id, 
+      });
+
+      if (existingDocument) {
+        console.log(
+          `Document with topic "${subtopic._id}" and tag "${tag}" already exists for user "${req.user._id}". Skipping...`
+        );
+        continue;
+      }
+
+      const data = await SubtopicsData.create({
+        ...restBody,
+        subtopic: {
+          ...subtopic,
+          name: subtopic.name,
+          id: normalizedSubTopicId,
+        },
+        topic: {
+          id: topic._id,
+          name: topic.name
         },
         chapter: {
           name: chapter.name,
