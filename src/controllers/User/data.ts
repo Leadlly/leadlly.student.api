@@ -59,6 +59,46 @@ export const storeUnrevisedTopics = async (
       });
 
       createdDocuments.push(data);
+
+      // Check and store subtopics
+      if (Array.isArray(topic.subtopics) && topic.subtopics.length > 0) {
+        for (let subtopic of topic.subtopics) {
+          const normalizedSubtopicName = subtopic.name.toLowerCase();
+          const existingSubtopic = await SubtopicsData.findOne({
+            "subtopic.name": normalizedSubtopicName,
+            tag,
+            user: req.user._id,
+          });
+
+          if (existingSubtopic) {
+            console.log(
+              `Subtopic "${subtopic.name}" already exists for user "${req.user._id}". Skipping...`
+            );
+            continue;
+          }
+
+          await SubtopicsData.create({
+            user: req.user._id,
+            tag,
+            subtopic: {
+              id: subtopic._id,
+              name: normalizedSubtopicName
+            },
+            topic: {
+              id: topic._id,
+              name: normalizedTopicName,
+            },
+            chapter: {
+              id: chapter._id,
+              name: chapter.name,
+            },
+            subject: {
+              name: subject.toLowerCase(),
+            },
+            standard: restBody.standard,
+          });
+        }
+      }
     }
 
     res.status(201).json({
@@ -71,12 +111,14 @@ export const storeUnrevisedTopics = async (
   }
 };
 
+
 export const storeSubTopics = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
+
     const { subtopics, tag, subject, chapter, topic, ...restBody } = req.body;
 
     // Check if topics is an array and not empty
