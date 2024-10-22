@@ -1,4 +1,4 @@
-import { Document, ObjectId } from "mongoose";
+import mongoose, { Document, ObjectId } from "mongoose";
 
 interface PlannerChapter {
   id?: mongoose.Schema.Types.ObjectId,
