@@ -63,16 +63,15 @@ export const storeUnrevisedTopics = async (
       // Check and store subtopics
       if (Array.isArray(topic.subtopics) && topic.subtopics.length > 0) {
         for (let subtopic of topic.subtopics) {
-          const normalizedSubtopicName = subtopic.name.toLowerCase();
           const existingSubtopic = await SubtopicsData.findOne({
-            "subtopic.name": normalizedSubtopicName,
+            "subtopic.id": subtopic._id,
             tag,
             user: req.user._id,
           });
 
           if (existingSubtopic) {
             console.log(
-              `Subtopic "${subtopic.name}" already exists for user "${req.user._id}". Skipping...`
+              `Subtopic "${subtopic._id}" already exists for user "${req.user._id}". Skipping...`
             );
             continue;
           }
@@ -82,7 +81,7 @@ export const storeUnrevisedTopics = async (
             tag,
             subtopic: {
               id: subtopic._id,
-              name: normalizedSubtopicName
+              name: subtopic.name
             },
             topic: {
               id: topic._id,
