@@ -7,7 +7,8 @@ export const getDailyQuestions = async (
   day: string,
   date: Date,
   dailyTopics: IDataSchema[],
-  user: IUser
+  user: IUser,
+  dailySubtopics?: any,
 ) => {
   try {
     const questions: Collection = questions_db.collection("questionbanks");
@@ -20,7 +21,6 @@ export const getDailyQuestions = async (
       "jeeadvance",
     ];
 
-    // Determine which standards to include based on the user's standard
     const userStandard = user.academic.standard;
     let standardsToFetch = [userStandard];
 
@@ -28,18 +28,20 @@ export const getDailyQuestions = async (
       standardsToFetch = [11, 12]; // Include questions for standards 11 and 12
     }
 
-    for (let topicData of dailyTopics) {
-      const topic = topicData.topic.name;
-      results[topic] = [];
-      let remainingQuestions = 3;
+    // Function to fetch questions based on a query (for topics or subtopics)
+    const fetchQuestions = async (
+      queryField: string, // Field to query: 'topics' or 'subtopics'
+      name: string,       
+      remainingQuestions: number
+    ) => {
+      const topicResults: any[] = [];
 
       for (let category of categories) {
         if (remainingQuestions > 0) {
-          // Modify query to include user's standards
           const query = {
-            topics: topic,
+            [queryField]: name,  // Dynamically query either 'topics' or 'subtopics'
             level: category,
-            standard: { $in: standardsToFetch }, // Match any of the standards
+            standard: { $in: standardsToFetch }, 
           };
 
           const topicQuestions = await questions
@@ -49,13 +51,51 @@ export const getDailyQuestions = async (
             ])
             .toArray();
 
-          results[topic].push(...topicQuestions);
+          topicResults.push(...topicQuestions);
           remainingQuestions -= topicQuestions.length;
         } else {
           break;
         }
       }
+
+      return topicResults;
+    };
+
+    // Fetch questions for topics
+    for (let topicData of dailyTopics) {
+      const topic = topicData.topic.name;
+      results[topic] = [];
+      let remainingQuestions = 3;
+
+      // Fetch topic questions
+      const topicQuestions = await fetchQuestions("topics", topic, remainingQuestions);
+      results[topic].push(...topicQuestions);
     }
+
+    // Fetch questions for subtopics if provided
+    if (dailySubtopics) {
+      for (let subtopicData of dailySubtopics) {
+        const topic = subtopicData.topic.name;
+        const subtopic = subtopicData.subtopic.name;
+
+        // Ensure the topic exists in the results, even if it has no main topic questions
+        if (!results[subtopic]) {
+          results[subtopic] = [];
+        }
+
+        let remainingQuestions = 3;
+
+        // Fetch subtopic questions
+        const subtopicQuestions = await fetchQuestions("subtopics", subtopic, remainingQuestions);
+
+        // Add subtopic questions under the topic
+        results[subtopic].push({
+          subtopic,
+          questions: subtopicQuestions,
+        });
+      }
+    }
+
     return results;
   } catch (error) {
     console.error(error);
