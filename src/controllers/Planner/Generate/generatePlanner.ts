@@ -46,8 +46,8 @@ export const generateWeeklyPlanner = async (
 
     const existingPlanner = await Planner.findOne({
       student: user._id,
-      startDate,
-      endDate,
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
     });
 
     if (existingPlanner) {
@@ -167,8 +167,8 @@ export const generateWeeklyPlanner = async (
 
     const existingPlanner = await Planner.findOne({
       student: user._id,
-      startDate,
-      endDate,
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
     });
 
     if (existingPlanner) {

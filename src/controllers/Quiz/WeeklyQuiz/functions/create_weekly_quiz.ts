@@ -26,8 +26,8 @@ export const create_weekly_quiz = async(user: IUser) => {
 
     const currentWeekPlanner = await Planner.findOne({
       student: user._id,
-      startDate,
-      endDate,
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
     });
 
     if (!currentWeekPlanner) {
