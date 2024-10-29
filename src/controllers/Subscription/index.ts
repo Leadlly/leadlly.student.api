@@ -156,9 +156,11 @@ export const verifySubscription = async (
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      return appRedirectURI
-        ? res.redirect(`${appRedirectURI}?payment=failed`)
-        : res.redirect(`${process.env.FRONTEND_URL}/paymentfailed`);
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/paymentfailed?appRedirect=${
+          appRedirectURI ? appRedirectURI : ""
+        }`
+      );
     }
 
     // Save payment info
@@ -197,13 +199,12 @@ export const verifySubscription = async (
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
       user.subscription.coupon = order?.coupon;
-  
+
       const newDeactivationDate = new Date();
       newDeactivationDate.setMonth(
         newDeactivationDate.getMonth() + durationInMonths
       );
       user.subscription.dateOfDeactivation = newDeactivationDate;
-
     } else {
       // New subscription
       user.category = order.category;
@@ -223,9 +224,9 @@ export const verifySubscription = async (
 
     await user.save();
 
-    const coupon = await Coupon.findOne({code: order.coupon})
-       
-      if (coupon && coupon.usageLimit) {
+    const coupon = await Coupon.findOne({ code: order.coupon });
+
+    if (coupon && coupon.usageLimit) {
       coupon.usageLimit -= 1;
       await coupon.save();
     }
@@ -245,9 +246,11 @@ export const verifySubscription = async (
     res
       .status(200)
       .json(
-        appRedirectURI
-          ? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
-          : `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
+        `${
+          process.env.FRONTEND_URL
+        }/paymentsuccess?reference=${razorpay_payment_id}&appRedirect=${
+          appRedirectURI ? appRedirectURI : ""
+        }`
       );
   } catch (error: any) {
     next(new CustomError(error.message, 500));
