@@ -138,7 +138,6 @@ export const getSubtopics = async (
   try {
     const user: IUser = req.user
 
-    const Subject = questions_db.collection("subjects");
     const Subtopic = questions_db.collection("subtopics");
 
     // Destructure the required parameters from request body
@@ -146,7 +145,16 @@ export const getSubtopics = async (
 
     const standard = user.academic.standard
 
-    console.log(subjectName, chapterName, topicName, standard)
+    let standardQuery: any;
+
+    const standardNumber = standard
+
+    if (standardNumber === 13) {
+      standardQuery = { $in: [11, 12] };
+    } else {
+      standardQuery = standardNumber;
+    }
+    console.log(standardQuery)
 
     // Check if all required parameters are provided
     if (!subjectName || !standard || !chapterName || !topicName) {
@@ -157,19 +165,8 @@ export const getSubtopics = async (
     }
 
 
-    // Find the subject based on subjectName and standard
-    const subject = await Subject.findOne({
-      name: subjectName,
-      standard,
-    });
-
-    if (!subject) {
-      return res.status(400).json({ success: false, message: "Subject not found" });
-    }
-
-
     // Fetch subtopics from the subtopics collection using the array of subtopic IDs
-    const subtopics = await Subtopic.find({ topicName: topicName }).toArray();
+    const subtopics = await Subtopic.find({ topicName: topicName, standard: standardQuery }).toArray();
 
     // Return the fetched subtopics
     res.status(200).json({
