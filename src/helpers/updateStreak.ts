@@ -7,6 +7,9 @@ export const updateStreak = async (user: IUser) => {
   try {
     console.log("Checking streak update...");
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to midnight to compare dates only
+
     // Initialize streak if it doesn't exist
     if (!user?.details?.streak?.updatedAt) {
       user.details.streak = {
@@ -18,9 +21,19 @@ export const updateStreak = async (user: IUser) => {
       return;
     }
 
+    const lastUpdate = new Date(user.details.streak.updatedAt);
+    lastUpdate.setHours(0, 0, 0, 0); // Set time to midnight for accurate comparison
+
+    // Skip update if the streak is already updated today
+    if (lastUpdate.getTime() === today.getTime()) {
+      console.log("Streak already updated today. Skipping update.");
+      return;
+    }
+
     // Update the streak for today
-    user.details.streak.number += 1; 
-    user.details.streak.updatedAt = new Date(); 
+    user.details.streak.number += 1;
+    user.details.streak.updatedAt = new Date();
+
     await user.save();
     console.log("Streak updated:", user.details.streak);
   } catch (error: any) {
