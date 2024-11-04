@@ -9,6 +9,7 @@ cron.schedule("15 0 * * *", async () => {
     const usersWithFreeTrials = await User.find({
       "freeTrial.active": true,
       "freeTrial.dateOfDeactivation": { $lte: moment().toDate() },
+      "subscription.status": { $ne: "active" }
     });
 
     const freeTrialUpdatePromises = usersWithFreeTrials.map((user) => {

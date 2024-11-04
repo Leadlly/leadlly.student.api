@@ -208,6 +208,7 @@ export const verifySubscription = async (
       // New subscription
       user.category = order.category;
       user.subscription.status = "active";
+      user.freeTrial.active = false;
       user.subscription.id = order?.order_id;
       user.subscription.planId = order?.planId;
       user.subscription.duration = durationInMonths;
