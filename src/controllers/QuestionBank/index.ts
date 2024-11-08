@@ -2,6 +2,7 @@ import { questions_db } from "../../db/db";
 import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../../middlewares/error";
 import IUser from "../../types/IUser";
+import mongoose from "mongoose";
 
 
 const getExamTags = (competitiveExam?: string): string[] => {
@@ -129,6 +130,81 @@ export const getTopic = async (
     next(new CustomError(error.message));
   }
 };
+
+export const getTopicWithSubtopics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { standard, subjectName, chapterId } = req.query;
+    const competitiveExam = req.user?.academic?.competitiveExam;
+
+    if (!standard || !subjectName || !chapterId) {
+      return res.status(400).json({
+        success: false,
+        message: "Standard, subjectName, and chapterName are required in query params",
+      });
+    }
+
+    const standardNumber = parseInt(standard as string, 10);
+    const standardQuery = standardNumber === 13 ? { $in: [11, 12] } : standardNumber;
+    const examTags = getExamTags(competitiveExam);
+
+    const topicQuery = {
+      standard: standardQuery,
+      subjectName: new RegExp(`^${subjectName}$`, "i"),
+      chapterId: new mongoose.Types.ObjectId(chapterId as string),
+      exam: { $in: examTags },
+    };
+
+    // Aggregate query to fetch topics with subtopics details
+    const topics = await questions_db
+      .collection("topics")
+      .aggregate([
+        { $match: topicQuery },
+        {
+          $lookup: {
+            from: "subtopics", 
+            localField: "subtopics",
+            foreignField: "_id",
+            as: "subtopicsDetails",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            chapterId: 1,
+            subtopics: {
+              $map: {
+                input: "$subtopicsDetails",
+                as: "subtopic",
+                in: { _id: "$$subtopic._id", name: "$$subtopic.name" },
+              },
+            },
+          },
+        },
+      ])
+      .toArray();
+
+    if (topics.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No topics found for the specified standard, subjectName, and chapterName",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      topics,
+    });
+  } catch (error: any) {
+    console.error("Error in getTopicWithSubtopics:", error);
+    next(new CustomError(error.message));
+  }
+};
+
 
 export const getSubtopics = async (
   req: Request,
