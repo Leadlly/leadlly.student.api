@@ -4,15 +4,14 @@ import { CustomError } from "../../middlewares/error";
 import IUser from "../../types/IUser";
 import mongoose from "mongoose";
 
-
 const getExamTags = (competitiveExam?: string): string[] => {
   switch (competitiveExam?.toLowerCase()) {
-    case 'jee':
-      return ['jeemains', 'jeeadvance'];
-    case 'neet':
-      return ['neet'];
-    case 'boards':
-      return ['boards'];
+    case "jee":
+      return ["jeemains", "jeeadvance"];
+    case "neet":
+      return ["neet"];
+    case "boards":
+      return ["boards"];
     default:
       return [];
   }
@@ -21,7 +20,7 @@ const getExamTags = (competitiveExam?: string): string[] => {
 export const getChapter = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { subjectName, standard } = req.query;
@@ -34,7 +33,7 @@ export const getChapter = async (
       });
     }
 
-    const standardNumber = parseInt(standard as string, 10)
+    const standardNumber = parseInt(standard as string, 10);
 
     let standardQuery: any;
     if (standardNumber === 13) {
@@ -44,15 +43,25 @@ export const getChapter = async (
     }
 
     const examTags = getExamTags(competitiveExam);
-    console.log(examTags, 'here are exam tags')
+    console.log(examTags, "here are exam tags");
 
     const chapters = await questions_db
       .collection("chapters")
-      .find({
-        subjectName: { $regex: new RegExp(`^${subjectName}$`, "i") },
-        standard: standardQuery,
-        exam: { $in: examTags },
-      })
+      .aggregate([
+        {
+          $match: {
+            subjectName: { $regex: new RegExp(`^${subjectName}$`, "i") },
+            standard: standardQuery,
+            exam: { $in: examTags },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+          },
+        },
+      ])
       .toArray();
 
     if (chapters.length === 0) {
@@ -72,26 +81,26 @@ export const getChapter = async (
   }
 };
 
-
 export const getTopic = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const { standard, subjectName, chapterName } = req.query;
+    const { standard, subjectName, chapterId } = req.query;
     const competitiveExam = req.user?.academic?.competitiveExam;
 
-    if (!standard || !subjectName || !chapterName) {
+    if (!standard || !subjectName || !chapterId) {
       return res.status(400).json({
         success: false,
-        message: "Standard, subjectName, and chapterName are required in query params",
+        message:
+          "Standard, subjectName, and chapterId are required in query params",
       });
     }
 
     let standardQuery: any;
 
-    const standardNumber = parseInt(standard as string, 10)
+    const standardNumber = parseInt(standard as string, 10);
 
     if (standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
@@ -100,24 +109,33 @@ export const getTopic = async (
     }
 
     const examTags = getExamTags(competitiveExam);
-  
 
     const topicQuery = {
       standard: standardQuery,
       subjectName: new RegExp(`^${subjectName}$`, "i"),
-      chapterName: new RegExp(`^${chapterName}$`, "i"),
+      chapterId: new mongoose.Types.ObjectId(chapterId as string),
       exam: { $in: examTags },
     };
 
     const topics = await questions_db
       .collection("topics")
-      .find(topicQuery)
+      .aggregate([
+        { $match: topicQuery },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            chapterId: 1,
+          },
+        },
+      ])
       .toArray();
 
     if (topics.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No topics found for the specified standard, subjectName, and chapterName",
+        message:
+          "No topics found for the specified standard, subjectName, and chapterName",
       });
     }
 
@@ -134,7 +152,7 @@ export const getTopic = async (
 export const getTopicWithSubtopics = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { standard, subjectName, chapterId } = req.query;
@@ -143,12 +161,14 @@ export const getTopicWithSubtopics = async (
     if (!standard || !subjectName || !chapterId) {
       return res.status(400).json({
         success: false,
-        message: "Standard, subjectName, and chapterName are required in query params",
+        message:
+          "Standard, subjectName, and chapterName are required in query params",
       });
     }
 
     const standardNumber = parseInt(standard as string, 10);
-    const standardQuery = standardNumber === 13 ? { $in: [11, 12] } : standardNumber;
+    const standardQuery =
+      standardNumber === 13 ? { $in: [11, 12] } : standardNumber;
     const examTags = getExamTags(competitiveExam);
 
     const topicQuery = {
@@ -165,7 +185,7 @@ export const getTopicWithSubtopics = async (
         { $match: topicQuery },
         {
           $lookup: {
-            from: "subtopics", 
+            from: "subtopics",
             localField: "subtopics",
             foreignField: "_id",
             as: "subtopicsDetails",
@@ -191,7 +211,8 @@ export const getTopicWithSubtopics = async (
     if (topics.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No topics found for the specified standard, subjectName, and chapterName",
+        message:
+          "No topics found for the specified standard, subjectName, and chapterName",
       });
     }
 
@@ -205,44 +226,59 @@ export const getTopicWithSubtopics = async (
   }
 };
 
-
 export const getSubtopics = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const user: IUser = req.user
+    const user: IUser = req.user;
 
     const Subtopic = questions_db.collection("subtopics");
 
     // Destructure the required parameters from request body
-    const { subjectName, chapterName, topicName } = req.query;
+    const { subjectName, chapterId, topicId } = req.query;
 
-    const standard = user.academic.standard
+    const standard = user.academic.standard;
 
     let standardQuery: any;
 
-    const standardNumber = standard
+    const standardNumber = standard;
 
     if (standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
     } else {
       standardQuery = standardNumber;
     }
-    console.log(standardQuery)
+    console.log(standardQuery);
 
     // Check if all required parameters are provided
-    if (!subjectName || !standard || !chapterName || !topicName) {
+    if (!subjectName || !standard || !chapterId || !topicId) {
       return res.status(400).json({
         success: false,
-        message: "Missing required query parameters (subjectName, standard, chapterName, topicName).",
+        message:
+          "Missing required query parameters (subjectName, standard, chapterId, chapterId).",
       });
     }
 
-
     // Fetch subtopics from the subtopics collection using the array of subtopic IDs
-    const subtopics = await Subtopic.find({ topicName: topicName, standard: standardQuery }).toArray();
+    const subtopics = await Subtopic.aggregate([
+      {
+        $match: {
+          chapterId: new mongoose.Types.ObjectId(chapterId as string),
+          topicId: new mongoose.Types.ObjectId(topicId as string),
+          standard: standardQuery,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          topicId: 1,
+          chapterId: 1,
+        },
+      },
+    ]).toArray();
 
     // Return the fetched subtopics
     res.status(200).json({
@@ -255,12 +291,10 @@ export const getSubtopics = async (
   }
 };
 
-
-
 export const getStreakQuestion = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const subjects = ["maths", "physics", "chemistry", "biology"];
@@ -278,7 +312,6 @@ export const getStreakQuestion = async (
         .collection("questionbanks")
         .aggregate([{ $match: queryObject }, { $sample: { size: 1 } }])
         .toArray();
-
 
       if (questions && questions.length > 0) {
         selectedQuestions[subject] = questions[0];
