@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { StudyData } from "../../models/studentData";
 import { CustomError } from "../../middlewares/error";
 import { SubtopicsData } from "../../models/subtopics_data";
+import { questions_db } from "../../db/db";
 
 export const storeUnrevisedTopics = async (
   req: Request,
@@ -27,7 +28,7 @@ export const storeUnrevisedTopics = async (
 
     const createdDocuments = [];
 
-    for (let topic of topics) {
+    for (let topic of topics) { 
       const normalizedTopicName = topic.name.toLowerCase();
       const existingDocument = await StudyData.findOne({
         "topic.name": normalizedTopicName,
@@ -60,8 +61,16 @@ export const storeUnrevisedTopics = async (
 
       createdDocuments.push(data);
 
-      // Check and store subtopics
-      if (Array.isArray(topic.subtopics) && topic.subtopics.length > 0) {
+      // Fetch total subtopics from QuestionDb
+      const totalSubtopicsCount = await questions_db.collection("subtopics").countDocuments({
+        "topicId": topic._id,
+      });
+
+      if (
+        Array.isArray(topic.subtopics) &&
+        topic.subtopics.length > 0 &&
+        topic.subtopics.length !== totalSubtopicsCount
+      ) {
         for (let subtopic of topic.subtopics) {
           const existingSubtopic = await SubtopicsData.findOne({
             "subtopic.id": subtopic._id,
@@ -109,6 +118,7 @@ export const storeUnrevisedTopics = async (
     next(new CustomError(error.message));
   }
 };
+
 
 
 export const storeSubTopics = async (

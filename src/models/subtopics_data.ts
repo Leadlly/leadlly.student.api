@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { ISubtopicsData } from "../types/IDataSchema";
 
-const subtopicDataSchema = new mongoose.Schema({
+const subtopicDataSchema = new mongoose.Schema<ISubtopicsData>({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -70,4 +71,4 @@ const subtopicDataSchema = new mongoose.Schema({
 
 subtopicDataSchema.index({ user: 1, 'subtopic.name': 1 }, { unique: true });
 
-export const SubtopicsData = mongoose.model("SubtopicsData", subtopicDataSchema);
+export const SubtopicsData = mongoose.model<ISubtopicsData>("SubtopicsData", subtopicDataSchema);
