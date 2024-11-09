@@ -28,42 +28,40 @@ export const storeUnrevisedTopics = async (
 
     const createdDocuments = [];
 
-    for (let topic of topics) { 
+    for (let topic of topics) {
       const normalizedTopicName = topic.name.toLowerCase();
       const existingDocument = await StudyData.findOne({
         "topic.name": normalizedTopicName,
-        tag,
-        user: req.user._id, 
-      });
-
-      if (existingDocument) {
-        console.log(
-          `Document with topic "${topic.name}" and tag "${tag}" already exists for user "${req.user._id}". Skipping...`
-        );
-        continue;
-      }
-
-      const data = await StudyData.create({
-        ...restBody,
-        topic: {
-          ...topic,
-          id: topic._id,
-          name: normalizedTopicName
-        },
-        chapter: {
-          name: chapter.name,
-          id: chapter._id
-        },
-        tag,
-        "subject.name": subject.toLowerCase(),
         user: req.user._id,
       });
 
-      createdDocuments.push(data);
+      if (!existingDocument) {
+        const data = await StudyData.create({
+          ...restBody,
+          topic: {
+            ...topic,
+            id: topic._id,
+            name: normalizedTopicName,
+          },
+          chapter: {
+            name: chapter.name,
+            id: chapter._id,
+          },
+          tag,
+          "subject.name": subject.toLowerCase(),
+          user: req.user._id,
+        });
 
-      // Fetch total subtopics from QuestionDb
+        createdDocuments.push(data);
+      } else {
+        console.log(
+          `Document with topic "${topic.name}" and tag "${tag}" already exists for user "${req.user._id}". Skipping creation of StudyData...`
+        );
+      }
+
+      // Subtopics processing (this will run regardless of the above condition)
       const totalSubtopicsCount = await questions_db.collection("subtopics").countDocuments({
-        "topicId": topic._id,
+        topicId: topic._id,
       });
 
       if (
@@ -71,6 +69,7 @@ export const storeUnrevisedTopics = async (
         topic.subtopics.length > 0 &&
         topic.subtopics.length !== totalSubtopicsCount
       ) {
+        console.log("Processing subtopics...");
         for (let subtopic of topic.subtopics) {
           const existingSubtopic = await SubtopicsData.findOne({
             "subtopic.id": subtopic._id,
@@ -90,7 +89,7 @@ export const storeUnrevisedTopics = async (
             tag,
             subtopic: {
               id: subtopic._id,
-              name: subtopic.name
+              name: subtopic.name,
             },
             topic: {
               id: topic._id,
@@ -109,6 +108,7 @@ export const storeUnrevisedTopics = async (
       }
     }
 
+    console.log("All processing completed");
     res.status(201).json({
       success: true,
       message: "Saved",

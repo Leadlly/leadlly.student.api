@@ -31,6 +31,9 @@ const userSchema = new Schema<IUser>({
     }
   },
   planner:{ type: Boolean, default: false},
+  preferences: {
+      continuousData: { nextDay: { type: Boolean, default: true }} // to decide continouos topic placing in planner    
+  },
   address: {
     country: { type: String, default: null },
     addressLine: { type: String, default: null },

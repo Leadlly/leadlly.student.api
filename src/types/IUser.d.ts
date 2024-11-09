@@ -38,6 +38,9 @@ interface IUser extends Document {
     url?: string;
   };
   planner: boolean;
+  preferences: {
+    continuousData: { nextDay: boolean } // to decide continouos topic placing in planner    
+  },
   parent: {
     name?: string;
     phone?: string;

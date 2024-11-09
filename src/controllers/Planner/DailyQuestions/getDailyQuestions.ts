@@ -88,14 +88,13 @@ export const getDailyQuestions = async (
         // Fetch subtopic questions
         const subtopicQuestions = await fetchQuestions("subtopics", subtopic, remainingQuestions);
 
+        console.log(subtopicQuestions.length, "here are subtopics questions")
         // Add subtopic questions under the topic
-        results[subtopic].push({
-          subtopic,
-          questions: subtopicQuestions,
-        });
+        results[subtopic].push(...subtopicQuestions);
       }
     }
 
+    console.log(results, "question result")
     return results;
   } catch (error) {
     console.error(error);
