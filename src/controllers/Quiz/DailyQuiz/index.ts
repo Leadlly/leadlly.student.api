@@ -10,11 +10,22 @@ import { updateStreak } from "../../../helpers/updateStreak";
 import { updatePointsNLevel } from "../../../helpers/updatePointsNLevel";
 import IUser from "../../../types/IUser";
 import User from "../../../models/userModel";
+import { questions_db } from "../../../db/db";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { topic, questions } = req.body;
+    const { data, questions, isSubtopic } = req.body;
     const user = req.user as IUser;
+
+    let topic = data
+
+    if(isSubtopic) {
+       const subtopicDetails = await questions_db.collection('subtopics').findOne({_id: data._id})
+       if(!subtopicDetails) return next(new CustomError("Subtopic not found"))
+
+       const topicOfsubtopic = await questions_db.collection("topics").findOne({_id: subtopicDetails.topicId})
+       topic = topicOfsubtopic
+    }
 
     // Validate request body
     if (!topic || !Array.isArray(questions) || questions.length === 0) {
@@ -54,7 +65,7 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
     }
 
     // After all questions are processed, handle further operations
-    await insertCompletedTopics(user._id, topic, questions);
+    await insertCompletedTopics(user._id, data, questions);
 
     // Calculate topic metrics first
     await calculateTopicMetrics([topic], user);
