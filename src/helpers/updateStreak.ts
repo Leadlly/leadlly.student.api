@@ -3,10 +3,10 @@ import IUser from "../types/IUser";
 import User from '../models/userModel';
 
 // Function to update the user's streak
-export const updateStreak = async (user: IUser) => {
+export const updateStreak = async (userData: IUser) => {
   try {
     console.log("Checking streak update...");
-
+    const user = await User.findById(userData?._id) as IUser
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set time to midnight to compare dates only
 

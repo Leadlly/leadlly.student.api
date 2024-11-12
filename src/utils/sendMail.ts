@@ -7,7 +7,13 @@ export type Options = {
   message: string;
   username?: string;
   dashboardLink?: string;
-  tag?: string
+  tag?: string;
+  razorpayId?: string;
+  planId?: string;
+  dateOfActivation?: Date;
+  duration?: number;
+  price?: number;
+  planName?: string;
 };
 export const sendMail = async (options: Options) => {
   try {
