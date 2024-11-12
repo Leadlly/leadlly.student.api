@@ -2,6 +2,8 @@ import mongoose, { Schema } from "mongoose";
 import IUser from "../types/IUser";
 import crypto from "crypto";
 import moment from "moment-timezone";
+import { Institutes, intitutesSchema } from "./intitutesModel";
+
 
 const userSchema = new Schema<IUser>({
   firstname: {
@@ -55,7 +57,7 @@ const userSchema = new Schema<IUser>({
     ],
     schedule: { type: String, default: null },
     coachingMode: { type: String, default: null },
-    coachingName: { type: String, default: null },
+    coachingName: intitutesSchema,
     coachingAddress: { type: String, default: null },
     schoolOrCollegeName: { type: String, default: null },
     schoolOrCollegeAddress: { type: String, default: null },

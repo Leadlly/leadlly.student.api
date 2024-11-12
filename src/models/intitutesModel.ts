@@ -1,11 +1,22 @@
 import mongoose from "mongoose";
 
+export interface Institute {
+    name: string;
+    intituteId: string;
+    type: string;
+    location: {},
+    createdAt: Date,
+    updatedAt: Date
+}
 
-
-const intitutesSchema = new mongoose.Schema({
+export const intitutesSchema = new mongoose.Schema<Institute>({
     name: {
         type: String,
         required: true
+    },
+    type: {
+       type: String,
+       required: true
     },
     intituteId: {
         type: String,
@@ -26,4 +37,4 @@ const intitutesSchema = new mongoose.Schema({
     }
 })
 
-export const Institutes = mongoose.model("InstitutesData", intitutesSchema)
+export const Institutes = mongoose.model<Institute>("InstitutesData", intitutesSchema)
