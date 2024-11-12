@@ -16,7 +16,7 @@ export const intitutesSchema = new mongoose.Schema<Institute>({
     },
     type: {
        type: String,
-       required: true
+    //    required: true
     },
     intituteId: {
         type: String,

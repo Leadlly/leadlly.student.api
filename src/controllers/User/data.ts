@@ -4,7 +4,7 @@ import { CustomError } from "../../middlewares/error";
 import { SubtopicsData } from "../../models/subtopics_data";
 import { questions_db } from "../../db/db";
 
-export const storeUnrevisedTopics = async (
+export const storeTopics = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -119,7 +119,56 @@ export const storeUnrevisedTopics = async (
   }
 };
 
+export const storeUnrevisedTopics = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { chapterIds, subject, tag } = req.body;
 
+    if (!Array.isArray(chapterIds) || chapterIds.length === 0) {
+      return next(new CustomError("ChapterIds either null or not an array", 400));
+    }
+
+    let data: any[] = [];
+    for (let chapterId of chapterIds) {
+      const chapterInfo: any = await questions_db.collection("chapters").findOne({ _id: chapterId });
+      if (!chapterInfo) {
+        return next(new CustomError("Chapter not found", 400));
+      }
+
+      const topicInfo: any[] = await questions_db.collection("topics").find({ chapterId }).toArray();
+      if (topicInfo.length === 0) {
+        return next(new CustomError("Topics not found", 400));
+      }
+
+      for (let topic of topicInfo) {
+        const formattedData = {
+          topic: {
+            id: topic._id,
+            name: topic.name,
+          },
+          chapter: {
+            name: chapterInfo.name,
+            id: chapterInfo._id,
+          },
+          tag,
+          "subject.name": subject.toLowerCase(),
+          user: req.user._id,
+          standard: req.user.standard,
+        };
+
+        data.push(formattedData);
+      }
+    }
+
+    const response = await StudyData.insertMany(data);
+
+    res.status(200).json({
+      success: true,
+      response,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message, 500));
+  }
+};
 
 export const storeSubTopics = async (
   req: Request,

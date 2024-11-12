@@ -35,7 +35,7 @@ export const insertCompletedTopics = async(userId: string, data: Data, questions
     }
 
     // Find the topic in the planner's questions
-    const plannerTopicQuestions = todayPlannerDay.questions[data._id] || [];
+    const plannerTopicQuestions = todayPlannerDay.questions[data.name] || [];
 
     if (plannerTopicQuestions.length === questions.length) {
         // If lengths match, push topic into completedTopics array
