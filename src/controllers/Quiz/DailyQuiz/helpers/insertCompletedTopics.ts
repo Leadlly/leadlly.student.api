@@ -2,11 +2,13 @@ import moment from "moment-timezone";
 import { IPlanner } from "../../../../types/IPlanner";
 import Planner from "../../../../models/plannerModel";
 
-type Topic = {
+type Data = {
     name: string
+    _id: string
 }
 
-export const insertCompletedTopics = async(userId: string, topic: Topic, questions: any[]) => {
+
+export const insertCompletedTopics = async(userId: string, data: Data, questions: any[]) => {
     // Saving completed topic in planner
     const timezone = 'Asia/Kolkata';
     const today = moment.tz(timezone).startOf('day').format('YYYY-MM-DD');
@@ -33,17 +35,17 @@ export const insertCompletedTopics = async(userId: string, topic: Topic, questio
     }
 
     // Find the topic in the planner's questions
-    const plannerTopicQuestions = todayPlannerDay.questions[topic.name] || [];
+    const plannerTopicQuestions = todayPlannerDay.questions[data.name] || [];
 
     if (plannerTopicQuestions.length === questions.length) {
         // If lengths match, push topic into completedTopics array
-        if (!todayPlannerDay.completedTopics.includes(topic.name)) {
-            todayPlannerDay.completedTopics.push(topic.name);
+        if (!todayPlannerDay.completedTopics.includes(data._id)) {
+            todayPlannerDay.completedTopics.push(data._id);
         }
     } else {
         // If lengths do not match, push topic into incompletedTopics array
-        if (!todayPlannerDay.incompletedTopics.includes(topic.name)) {
-            todayPlannerDay.incompletedTopics.push(topic.name);
+        if (!todayPlannerDay.incompletedTopics.includes(data._id)) {
+            todayPlannerDay.incompletedTopics.push(data._id);
         }
     }
 

@@ -1,4 +1,5 @@
 import { Document, ObjectId } from "mongoose";
+import { Institute } from "../models/intitutesModel";
 
 export interface ISubject {
   name: string;
@@ -16,7 +17,7 @@ interface IAcademic {
   subjects: ISubject[];
   schedule?: string | null;
   coachingMode?: string | null;
-  coachingName?: string | null;
+  coachingName?: Institute | null;
   coachingAddress?: string | null;
   schoolOrCollegeName?: string | null;
   schoolOrCollegeAddress?: string | null;
@@ -38,6 +39,9 @@ interface IUser extends Document {
     url?: string;
   };
   planner: boolean;
+  preferences: {
+    continuousData: { nextDay: boolean } // to decide continouos topic placing in planner    
+  },
   parent: {
     name?: string;
     phone?: string;

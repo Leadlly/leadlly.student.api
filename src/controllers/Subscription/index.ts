@@ -9,6 +9,7 @@ import { Options, sendMail } from '../../utils/sendMail';
 import { IPricing, Pricing } from '../../models/pricingModel';
 import { Coupon } from '../../models/couponModel';
 import { Order } from '../../models/order_created';
+import IUser from '../../types/IUser';
 
 export const buySubscription = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -315,23 +316,31 @@ export const cancelSubscription = async (req: Request, res: Response, next: Next
 
 export const getFreeTrialActive = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const user = await User.findById(req.user._id);
+		const user = await User.findById(req.user._id) as IUser;
 
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
+		// Determine the trial duration based on the instituteId
+		const trialDuration =
+			req.user?.academic?.coachingName?.intituteId === 'in00000007' ? 21 : 7;
+
+		// Activate the free trial
 		user.freeTrial.active = true;
 		user.freeTrial.dateOfActivation = new Date();
 		user.freeTrial.availed = true;
 
-		// Calculate the deactivation date (7 days from now)
+		// Set the deactivation date based on the trial duration
 		user.freeTrial.dateOfDeactivation = new Date(user.freeTrial.dateOfActivation);
-		user.freeTrial.dateOfDeactivation.setDate(user.freeTrial.dateOfDeactivation.getDate() + 7);
+		user.freeTrial.dateOfDeactivation.setDate(
+			user.freeTrial.dateOfDeactivation.getDate() + trialDuration
+		);
 
 		user.category = 'free';
 		await user.save();
 
+		// Add job to the queue
 		await subQueue.add('freetrial', {
 			options: {
 				email: user.email,
@@ -343,8 +352,12 @@ export const getFreeTrialActive = async (req: Request, res: Response, next: Next
 			} as Options,
 		});
 
-		return res.status(200).json({ message: 'Free trial activated successfully', user });
+		return res.status(200).json({
+			message: `Free trial activated successfully for ${trialDuration} days`,
+			user,
+		});
 	} catch (error) {
+		console.log(error)
 		next(error);
 	}
 };
