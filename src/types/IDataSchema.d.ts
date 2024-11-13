@@ -45,33 +45,5 @@ interface IDataSchema extends mongoose.Document {
   weeklyTestScore?: number;
 }
 
-
-export interface ISubtopicsData extends Document {
-  user: mongoose.Types.ObjectId;
-  tag: string;
-  subtopic: {
-    id?: Types.ObjectId;
-    name: string;
-    plannerFrequency?: number;
-    level?: string;
-    overall_efficiency?: number;
-    studiedAt?: IStudiedAt[];
-  };
-  topic: {
-    id?: Types.ObjectId;
-    name: string;
-  };
-  chapter: {
-    id?: Types.ObjectId;
-    name: string;
-  };
-  subject: {
-    name: string;
-  };
-  standard: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export { Topic, Chapter, Subject, ISubtopicsData };
+export { Topic, Chapter, Subject };
 export default IDataSchema;

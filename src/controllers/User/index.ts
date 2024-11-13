@@ -37,12 +37,6 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
       user.about.gender = bodyData.gender;
     }
 
-    if(bodyData.nextDay === true ) {
-      user.preferences.continuousData.nextDay = true
-    } else {
-      user.preferences.continuousData.nextDay = false
-    }
-
     if (bodyData.parentName) {
       user.parent.name = bodyData.parentName;
     }

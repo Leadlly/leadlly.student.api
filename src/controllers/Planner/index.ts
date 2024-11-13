@@ -8,10 +8,9 @@ import { getBackRevisionTopics } from "./BackTopics/getBackTopics";
 import { getDailyQuestions } from "./DailyQuestions/getDailyQuestions";
 import moment from "moment-timezone";
 import { getDailyTopics } from "./DailyTopics/getDailyTopics";
-import IDataSchema, { ISubtopicsData } from "../../types/IDataSchema";
+import IDataSchema from "../../types/IDataSchema";
 import { StudyData } from "../../models/studentData";
 import mongoose from "mongoose";
-import { SubtopicsData } from "../../models/subtopics_data";
 
 export const createPlanner = async (
   req: Request,
@@ -58,31 +57,11 @@ export const updateDailyPlanner = async (
 
     const user: IUser = req.user;
 
-    const targetDay = user.preferences?.continuousData?.nextDay ? nextDay : today;
-    const formattedTargetDay = targetDay.format("DD-MM-YYYY")
-
-    let continuousRevisionTopics = await StudyData.find({
+    const continuousRevisionTopics = await StudyData.find({
       user: new mongoose.Types.ObjectId(user._id),
       tag: "continuous_revision",
       createdAt: { $gte: today.toDate() },
     }).exec() as IDataSchema[];
-
-    const continuousRevisionSubTopics = await SubtopicsData.find({
-      user: new mongoose.Types.ObjectId(user._id),
-      tag: "continuous_revision",
-      createdAt: { $gte: today.toDate() },
-    }).exec() as ISubtopicsData[];
-
-    // Filter out topics with corresponding subtopics
-    if (continuousRevisionSubTopics.length > 0) {
-      const topicsWithSubtopics = new Set(
-        continuousRevisionSubTopics.map(subtopic => subtopic.topic.id.toString())
-      );
-
-      continuousRevisionTopics = continuousRevisionTopics.filter(
-        data => !topicsWithSubtopics.has(data.topic.id.toString())
-      );
-    }
 
     const startDate = moment().startOf("isoWeek").toDate();
     const endDate = moment(startDate).endOf("isoWeek").toDate();
@@ -95,145 +74,94 @@ export const updateDailyPlanner = async (
 
     if (!planner) {
       throw new Error(
-        `Planner not found for user ${user._id} for the date ${formattedTargetDay}`,
+        `Planner not found for user ${user._id} for the date ${nextDay}`,
       );
     }
 
-    const { dailyContinuousTopics, dailyContinuousSubtopics, dailyBackTopics } = getDailyTopics(
+    const { dailyContinuousTopics, dailyBackTopics } = getDailyTopics(
       continuousRevisionTopics,
       [],
       user,
-      continuousRevisionSubTopics
     );
 
-    const targetDayString = targetDay.format("YYYY-MM-DD");
+    const nextDayString = nextDay.format("YYYY-MM-DD");
 
     const existingDay = planner.days.find(day => 
-      moment(day.date).format("YYYY-MM-DD") === targetDayString
+      moment(day.date).format("YYYY-MM-DD") === nextDayString
     );
-
-    if (!existingDay) {
-      return next(new CustomError("Target day not found in current week planner.", 400));
-    }
 
     const existingContinuousTopics = new Set(
-      existingDay.continuousRevisionTopics?.map(data => data.topic.name.toLowerCase()) || []
-    );
-
-    const existingContinuousSubTopics = new Set(
-      existingDay.continuousRevisionSubTopics?.map(data => data.subtopic.name.toLowerCase()) || []
+      existingDay?.continuousRevisionTopics
+        .map(data => data.topic.name.toLowerCase()) || []
     );
 
     const existingBackTopics = new Set(
-      existingDay.backRevisionTopics?.map(data => data.topic.name.toLowerCase()) || []
+      existingDay?.backRevisionTopics
+        .map(data => data.topic.name.toLowerCase()) || []
     );
 
-    const duplicateTopics = dailyContinuousTopics.filter(
-      data => existingContinuousTopics.has(data.topic.name.toLowerCase()) ||
-              existingBackTopics.has(data.topic.name.toLowerCase())
-    ).map(data => data.topic.name);
-
-    const duplicateSubtopics = dailyContinuousSubtopics.filter(
-      (data: any) => existingContinuousSubTopics.has(data.subtopic.name.toLowerCase())
-    ).map((data: any) => data.subtopic.name);
-
+    // Filter out topics that are already present for the day
     const newContinuousTopics = dailyContinuousTopics.filter(
-      data => 
-        !existingContinuousTopics.has(data.topic.name.toLowerCase()) &&
-        !existingBackTopics.has(data.topic.name.toLowerCase())
+      data => !existingContinuousTopics.has(data.topic.name.toLowerCase()) &&
+              !existingBackTopics.has(data.topic.name.toLowerCase())
     );
 
-    const newContinuousSubTopics = dailyContinuousSubtopics.filter(
-      (data: any) => 
-        !existingContinuousSubTopics.has(data.subtopic.name.toLowerCase())
-    );
-
-    if (
-      newContinuousTopics.length === 0 &&
-      newContinuousSubTopics.length === 0
-    ) {
-      // const duplicateMessages: string[] = [];
-
-      // if (duplicateTopics.length > 0) {
-      //   duplicateMessages.push(
-      //     `Duplicate topics found: ${duplicateTopics.join(", ")}`
-      //   );
-      // }
-
-      // if (duplicateSubtopics.length > 0) {
-      //   duplicateMessages.push(
-      //     `Duplicate subtopics found: ${duplicateSubtopics.join(", ")}`
-      //   );
-      // }
-
-      // const message =
-      //   duplicateMessages.length > 0
-      //     ? duplicateMessages.join(" and ")
-      //     : "No new topics or subtopics to add for the target day.";
-
+    if (newContinuousTopics.length === 0) {
       return res.status(400).json({
         success: false,
-        message: `Selected Topic/Subtopic already present for ${formattedTargetDay}`,
+        message: "Topics are already added for the next day.",
       });
     }
 
     newContinuousTopics.forEach((data) => {
-      data.topic.studiedAt = data.topic.studiedAt || [];
-      data.topic.studiedAt.push({ date: targetDay.toDate(), efficiency: 0 });
+      if (!data.topic.studiedAt) {
+        data.topic.studiedAt = [];
+      }
+      data.topic.studiedAt.push({ date: nextDay.toDate(), efficiency: 0 });
 
-      data.topic.plannerFrequency = (data.topic.plannerFrequency || 0) + 1;
-    });
-
-    newContinuousSubTopics.forEach((data: any) => {
-      data.subtopic.studiedAt = data.subtopic.studiedAt || [];
-      data.subtopic.studiedAt.push({ date: targetDay.toDate(), efficiency: 0 });
-
-      data.subtopic.plannerFrequency = (data.subtopic.plannerFrequency || 0) + 1;
+      if (!data.topic.plannerFrequency) {
+        data.topic.plannerFrequency = 0;
+      }
+      data.topic.plannerFrequency += 1;
     });
 
     const dailyTopics = [...newContinuousTopics, ...dailyBackTopics];
 
     const dailyQuestions = await getDailyQuestions(
-      moment(targetDay).format("dddd"),
-      targetDay.toDate(),
+      moment(nextDay).format("dddd"),
+      nextDay.toDate(),
       dailyTopics,
-      user,
-      newContinuousSubTopics
+      user
     );
 
-    const existingQuestions = existingDay.questions || {};
+    // console.log(dailyQuestions, "here are the questions")
+
+    const existingQuestions = existingDay?.questions || {};
     const mergedQuestions = { ...existingQuestions, ...dailyQuestions };
 
     const updatePlanner = await Planner.updateOne(
-      { student: user._id, "days.date": targetDay.toDate() },
+      { student: user._id, "days.date": nextDay.toDate() },
       {
         $push: {
           "days.$.continuousRevisionTopics": { $each: newContinuousTopics },
-          "days.$.continuousRevisionSubTopics": { $each: newContinuousSubTopics },
         },
         $set: {
           "days.$.questions": mergedQuestions,
         },
-      }
+      },
     );
-
-    if (updatePlanner.matchedCount === 0) {
-      return next(new CustomError("Failed to update the planner.", 400));
-    }
 
     await Promise.all(continuousRevisionTopics.map((data) => {
       data.tag = "active_continuous_revision";
       return data.save();
     }));
 
+    console.log("planner updated");
+
     res.status(200).json({
       success: true,
-      message: `Planner Updated for ${targetDay.toDate()}`,
+      message: `Planner Updated for ${nextDay.toDate()}`,
       planner: updatePlanner,
-      duplicates: {
-        topics: duplicateTopics,
-        subtopics: duplicateSubtopics,
-      },
     });
   } catch (error: any) {
     next(new CustomError(error.message));

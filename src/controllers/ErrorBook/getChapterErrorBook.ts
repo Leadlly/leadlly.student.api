@@ -61,7 +61,7 @@ export const getChapterErrorBook = async (req: Request, res: Response, next: Nex
         chapter: question.chapter,
         subject: question.subject,
         topics: question.topics,
-		    images: question.images,
+		images: question.images,
         subtopics: question.subtopics,
         level: question.level, 
       },

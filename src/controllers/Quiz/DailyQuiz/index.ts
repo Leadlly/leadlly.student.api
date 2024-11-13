@@ -10,25 +10,11 @@ import { updateStreak } from "../../../helpers/updateStreak";
 import { updatePointsNLevel } from "../../../helpers/updatePointsNLevel";
 import IUser from "../../../types/IUser";
 import User from "../../../models/userModel";
-import { questions_db } from "../../../db/db";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { data, questions } = req.body;
-
+    const { topic, questions } = req.body;
     const user = req.user as IUser;
-
-    let topic = data
-
-    if(data?.isSubtopic) {
-       const subtopicDetails = await questions_db.collection('subtopics').findOne({_id: new mongoose.Types.ObjectId(data._id)})
-       if(!subtopicDetails) return next(new CustomError("Subtopic not found"))
-
-       const topicOfsubtopic = await questions_db.collection("topics").findOne({_id: new mongoose.Types.ObjectId(subtopicDetails.topicId)})
-       if(!topicOfsubtopic) return next(new CustomError("Topic of subtopic not found"))
-
-       topic = topicOfsubtopic
-    }
 
     // Validate request body
     if (!topic || !Array.isArray(questions) || questions.length === 0) {
@@ -68,7 +54,7 @@ export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunct
     }
 
     // After all questions are processed, handle further operations
-    await insertCompletedTopics(user._id, data, questions);
+    await insertCompletedTopics(user._id, topic, questions);
 
     // Calculate topic metrics first
     await calculateTopicMetrics([topic], user);
