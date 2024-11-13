@@ -3,6 +3,7 @@ import { StudyData } from "../../models/studentData";
 import { CustomError } from "../../middlewares/error";
 import { SubtopicsData } from "../../models/subtopics_data";
 import { questions_db } from "../../db/db";
+import mongoose from "mongoose";
 
 export const storeTopics = async (
   req: Request,
@@ -121,7 +122,7 @@ export const storeTopics = async (
 
 export const storeUnrevisedTopics = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { chapterIds, subject, tag } = req.body;
+    const { chapterIds, subject, tag, standard } = req.body;
 
     if (!Array.isArray(chapterIds) || chapterIds.length === 0) {
       return next(new CustomError("ChapterIds either null or not an array", 400));
@@ -129,16 +130,18 @@ export const storeUnrevisedTopics = async (req: Request, res: Response, next: Ne
 
     let data: any[] = [];
     for (let chapterId of chapterIds) {
-      const chapterInfo: any = await questions_db.collection("chapters").findOne({ _id: chapterId });
+      const chapterInfo: any = await questions_db.collection("chapters").findOne({ _id: new mongoose.Types.ObjectId(chapterId) });
       if (!chapterInfo) {
         return next(new CustomError("Chapter not found", 400));
       }
 
-      const topicInfo: any[] = await questions_db.collection("topics").find({ chapterId }).toArray();
+      const topicInfo: any[] = await questions_db.collection("topics").find({ chapterId: new mongoose.Types.ObjectId(chapterId) }).toArray();
       if (topicInfo.length === 0) {
-        return next(new CustomError("Topics not found", 400));
-      }
+        console.log(`No topics for this chapter ${chapterId}`)
 
+        continue;
+      }
+      
       for (let topic of topicInfo) {
         const formattedData = {
           topic: {
@@ -152,7 +155,7 @@ export const storeUnrevisedTopics = async (req: Request, res: Response, next: Ne
           tag,
           "subject.name": subject.toLowerCase(),
           user: req.user._id,
-          standard: req.user.standard,
+          standard: standard,
         };
 
         data.push(formattedData);

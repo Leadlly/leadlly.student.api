@@ -24,7 +24,7 @@ export const getDailyQuestions = async (
     const userStandard = user.academic.standard;
     let standardsToFetch = [userStandard];
 
-    if (userStandard === 13) {
+    if (userStandard === 12 || 13) {
       standardsToFetch = [11, 12]; // Include questions for standards 11 and 12
     }
 

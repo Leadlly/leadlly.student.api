@@ -14,16 +14,19 @@ import { questions_db } from "../../../db/db";
 
 export const saveDailyQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { data, questions, isSubtopic } = req.body;
+    const { data, questions } = req.body;
+
     const user = req.user as IUser;
 
     let topic = data
 
-    if(isSubtopic) {
-       const subtopicDetails = await questions_db.collection('subtopics').findOne({_id: data._id})
+    if(data?.isSubtopic) {
+       const subtopicDetails = await questions_db.collection('subtopics').findOne({_id: new mongoose.Types.ObjectId(data._id)})
        if(!subtopicDetails) return next(new CustomError("Subtopic not found"))
 
-       const topicOfsubtopic = await questions_db.collection("topics").findOne({_id: subtopicDetails.topicId})
+       const topicOfsubtopic = await questions_db.collection("topics").findOne({_id: new mongoose.Types.ObjectId(subtopicDetails.topicId)})
+       if(!topicOfsubtopic) return next(new CustomError("Topic of subtopic not found"))
+
        topic = topicOfsubtopic
     }
 

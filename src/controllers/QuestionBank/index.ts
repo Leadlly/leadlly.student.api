@@ -36,14 +36,13 @@ export const getChapter = async (
     const standardNumber = parseInt(standard as string, 10);
 
     let standardQuery: any;
-    if (standardNumber === 13) {
+    if (standardNumber === 12 || standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
     } else {
       standardQuery = standardNumber;
     }
 
     const examTags = getExamTags(competitiveExam);
-    console.log(examTags, "here are exam tags");
 
     const chapters = await questions_db
       .collection("chapters")
@@ -102,7 +101,7 @@ export const getTopic = async (
 
     const standardNumber = parseInt(standard as string, 10);
 
-    if (standardNumber === 13) {
+    if (standardNumber === 12 || standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
     } else {
       standardQuery = standardNumber;
@@ -158,28 +157,25 @@ export const getTopicWithSubtopics = async (
     const { standard, subjectName, chapterId } = req.query;
     const competitiveExam = req.user?.academic?.competitiveExam;
 
+    // Validate required query params
     if (!standard || !subjectName || !chapterId) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Standard, subjectName, and chapterName are required in query params",
-      });
+      return next(new CustomError("Standard, subjectName, and chapterId are required in query params", 400));
     }
 
     const standardNumber = parseInt(standard as string, 10);
-    const standardQuery =
-      standardNumber === 13 ? { $in: [11, 12] } : standardNumber;
-    const examTags = getExamTags(competitiveExam);
+    const standardQuery = (standardNumber === 12 || standardNumber === 13) ? { $in: [11, 12] } : standardNumber;
+    const examTags = getExamTags(competitiveExam); // Get exam tags based on competitiveExam
 
+    // Construct topic query
     const topicQuery = {
       standard: standardQuery,
       subjectName: new RegExp(`^${subjectName}$`, "i"),
       chapterId: new mongoose.Types.ObjectId(chapterId as string),
-      exam: { $in: examTags },
+      ...(examTags.length > 0 && { exam: { $in: examTags } }), // Only add the exam condition if examTags are present
     };
 
     // Aggregate query to fetch topics with subtopics details
-    const topics = await questions_db
+    let topics = await questions_db
       .collection("topics")
       .aggregate([
         { $match: topicQuery },
@@ -208,14 +204,43 @@ export const getTopicWithSubtopics = async (
       ])
       .toArray();
 
+    // Check if no topics found, and if not, query again without the exam filter
     if (topics.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "No topics found for the specified standard, subjectName, and chapterName",
-      });
+      topics = await questions_db
+        .collection("topics")
+        .aggregate([
+          { $match: { standard: standardQuery, subjectName: new RegExp(`^${subjectName}$`, "i"), chapterId: new mongoose.Types.ObjectId(chapterId as string) } },
+          {
+            $lookup: {
+              from: "subtopics",
+              localField: "subtopics",
+              foreignField: "_id",
+              as: "subtopicsDetails",
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              chapterId: 1,
+              subtopics: {
+                $map: {
+                  input: "$subtopicsDetails",
+                  as: "subtopic",
+                  in: { _id: "$$subtopic._id", name: "$$subtopic.name" },
+                },
+              },
+            },
+          },
+        ])
+        .toArray();
+
+      if (topics.length === 0) {
+        return next(new CustomError("No topics found for the specified standard, subjectName, and chapterId", 400));
+      }
     }
 
+    // Send successful response
     res.status(200).json({
       success: true,
       topics,
@@ -225,6 +250,7 @@ export const getTopicWithSubtopics = async (
     next(new CustomError(error.message));
   }
 };
+
 
 export const getSubtopics = async (
   req: Request,
@@ -245,12 +271,12 @@ export const getSubtopics = async (
 
     const standardNumber = standard;
 
-    if (standardNumber === 13) {
+    if (standardNumber === 12 || standardNumber === 13) {
       standardQuery = { $in: [11, 12] };
     } else {
       standardQuery = standardNumber;
     }
-    console.log(standardQuery);
+
 
     // Check if all required parameters are provided
     if (!subjectName || !standard || !chapterId || !topicId) {
