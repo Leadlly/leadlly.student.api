@@ -22,6 +22,7 @@ export const checkAuth = async (
   if (!secret) return next(new CustomError("Jwt Secret not defined", 400));
 
   const decoded = jwt.verify(token, secret) as JwtPayload;
+
   req.user = await User.findById(decoded.id);
 
   next();

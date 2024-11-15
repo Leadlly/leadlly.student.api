@@ -121,5 +121,5 @@ export const getBackRevisionTopics = async (
     mixedTopics.push(...topics);
   });
 
-  return {backRevisionTopics: mixedTopics.slice(0, 18), chapters}; // Ensure the result is exactly 12 topics
+  return {backRevisionTopics: mixedTopics.slice(0, 25), chapters}; // Ensure the result is exactly 25 topics
 };
