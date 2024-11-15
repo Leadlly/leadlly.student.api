@@ -38,7 +38,7 @@ export const getTemplate = (options: Options) => {
                   </td>
                   <td>
                     <a href="https://www.linkedin.com/company/leadlly-edu/" target="_blank">
-                      <img alt="LinkedIn" height="32" src="https://res.cloudinary.com/ytx/image/upload/v1731407923/linkdin_igumjq.pngxx" width="32" />
+                      <img alt="LinkedIn" height="32" src="https://res.cloudinary.com/ytx/image/upload/v1731407923/linkdin_igumjq.png" width="32" />
                     </a>
                   </td>
                 </tr>
@@ -87,81 +87,104 @@ export const getTemplate = (options: Options) => {
 
 		case 'subscription_active':
 			return baseTemplate(`
-         <div style="max-width: 660px; margin: 0 auto; padding: 20px 0 48px; width: 100%; font-family: Arial, sans-serif; color: #333;">
+         <table style="max-width: 660px; margin: 0 auto; padding: 20px 0 48px; width: 100%; font-family: Arial, sans-serif; color: #333;">
+  <tr>
+    <td style="text-align: center;">
+      <h1 style="font-size:28px; font-weight:700; margin:30px 0; color:#333;">Thanks for your order</h1>
+    </td>
+  </tr>
 
-  <h1 style="font-size:28px; font-weight:700; margin:30px 0; color:#333; text-align:center;">Thanks for your order</h1>
+  <tr>
+    <td style="text-align: center; margin: 36px 0 40px;">
+      <p style="font-size: 16px; line-height: 24px; font-weight: 500; color: #111111;">
+        Your payment has been successfully processed. Below are the details of your transaction.
+      </p>
+    </td>
+  </tr>
 
-  <div style="text-align: center; margin: 36px 0 40px;">
-    <p style="font-size: 16px; line-height: 24px; font-weight: 500; color: #111111;">
-      Your payment has been successfully processed. Below are the details of your transaction.
-    </p>
-  </div>
+  <tr>
+    <td style="background-color: #f8f8f8; padding: 20px; border-radius: 8px; font-size: 14px; color: #333;">
+      <table style="width: 100%; border-spacing: 0;">
+        <tr>
+          <td style="width: 48%; padding-right: 10px; vertical-align: top;">
+            <p style="font-size: 12px; color: #777; margin: 0;">Payment ID</p>
+            <p style="font-size: 14px; margin: 5px 0;">${options.razorpayId}</p>
+          </td>
+          <td style="width: 48%; padding-left: 10px; vertical-align: top;">
+            <p style="font-size: 12px; color: #777; margin: 0;">Invoice Date</p>
+            <p style="font-size: 14px; margin: 5px 0;">${options.dateOfActivation}</p>
+          </td>
+        </tr>
 
-  <div style="background-color: #f8f8f8; padding: 20px; border-radius: 8px; font-size: 14px; color: #333;">
-    <div style="display: flex; justify-content: space-between; padding-bottom: 12px;">
-      <div style="width: 48%; padding-right: 10px;">
-        <p style="font-size: 12px; color: #777; margin: 0;">Payment ID</p>
-        <p style="font-size: 14px; margin: 5px 0;">${options.razorpayId}</p>
-      </div>
-      <div style="width: 48%; padding-left: 10px;">
-        <p style="font-size: 12px; color: #777; margin: 0;">Invoice Date</p>
-        <p style="font-size: 14px; margin: 5px 0;">${options.dateOfActivation}</p>
-      </div>
-    </div>
+        <tr>
+          <td style="width: 48%; padding-right: 10px; vertical-align: top;">
+            <p style="font-size: 12px; color: #777; margin: 0;">Order ID</p>
+            <a href="https://example.com/order-details/${options.planId}" style="color: #067df7; text-decoration: none; font-size: 14px;">${options.planId}</a>
+          </td>
+          <td style="width: 48%; padding-left: 10px; vertical-align: top;">
+            <p style="font-size: 12px; color: #777; margin: 0;">Billed To</p>
+            <p style="font-size: 14px; margin: 5px 0;">${options.username}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
 
-    <div style="display: flex; justify-content: space-between; padding-bottom: 12px;">
-      <div style="width: 48%; padding-right: 10px;">
-        <p style="font-size: 12px; color: #777; margin: 0;">Order ID</p>
-        <a href="https://example.com/order-details/${options.planId}" style="color: #067df7; text-decoration: none; font-size: 14px;">${options.planId}</a>
-      </div>
-      <div style="width: 48%; padding-left: 10px;">
-        <p style="font-size: 12px; color: #777; margin: 0;">Billed To</p>
-        <p style="font-size: 14px; margin: 5px 0;">${options.username}</p>
-      </div>
-    </div>
-  </div>
+  <tr >
+    <td style="padding: 20px 0; border-radius: 8px;">
+      <table style="width: 100%; border-spacing: 0;">
+        <tr>
+          <td>
+            <p style="font-size: 14px; font-weight: 600; margin: 0;">${options.planName}</p>
+            <p style="font-size: 14px; color: #777; margin: 0;">${options.duration} months</p>
+          </td>
+          <td style="text-align: right;">
+            <p style="font-size: 14px; font-weight: 600; margin: 0;">₹${options.price}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
 
-  <div style="padding: 0px; margin-top: 20px; border-radius: 8px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <p style="font-size: 14px; font-weight: 600; margin: 0;">${options.planName}</p>
-        <p style="font-size: 14px; color: #777; margin: 0;">${options.duration} months</p>
-      </div>
-      <div style="text-align: right;">
-        <p style="font-size: 14px; font-weight: 600; margin: 0;">$${options.price}</p>
-      </div>
-    </div>
-  </div>
+  <tr>
+    <td style="width: 100%;  text-align: right; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0;">
+      <table style="width: 100%; border-spacing: 0;">
+        <tr>
+          <td style="text-align: right; padding-right: 20px;width:70%">
+            <p style="font-size: 12px; font-weight: 600; color: #777; margin: 0;">TOTAL</p>
+          </td>
+          <td style="border-left: 1px solid #e0e0e0; height: 48px;"></td>
+          <td style="text-align: right; padding-left: 20px;">
+            <p style="font-size: 16px; font-weight: 600; margin: 0;">₹${options.price}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
 
-  <div style="width: 100%; display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; margin-top: 20px;">
-    <div style="flex: 1; text-align: right; padding-right: 20px;">
-      <p style="font-size: 12px; font-weight: 600; color: #777; margin: 0;">TOTAL</p>
-    </div>
-    <div style="border-left: 1px solid #e0e0e0; height: 48px;"></div>
-    <div style="text-align: right; padding-left: 20px;">
-      <p style="font-size: 16px; font-weight: 600; margin: 0;">$${options.price}</p>
-    </div>
-  </div>
+  <tr>
+    <td style="margin-top: 30px; text-align: center;">
+      <p style="font-size: 14px; line-height: 24px; font-weight: 500; color: #111111;">
+        Enjoy your subscription and the benefits it brings! You can manage your subscription at any time from your 
+        <a href="${options.dashboardLink}" style="display: block; margin: 20px; padding: 12px 24px; font-size: 14px; color: #fff; background-color: #067df7; text-decoration: none; border-radius: 5px; font-weight: 600; text-align: center;" target="_blank">
+          Dashboard
+        </a>.
+      </p>
+    </td>
+  </tr>
 
-  <div style="margin-top: 30px; text-align: center;">
-    <p style="font-size: 14px; line-height: 24px; font-weight: 500; color: #111111;">
-      Enjoy your subscription and the benefits it brings! You can manage your subscription at any time from your 
-      <a href="${options.dashboardLink}" style="display: block; margin: 20px; padding: 12px 24px; font-size: 14px; color: #fff; background-color: #067df7; text-decoration: none; border-radius: 5px; font-weight: 600; text-align: center; cursor: pointer;" target="_blank">
-        Dashboard
-      </a>.
-    </p>
-  </div>
+  <tr>
+    <td style="text-align: center;">
+      <p style="font-size: 14px; line-height: 24px; font-weight: 500; color: #111111;">
+        If you have any questions, feel free to <a href="mailto:support@leadlly.in" style="color: #9652f4; text-decoration: none;">contact us</a>.
+      </p>
+      <p style="font-size: 14px; line-height: 24px; font-weight: 500; color: #111111;">
+        Thank you for choosing our service!
+      </p>
+    </td>
+  </tr>
+</table>
 
-  <div style="text-align: center;">
-    <p style="font-size: 14px; line-height: 24px; font-weight: 500; color: #111111;">
-      If you have any questions, feel free to <a href="mailto:support@leadlly.in" style="color: #9652f4; text-decoration: none;">contact us</a>.
-    </p>
-    <p style="font-size: 14px; line-height: 24px; font-weight: 500; color: #111111;">
-      Thank you for choosing our service!
-    </p>
-  </div>
-
-</div>
 
       `);
 		case 'free_trial_active':
