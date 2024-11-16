@@ -39,10 +39,11 @@ export const calculateStudentReport = async (userId: string) => {
             throw new Error('No planner data found for today');
         }
 
-        const totalContinuousTopics = todayPlannerDay.continuousRevisionTopics.length;
-        const totalBackTopics = todayPlannerDay.backRevisionTopics.length;
-        const totalTopics = totalContinuousTopics + totalBackTopics;
-        const completedTopicsCount = todayPlannerDay.completedTopics.length;
+        const totalContinuousTopics = todayPlannerDay?.continuousRevisionTopics?.length;
+        const totalContinuousSubTopics = todayPlannerDay?.continuousRevisionSubTopics?.length;
+        const totalBackTopics = todayPlannerDay?.backRevisionTopics?.length;
+        const totalTopics = totalContinuousTopics + totalBackTopics + totalContinuousSubTopics;
+        const completedTopicsCount = todayPlannerDay?.completedTopics?.length;
         const completionPercentage = (totalTopics > 0) ? (completedTopicsCount / totalTopics) * 100 : 0;
 
         // Calculate quiz completion percentage
@@ -58,6 +59,7 @@ export const calculateStudentReport = async (userId: string) => {
                 $gte: today.toDate(),
                 $lt:  moment(today).endOf('day').toDate(),
             },
+            tag: "daily_quiz"
         });
 
         const quizCompletionPercentage = (totalQuestions > 0) ? (solvedQuestionsToday / totalQuestions) * 100 : 0;
