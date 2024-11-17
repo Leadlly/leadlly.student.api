@@ -1,9 +1,9 @@
 import mongoose, { Document, ObjectId } from "mongoose";
 
 interface PlannerChapter {
-  id?: mongoose.Schema.Types.ObjectId,
+  id: mongoose.Types.ObjectId,
   name: string,
-  quizId?: mongoose.Schema.Types.ObjectId,
+  quizId?: mongoose.Types.ObjectId,
 }
 interface IDay {
   date: Date;

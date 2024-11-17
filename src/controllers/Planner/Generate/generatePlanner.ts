@@ -244,6 +244,10 @@ export const generateWeeklyPlanner = async (
 
             if (studyData.tag === "unrevised_topic") {
               studyData.tag = "active_unrevised_topic";
+            } else if (studyData.tag === "active_unrevised_topic") {
+              studyData.tag = "inflow_unrevised_topic"
+            } else if ( studyData.tag === "active_continuous_revision") {
+              studyData.tag = "inflow_continuous_revision"
             }
 
             await studyData.save();

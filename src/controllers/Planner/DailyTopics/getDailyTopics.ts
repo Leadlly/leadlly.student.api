@@ -6,8 +6,8 @@ export const getDailyTopics = (
   continuousRevisionTopics: IDataSchema[],
   backRevisionTopics: IDataSchema[],
   user: IUser,
-  chapters?: PlannerChapter[],
   continuousRevisionSubTopics?: any,
+  chapters?: PlannerChapter[],
 ) => {
   const dailyBackTopics: IDataSchema[] = [];
   let topicsToAdd = 5; // Default to 5 topics
