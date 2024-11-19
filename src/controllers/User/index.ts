@@ -329,3 +329,28 @@ export const getMentorInfo = async(req: Request, res: Response, next: NextFuncti
     next(new CustomError((error as Error).message));
   }
 }
+
+export const checkForNotification = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { isRead } = req.query;
+
+    // Convert isRead to a boolean
+    const isReadBoolean = isRead === 'true';
+
+    if (typeof isRead !== 'string' || (isRead !== 'true' && isRead !== 'false')) {
+      return next(new CustomError("Invalid query", 400));
+    }
+
+    const notifications = await db.collection("notifications").find({
+      studentId: req.user._id,
+      isRead: isReadBoolean
+    }).toArray();
+
+    res.status(200).json({
+      success: true,
+      notifications
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
