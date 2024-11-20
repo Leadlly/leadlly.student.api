@@ -323,8 +323,7 @@ export const getFreeTrialActive = async (req: Request, res: Response, next: Next
 		}
 
 		// Determine the trial duration based on the instituteId
-		const trialDuration =
-			req.user?.academic?.coachingName?.intituteId === 'in00000007' ? 21 : 7;
+		const trialDuration = 7;
 
 		// Activate the free trial
 		user.freeTrial.active = true;
