@@ -7,6 +7,7 @@ import { CustomError } from "../../middlewares/error";
 import { StudentReport } from "../../models/reportModel";
 import moment from 'moment';
 import { db } from "../../db/db";
+import mongoose from "mongoose";
 
 export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -349,6 +350,35 @@ export const checkForNotification = async (req: Request, res: Response, next: Ne
     res.status(200).json({
       success: true,
       notifications
+    });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const modifyNotificationStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.query;
+
+    if (!id || !status) {
+      return next(new CustomError("Id and Status are required", 400));
+    }
+
+    let read = false;
+
+    if (status === 'read') {
+      read = true;
+    } 
+
+    await db.collection("notifications").updateOne(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { isRead: read } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Notification marked as ${read ? 'read' : 'unread'}`
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
