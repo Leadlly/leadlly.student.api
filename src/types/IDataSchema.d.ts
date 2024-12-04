@@ -47,6 +47,7 @@ interface IDataSchema extends mongoose.Document {
 
 
 export interface ISubtopicsData extends Document {
+  _id: mongoose.Types.ObjectId
   user: mongoose.Types.ObjectId;
   tag: string;
   subtopic: {

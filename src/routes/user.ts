@@ -1,4 +1,4 @@
-import { getMentorInfo, getMonthlyReport, getOverallReport, getWeeklyReport, setTodaysVibe } from "./../controllers/User/index";
+import { checkForNotification, getMentorInfo, getMonthlyReport, getOverallReport, getWeeklyReport, modifyNotificationStatus, setTodaysVibe } from "./../controllers/User/index";
 import express from "express";
 import { deleteUnrevisedTopics, getUnrevisedTopics, storeSubTopics, storeTopics, storeUnrevisedTopics } from "../controllers/User/data";
 import { checkAuth } from "../middlewares/checkAuth";
@@ -40,5 +40,7 @@ router.get("/report/week", getWeeklyReport);
 router.get("/report/month", getMonthlyReport);
 router.get("/report/overall", getOverallReport);
 router.get("/mentor/info", getMentorInfo);
+router.get("/notification/check", checkForNotification);
+router.put("/notification/update/:id", modifyNotificationStatus);
 
 export default router;

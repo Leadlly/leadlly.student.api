@@ -10,6 +10,7 @@ import { IPricing, Pricing } from '../../models/pricingModel';
 import { Coupon } from '../../models/couponModel';
 import { Order } from '../../models/order_created';
 import IUser from '../../types/IUser';
+import { createPlanner } from '../Planner';
 
 export const buySubscription = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -212,6 +213,13 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 		if (coupon && coupon.usageLimit) {
 			coupon.usageLimit -= 1;
 			await coupon.save();
+		}
+
+		// creating planner if not exists for current week
+		try {
+			await createPlanner(req, res, next)
+		} catch (error) {
+			console.log(error)
 		}
 
 		// Send confirmation email

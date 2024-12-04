@@ -55,8 +55,13 @@ export const storeTopics = async (
 
         createdDocuments.push(data);
       } else {
+        // Update the existing document with the new tag
+        await StudyData.updateOne(
+          { _id: existingDocument._id },
+          { $set: { tag, updatedAt: new Date() } }
+        );
         console.log(
-          `Document with topic "${topic.name}" and tag "${tag}" already exists for user "${req.user._id}". Skipping creation of StudyData...`
+          `Document with topic "${topic.name}" updated with new tag "${tag}" for user "${req.user._id}".`
         );
       }
 

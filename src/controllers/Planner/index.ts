@@ -26,12 +26,12 @@ export const createPlanner = async (
       return next(new CustomError("Not subscribed", 400));
     }
 
-    const backRevisionTopics = await getBackRevisionTopics(
+    const {backRevisionTopics, chapters} = await getBackRevisionTopics(
       user._id,
       activationDate,
     );
 
-    const result = await generateWeeklyPlanner(user, backRevisionTopics, req.body.nextWeek);
+    const result = await generateWeeklyPlanner(user, backRevisionTopics, req.body.nextWeek, chapters);
 
     user.planner = true
     await user.save()
@@ -64,7 +64,10 @@ export const updateDailyPlanner = async (
     let continuousRevisionTopics = await StudyData.find({
       user: new mongoose.Types.ObjectId(user._id),
       tag: "continuous_revision",
-      createdAt: { $gte: today.toDate() },
+      $or: [
+        { createdAt: { $gte: today.toDate() } },
+        { updatedAt: { $gte: today.toDate() } }
+      ]
     }).exec() as IDataSchema[];
 
     const continuousRevisionSubTopics = await SubtopicsData.find({
@@ -152,6 +155,7 @@ export const updateDailyPlanner = async (
       newContinuousTopics.length === 0 &&
       newContinuousSubTopics.length === 0
     ) {
+      console.log(newContinuousSubTopics, newContinuousTopics, "=========== >here are main =========>")
       // const duplicateMessages: string[] = [];
 
       // if (duplicateTopics.length > 0) {
@@ -221,10 +225,15 @@ export const updateDailyPlanner = async (
       return next(new CustomError("Failed to update the planner.", 400));
     }
 
-    await Promise.all(continuousRevisionTopics.map((data) => {
-      data.tag = "active_continuous_revision";
-      return data.save();
-    }));
+    await StudyData.updateMany(
+      { _id: { $in: continuousRevisionTopics.map(data => data._id) } },
+      { $set: { tag: "active_continuous_revision" } }
+    );
+
+    await SubtopicsData.updateMany(
+      { _id: { $in: continuousRevisionSubTopics.map(data => data._id) } },
+      { $set: { tag: "active_continuous_revision" } }
+    );
 
     res.status(200).json({
       success: true,
