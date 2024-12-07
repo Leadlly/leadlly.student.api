@@ -316,7 +316,7 @@ export const getOverallReport = async (req: Request, res: Response, next: NextFu
 export const getMentorInfo = async(req: Request, res: Response, next: NextFunction) =>{
   try {
     const Mentor = db.collection('mentors')
-    const mentorId = req.user.mentor.id
+    const mentorId = req.user.mentor._id
 
     if(!mentorId) next(new CustomError("Mentor not alloted", 400))
     
@@ -339,6 +339,7 @@ export const checkForNotification = async (req: Request, res: Response, next: Ne
     const isReadBoolean = isRead === 'true';
 
     if (typeof isRead !== 'string' || (isRead !== 'true' && isRead !== 'false')) {
+      console.log("invalid query", isRead)
       return next(new CustomError("Invalid query", 400));
     }
 
@@ -346,6 +347,8 @@ export const checkForNotification = async (req: Request, res: Response, next: Ne
       studentId: req.user._id,
       isRead: isReadBoolean
     }).toArray();
+
+    console.log(notifications, "hre are ")
 
     res.status(200).json({
       success: true,

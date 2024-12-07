@@ -30,7 +30,7 @@ const getMeetingLimit = (subscriptionCategory: string): number => {
         throw new CustomError("Student not found", 404);
       }
   
-      const mentorId = student.mentor.id;
+      const mentorId = student.mentor._id;
       if (!mentorId) {
         return next(new CustomError("Mentor not allotted", 400));
       }
@@ -81,10 +81,12 @@ const getMeetingLimit = (subscriptionCategory: string): number => {
 export const getMeetings = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const studentId = req.user._id;
-        const mentorId = req.user.mentor.id;
+        const mentorId = req.user.mentor._id;
 
         const studentObjectId = new mongoose.Types.ObjectId(studentId);
         const mentorObjectId = new mongoose.Types.ObjectId(mentorId);
+
+        console.log(studentObjectId, mentorId, "hello")
 
         // Initialize a query object
         let query: any = {
@@ -100,6 +102,7 @@ export const getMeetings = async (req: Request, res: Response, next: NextFunctio
 
         const meetings = await Meeting.find(query).sort({date: 1, time: -1});
 
+        console.log(meetings, "here")
         res.status(200).json({
             success: true,
             meetings

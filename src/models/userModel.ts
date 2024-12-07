@@ -26,7 +26,7 @@ const userSchema = new Schema<IUser>({
     phone: { type: Number, default: null },
   },
   mentor: {
-    id: { 
+    _id: { 
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Mentor',
       default: null
