@@ -47,7 +47,7 @@ interface IUser extends Document {
     phone?: string;
   };
   mentor: {
-    id?: ObjectId;
+    _id: ObjectId;
   };
   address: {
     country?: string;
