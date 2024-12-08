@@ -65,7 +65,9 @@ export const getDailyQuestions = async (
     for (let topicData of dailyTopics) {
       const topic = topicData.topic.name;
       results[topic] = [];
-      let remainingQuestions = 3;
+      
+      // Set remainingQuestions based on user preference
+      let remainingQuestions = user.preferences?.dailyQuestions || 3;
 
       // Fetch topic questions
       const topicQuestions = await fetchQuestions("topics", topic, remainingQuestions);
@@ -83,12 +85,12 @@ export const getDailyQuestions = async (
           results[subtopic] = [];
         }
 
-        let remainingQuestions = 3;
+        // Set remainingQuestions based on user preference
+        let remainingQuestions = user.preferences?.dailyQuestions || 3;
 
         // Fetch subtopic questions
         const subtopicQuestions = await fetchQuestions("subtopics", subtopic, remainingQuestions);
 
-        console.log(subtopicQuestions.length, "here are subtopics questions")
         // Add subtopic questions under the topic
         results[subtopic].push(...subtopicQuestions);
       }

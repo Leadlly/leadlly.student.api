@@ -40,7 +40,9 @@ interface IUser extends Document {
   };
   planner: boolean;
   preferences: {
-    continuousData: { nextDay: boolean } // to decide continouos topic placing in planner    
+    continuousData: { nextDay: boolean }; 
+    dailyQuestions: number; 
+    backRevisionTopics: number;   
   },
   parent: {
     name?: string;

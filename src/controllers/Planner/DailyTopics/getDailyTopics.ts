@@ -10,14 +10,7 @@ export const getDailyTopics = (
   chapters?: PlannerChapter[],
 ) => {
   const dailyBackTopics: IDataSchema[] = [];
-  let topicsToAdd = 5; // Default to 5 topics
-
-  // Determine the number of topics to add based on the user's standard
-  if (user.academic.standard === 11) {
-    topicsToAdd = 3; // Add 3 topics for standard 11
-  } else if (user.academic.standard === 12 || user.academic.standard === 13) {
-    topicsToAdd = 5; // Add 5 topics for standards 12 and 13
-  }
+  let topicsToAdd = user?.preferences?.backRevisionTopics || 3; // Default to 3 topics
 
   // If continuous revision topics are available
   if (continuousRevisionTopics.length > 0) {

@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import IUser from "../types/IUser";
 import crypto from "crypto";
 import moment from "moment-timezone";
-import { Institutes, intitutesSchema } from "./intitutesModel";
+import { intitutesSchema } from "./intitutesModel";
 
 
 const userSchema = new Schema<IUser>({
@@ -34,8 +34,10 @@ const userSchema = new Schema<IUser>({
   },
   planner:{ type: Boolean, default: false},
   preferences: {
-      continuousData: { nextDay: { type: Boolean, default: true }} // to decide continouos topic placing in planner    
-  },
+      continuousData: { nextDay: { type: Boolean, default: true }}, // to decide continousTopics will come same day or next day    
+      dailyQuestions: { type: Number, default: 3 }, // for no. of questions in todo list
+      backRevisionTopics: { type: Number, default: 3} // no. of back revision topics in planner
+    },
   address: {
     country: { type: String, default: null },
     addressLine: { type: String, default: null },

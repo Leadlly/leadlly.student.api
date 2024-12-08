@@ -44,6 +44,14 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
       user.preferences.continuousData.nextDay = false
     }
 
+    if(bodyData.dailyQuestions) {
+      user.preferences.dailyQuestions = bodyData.dailyQuestions
+    }
+
+    if(bodyData.backRevisionTopics) {
+      user.preferences.backRevisionTopics = bodyData.backRevisionTopics
+    }
+
     if (bodyData.parentName) {
       user.parent.name = bodyData.parentName;
     }
