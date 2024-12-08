@@ -3,6 +3,7 @@ import mongoose, { Document, ObjectId } from "mongoose";
 interface PlannerChapter {
   id: mongoose.Types.ObjectId,
   name: string,
+  subject: string,
   quizId?: mongoose.Types.ObjectId,
 }
 interface IDay {
