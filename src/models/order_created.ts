@@ -5,7 +5,8 @@ export interface IOrder extends Document {
   order_id: string;
   planId: string;
   duration: number;
-  category: "basic" | "pro" | "premium" | "free" | null;
+  category: string;
+  title: string;
   coupon?: string;
   createdAt: Date;
 }
@@ -20,7 +21,8 @@ const OrderSchema: Schema = new Schema({
   order_id: { type: String, required: true },
   planId: { type: String },
   duration: { type: Number },
-  category: { type: String, enum: ["basic", "pro", "premium", "free"] },
+  title: {type: String},
+  category: { type: String },
   coupon: { type: String },
   createdAt: { type: Date, default: Date.now },
 });

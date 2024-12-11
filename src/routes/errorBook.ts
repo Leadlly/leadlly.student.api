@@ -9,7 +9,7 @@ import { authorizeSubscriber } from '../middlewares/checkCategory';
 
 const router = express.Router();
 
-router.use(checkAuth, authorizeSubscriber('pro'));
+router.use(checkAuth, authorizeSubscriber());
 
 router.get('/get', getErrorBook);
 router.get('/chapter/:chapter', getChapterErrorBook);
