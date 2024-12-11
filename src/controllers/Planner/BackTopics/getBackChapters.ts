@@ -80,9 +80,9 @@ export const getBackChapters = async (user: IUser) => {
             await trackerData.save();
           }
 
-          resultChapters.push({ id: chapterId, name: groupedTopics[0].chapter.name }); // Push as an object with name field
+          resultChapters.push({ id: chapterId, name: groupedTopics[0].chapter.name, subject: groupedTopics[0].subject.name }); // Push as an object with name field
         }
-      }
+      } 
     }
 
     let chaptersWithQuiz;
