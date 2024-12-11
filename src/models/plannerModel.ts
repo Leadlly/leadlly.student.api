@@ -18,6 +18,7 @@ const daySchema = new mongoose.Schema<IDay>({
   chapters: [{
     id: mongoose.Schema.Types.ObjectId,
     name: String,
+    subject: String,
     quizId: mongoose.Schema.Types.ObjectId
   }],
   questions: {

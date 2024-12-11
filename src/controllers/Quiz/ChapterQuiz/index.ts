@@ -79,6 +79,7 @@ export const create_chapter_quiz = async (user: IUser, chapters: PlannerChapter[
       updatedChapters.push({
         id: chapter.id,  // Maintain the chapter's id if present
         name: chapter.name,
+        subject: chapter.subject,
         quizId: chapterQuiz._id,  // Assign the created quiz's id
       });
     }
