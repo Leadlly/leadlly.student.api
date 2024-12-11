@@ -33,10 +33,10 @@ cron.schedule("15 0 * * *", async () => {
 
     const subscriptionUpdatePromises = usersWithActiveSubscriptions.map((user) => {
       user.subscription.status = "inactive";
-      user.subscription.dateOfDeactivation = undefined; 
-      user.subscription.dateOfActivation = undefined; 
-      user.subscription.id = undefined;
-      user.subscription.planId = undefined; 
+      user.subscription.dateOfDeactivation = undefined;
+      user.subscription.dateOfActivation = undefined;
+      user.subscription.id = "";
+      user.subscription.planId = "";
       user.subscription.duration = 0; 
       user.category = null;
       user.updatedAt = new Date()

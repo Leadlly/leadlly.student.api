@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post("/profile/save", checkAuth, convertToLowercase, studentPersonalInfo);
 
-router.use(checkAuth, authorizeSubscriber('basic'));
+router.use(checkAuth, authorizeSubscriber());
 
 router.post(
   "/progress/save",

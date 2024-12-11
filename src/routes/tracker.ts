@@ -5,6 +5,6 @@ import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.get("/get", checkAuth, authorizeSubscriber('basic'), getStudentTracker);
+router.get("/get", checkAuth, authorizeSubscriber(), getStudentTracker);
 
 export default router;

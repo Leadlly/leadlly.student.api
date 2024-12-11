@@ -12,7 +12,7 @@ import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.use(checkAuth, authorizeSubscriber('basic'));
+router.use(checkAuth, authorizeSubscriber());
 
 router.post("/save", saveDailyQuiz);
 router.post("/weekly/create", createWeeklyQuiz);

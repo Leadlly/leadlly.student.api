@@ -26,33 +26,38 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
 			return next(new CustomError('Invalid plan selected', 400));
 		}
 
-		// Check if the user has an active subscription
 		let amount = pricing.amount * 100; // Convert amount to paise for Razorpay
-		if (user.subscription.status === 'active' && user.subscription.planId) {
-			// Fetch current active plan pricing
-			const currentActivePlan = await Pricing.findOne({
-				planId: user.subscription.planId,
-			});
-			if (!currentActivePlan) {
-				return next(new CustomError('Current subscription plan not found', 400));
-			}
 
-			// Calculate the remaining value of the current subscription
-			const currentDate = new Date();
-			const deactivationDate = new Date(user.subscription.dateOfDeactivation!);
-			const timeRemaining =
-				(deactivationDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24); // Remaining days
 
-			// Get price per day of the current plan
-			const pricePerDayCurrent =
-				currentActivePlan.amount / (currentActivePlan['duration(months)'] * 30); // Assumes 30 days in a month
-			// Remaining value of the current subscription
-			const remainingValue = pricePerDayCurrent * timeRemaining;
+		//This section was previously implement for upgration of plan
 
-			// Calculate the difference amount
-			const differenceAmount = pricing.amount - remainingValue;
-			amount = Math.round(differenceAmount) * 100; // Convert to paise and ensure no negative values
-		}
+		// Check if the user has an active subscription
+		// if (user.subscription.status === 'active' && user.subscription.planId) {
+		// 	// Fetch current active plan pricing
+		// 	const currentActivePlan = await Pricing.findOne({
+		// 		planId: user.subscription.planId,
+		// 	});
+		// 	if (!currentActivePlan) {
+		// 		return next(new CustomError('Current subscription plan not found', 400));
+		// 	}
+
+		// 	// Calculate the remaining value of the current subscription
+		// 	const currentDate = new Date();
+		// 	const deactivationDate = new Date(user.subscription.dateOfDeactivation!);
+		// 	const timeRemaining =
+		// 		(deactivationDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24); // Remaining days
+
+		// 	// Get price per day of the current plan
+		// 	const pricePerDayCurrent =
+		// 		currentActivePlan.amount / (currentActivePlan['duration(months)'] * 30); // Assumes 30 days in a month
+		// 	// Remaining value of the current subscription
+		// 	const remainingValue = pricePerDayCurrent * timeRemaining;
+
+		// 	// Calculate the difference amount
+		// 	const differenceAmount = pricing.amount - remainingValue;
+		// 	amount = Math.round(differenceAmount) * 100; // Convert to paise and ensure no negative values
+		// }
+
 
 		// Handle coupon discount if available
 		const couponCode = req.query.coupon as string;
@@ -91,7 +96,7 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
 			existingOrder.planId = planId;
 			existingOrder.duration = pricing['duration(months)'];
 			existingOrder.coupon = couponCode;
-			existingOrder.category = pricing.category;
+			existingOrder.title = pricing.title;
 			await existingOrder.save();
 		} else {
 			await Order.create({
@@ -100,7 +105,7 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
 				planId,
 				duration: pricing['duration(months)'],
 				coupon: couponCode,
-				category: pricing.category,
+				title: pricing.title,
 			});
 		}
 
@@ -168,10 +173,12 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 			return next(new CustomError('Invalid plan duration selected', 400));
 		}
 
-		const currentDeactivationDate = user.subscription.dateOfDeactivation;
 		const durationInMonths = pricing['duration(months)'];
 
 		if (user.subscription.status === 'active') {
+
+			const currentDeactivationDate = user.subscription.dateOfDeactivation || new Date();
+			const currentDuration = Number(user.subscription.duration)
 			// Handle subscription extension on upgrade
 			user.subscription.upgradation = {
 				previousPlanId: user.subscription.planId,
@@ -181,18 +188,19 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 			};
 
 			// Update the subscription duration
-			user.category = order.category;
-			user.subscription.duration = durationInMonths;
+			user.category = order.title;
+			user.subscription.duration = durationInMonths + currentDuration;
 			user.subscription.id = order?.order_id;
 			user.subscription.planId = order?.planId;
 			user.subscription.coupon = order?.coupon;
 
 			const newDeactivationDate = new Date();
-			newDeactivationDate.setMonth(newDeactivationDate.getMonth() + durationInMonths);
+			newDeactivationDate.setMonth(currentDeactivationDate.getMonth() + durationInMonths);
 			user.subscription.dateOfDeactivation = newDeactivationDate;
+
 		} else {
 			// New subscription
-			user.category = order.category;
+			user.category = order.title;
 			user.subscription.status = 'active';
 			user.freeTrial.active = false;
 			user.subscription.id = order?.order_id;
@@ -216,11 +224,12 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 		}
 
 		// creating planner if not exists for current week
-		try {
-			await createPlanner(req, res, next)
-		} catch (error) {
-			console.log(error)
-		}
+		// try {
+		// 	const response = await createPlanner(req, res, next);
+		// 	console.log(response)
+		// } catch (error) {
+		// 	console.log(error); // Log the error but do not affect the response
+		// }
 
 		// Send confirmation email
 		await subQueue.add('payment_success', {
@@ -242,11 +251,12 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 
 		res
 			.status(200)
-			.json(
-				appRedirectURI
+			.json({
+				success: "true",
+				appRedirectURI: appRedirectURI
 					? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
 					: `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
-			);
+			});
 	} catch (error: any) {
 		next(new CustomError(error.message, 500));
 	}
@@ -331,7 +341,7 @@ export const getFreeTrialActive = async (req: Request, res: Response, next: Next
 		}
 
 		// Determine the trial duration based on the instituteId
-		const trialDuration = 7;
+		const trialDuration = 2;
 
 		// Activate the free trial
 		user.freeTrial.active = true;
