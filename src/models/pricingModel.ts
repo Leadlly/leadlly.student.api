@@ -9,6 +9,7 @@ export interface IPricing extends Document {
   category: string;
   status: string;
   "duration(months)": number;
+  exam: [];
   createdAt: Date
 }
 
@@ -18,6 +19,7 @@ const PricingSchema: Schema = new Schema({
   currency: {type: String, default: "INR"},
   title: {type: String, default: "general"},
   category: { type: String },
+  exam: Array,
   status: { type: String, enum: ['active', 'inactive'], default: "active"},
   type: {
     type: String,

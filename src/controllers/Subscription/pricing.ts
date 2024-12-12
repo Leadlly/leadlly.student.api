@@ -10,7 +10,7 @@ export const getPricing = async (req: Request, res: Response, next: NextFunction
         return next(new CustomError("Pricing type not provided", 400));
       }
   
-      const pricing = await Pricing.find({ type: pricingType as string });
+      const pricing = await Pricing.find({ type: pricingType as string, exam: req.user.academic.competitiveExam });
   
       if (!pricing || pricing.length === 0) {
         return next(new CustomError("No pricing exists for this type", 404));

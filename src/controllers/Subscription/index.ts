@@ -195,7 +195,7 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 			user.subscription.coupon = order?.coupon;
 
 			const newDeactivationDate = new Date();
-			newDeactivationDate.setMonth(currentDeactivationDate.getMonth() + durationInMonths);
+			newDeactivationDate.setFullYear(currentDeactivationDate.getFullYear(), currentDeactivationDate.getMonth() + durationInMonths);
 			user.subscription.dateOfDeactivation = newDeactivationDate;
 
 		} else {
@@ -224,12 +224,11 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 		}
 
 		// creating planner if not exists for current week
-		// try {
-		// 	const response = await createPlanner(req, res, next);
-		// 	console.log(response)
-		// } catch (error) {
-		// 	console.log(error); // Log the error but do not affect the response
-		// }
+		try {
+		    createPlanner(req, res, next);
+		} catch (error) {
+			console.log(error); 
+		}
 
 		// Send confirmation email
 		await subQueue.add('payment_success', {
@@ -238,7 +237,7 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 				subject: 'Leadlly Payment Success',
 				message: `Your payment for the plan is successful.`,
 				username: user.firstname,
-				dashboardLink: `${process.env.FRONTEND_URL}`,
+				dashboardLink: appRedirectURI ? appRedirectURI : process.env.FRONTEND_URL,
 				tag: 'subscription_active',
 				razorpayId: razorpay_payment_id,
 				planId: order?.planId,
@@ -248,6 +247,8 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 				planName: pricing.category,
 			} as Options,
 		});
+
+		console.log(appRedirectURI, "here is redirecturi")
 
 		res
 			.status(200)
