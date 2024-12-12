@@ -11,7 +11,7 @@ import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.use(checkAuth, authorizeSubscriber('basic'));
+router.use(checkAuth, authorizeSubscriber());
 
 router.get("/chapter", getChapter);
 router.get("/topic", getTopic);

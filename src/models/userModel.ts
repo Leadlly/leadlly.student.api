@@ -16,7 +16,7 @@ const userSchema = new Schema<IUser>({
     default: null,
   },
   email: { type: String, required: true, unique: true, default: null },
-  category: { type: String, enum: [ 'basic', 'pro', 'premium', 'free'  ], default: "free"},
+  category: { type: String, default: "free"},
   phone: {
     personal: { type: Number, default: null },
     other: { type: Number, default: null },

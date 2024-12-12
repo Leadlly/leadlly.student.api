@@ -8,7 +8,7 @@ interface ICoupon extends Document {
   usageLimit: number;
   category: 'Listed' | 'Custom' | 'TeamMember';
   createdAt?: Date;
-  plan?: 'basic' | 'pro' | 'premium'
+  plan: string
 }
 
 const CouponSchema: Schema = new Schema({
@@ -22,7 +22,7 @@ const CouponSchema: Schema = new Schema({
     enum: ['listed', 'custom', 'team', 'special'],  
     required: true
   },
-  plan: { type: String, enum: [ 'basic', 'pro', 'premium'  ] },
+  plan: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

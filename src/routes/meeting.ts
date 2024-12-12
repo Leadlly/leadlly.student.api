@@ -5,7 +5,7 @@ import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.use(checkAuth, authorizeSubscriber('pro'));
+router.use(checkAuth, authorizeSubscriber());
 
 router.post("/request", requestMeeting);
 router.post("/get", getMeetings);

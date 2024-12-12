@@ -27,7 +27,7 @@ interface IUser extends Document {
   firstname: string;
   lastname?: string;
   email: string;
-  category: 'basic' | 'pro' | 'premium' | 'free' | null
+  category: string | null;
   phone: {
     personal?: number;
     other?: number;
@@ -87,11 +87,11 @@ interface IUser extends Document {
   points?: number;
   subscription: {
     id?: string; 
-    status?: string; 
-    planId?: string; 
+    status: string; 
+    planId: string; 
     duration: number; 
-    dateOfActivation?: Date; 
-    dateOfDeactivation?: Date; 
+    dateOfActivation: Date | undefined; 
+    dateOfDeactivation: Date | undefined; 
     coupon?: string;
   
     upgradation?: {
