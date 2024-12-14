@@ -1,5 +1,5 @@
-import { sendMeetingNotification } from "./sendMeetingNotification";
+// import { sendMeetingNotification } from "./sendMeetingNotification";
 
-export const watchMeetingChanges = () => {
-  sendMeetingNotification()
-};
+// export const watchMeetingChanges = () => {
+//   sendMeetingNotification()
+// };

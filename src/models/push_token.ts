@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import IUser from '../types/IUser';
 
 interface IToken extends Document {
-  user: mongoose.Types.ObjectId; 
+  user: mongoose.Types.ObjectId | IUser; 
   push_token: string; 
   createdAt: Date
 }

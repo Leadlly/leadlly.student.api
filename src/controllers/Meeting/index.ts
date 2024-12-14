@@ -5,6 +5,9 @@ import User from "../../models/userModel";
 import IUser from "../../types/IUser";
 import mongoose from "mongoose";
 import { db } from "../../db/db";
+import cron from 'node-cron';
+import { sendMeetingNotification } from "./helper/sendMeetingNotification";
+
 
 const getMeetingLimit = (subscriptionCategory: string): number => {
     switch (subscriptionCategory) {
@@ -71,6 +74,31 @@ const getMeetingLimit = (subscriptionCategory: string): number => {
       });
   
       await newMeeting.save();
+
+      const meetingDateTime = new Date(date); // Combine date and time
+      const notificationTime = new Date(meetingDateTime.getTime() - 10 * 60000); // 10 minutes before
+  
+      try {
+         // Schedule a cron job for sending notifications
+    
+      // Schedule the notification for 10 minutes before the meeting
+      cron.schedule(notificationTime.toISOString(), async() => {
+        await sendMeetingNotification(notificationTime, studentId, mentorId);
+      });
+      
+      // Schedule the notification for the actual meeting time
+      cron.schedule(meetingDateTime.toISOString(), async() => {
+        await sendMeetingNotification(meetingDateTime, studentId, mentorId, 'today');
+      });
+      } catch (error) {
+        console.log(error)
+      }
+  
+      // Schedule the completion of meeting status
+      cron.schedule(meetingDateTime.toISOString(), async() => {
+        // Mark the meeting as completed
+        await Meeting.updateOne({ _id: newMeeting._id }, { isCompleted: true });
+      });
   
       res.status(201).json({ message: "Meeting requested successfully", meeting: newMeeting });
     } catch (error: any) {

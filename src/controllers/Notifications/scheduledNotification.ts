@@ -9,31 +9,37 @@ const dailyMessages = {
     heading: "🌅 Good Morning!",
     message: `Good Morning ${username}! 📝 View your today's planner!`,
     action: "View Planner", 
-    url: "#" 
+    url: "leadlly-student-app://active" 
   }),
   "5PM": (username: string) => ({
     heading: "🕔 Time for Revision!",
     message: `Hi ${username}, it's time to start revision. 📚 Check out the planner!`,
     action: "Start Revising", 
-    url: "#" 
+    url: "leadlly-student-app://active" 
   }),
   "7PM": (username: string) => ({
     heading: "🕖 Have You Started?",
     message: `Hey ${username}, have you started your revision? Let's keep that momentum going! 🚀`,
     action: "Revise Now",
-    url: "#" 
+    url: "leadlly-student-app://dashboard" 
   }),
   "10PM": (username: string) => ({
     heading: "🕙 Log Your Topics!",
     message: `Hi ${username}, time to log your today's topics studied in coaching/school. 🖊️`,
     action: "Log Topics", 
-    url: "#" 
+    url: "leadlly-student-app://dashboard" 
   }),
   "11PM": (username: string) => ({
     heading: "⏰ Last Call!",
     message: `Time is running out, ${username}! ⏳ Log today's topics before 12 to optimize your planner.`,
     action: "Log Now", 
-    url: "#" 
+    url: "leadlly-student-app://dashboard" 
+  }),
+  "subscriptionReminder": (username: string) => ({
+    heading: "📢 Subscription Reminder!",
+    message: `Hi ${username}, to continue receiving notifications, please consider subscribing!`,
+    action: "Subscribe Now", 
+    url: "leadlly-student-app://subscription-plans"
   }),
 };
 
@@ -52,10 +58,23 @@ const sendScheduledNotification = async (messageFunc: (username: string) => { he
       const user = await User.findById(tokenData.user); 
 
       if (user) {
-        const { heading, message, action, url } = messageFunc(user.firstname || "Buddy"); 
-        // Send the push notification with heading, message, and action
-        await sendPushNotification([tokenData.push_token], heading, message, action);
-        console.log(`Scheduled notification sent to ${user.firstname}: ${heading} - ${message}`);
+        // Check if user is on free trial or has an active subscription
+        if (user.freeTrial.active || (user.subscription && user.subscription.status === 'active')) {
+          const { heading, message, action, url } = messageFunc(user.firstname || "Buddy"); 
+          // Send the push notification with heading, message, and action
+          await sendPushNotification([tokenData.push_token], heading, message, action, url);
+          console.log(`Scheduled notification sent to ${user.firstname}: ${heading} - ${message}`);
+        } else {
+          // Send notification to take a subscription
+          const subscriptionMessage = {
+            heading: "📢 Subscription Reminder!",
+            message: `Hi ${user.firstname}, you're missing out! Start tracking your progress and planning your success today. Subscribe now to unlock exclusive features and stay ahead!`,
+            action: "Subscribe Now", 
+            url: "leadlly-student-app://subscription-plans" // Link to subscription page
+          };
+          await sendPushNotification([tokenData.push_token], subscriptionMessage.heading, subscriptionMessage.message, subscriptionMessage.action, subscriptionMessage.url);
+          console.log(`Subscription reminder sent to ${user.firstname}`);
+        }
       } else {
         console.log(`User not found for token: ${tokenData.push_token}`);
       }
@@ -64,7 +83,6 @@ const sendScheduledNotification = async (messageFunc: (username: string) => { he
     console.error("Error sending scheduled notification:", error);
   }
 };
-
 
 // Schedule notification at 9 AM
 cron.schedule("0 9 * * *", async () => {
@@ -89,4 +107,14 @@ cron.schedule("0 22 * * *", async () => {
 // Schedule notification at 11 PM
 cron.schedule("0 23 * * *", async () => {
   await sendScheduledNotification(dailyMessages["11PM"]);
+});
+
+// Schedule subscription reminder at 10 AM
+cron.schedule("0 10 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["subscriptionReminder"]);
+});
+
+// Schedule subscription reminder at 10 PM
+cron.schedule("0 22 * * *", async () => {
+  await sendScheduledNotification(dailyMessages["subscriptionReminder"]);
 });

@@ -2,7 +2,7 @@ import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
 
 const expo = new Expo();
 
-export const sendPushNotification = async (pushTokens: string[], heading: string, message: string, action: string) => {
+export const sendPushNotification = async (pushTokens: string[], heading: string, message: string, action: string, url?: string) => {
   // Filter valid push tokens
   const validPushTokens = pushTokens.filter(pushToken => Expo.isExpoPushToken(pushToken));
 
@@ -18,7 +18,7 @@ export const sendPushNotification = async (pushTokens: string[], heading: string
     data: {
       withSome: "data",
       action: action, 
-      url: "#" 
+      url: url 
     },
   }));
 

@@ -2,7 +2,7 @@ import { Meeting } from '../../models/meetingModal'
 import { meetingQueue } from '../../services/bullmq/producer';
 
 
-export const sendMeetingNotification = () => {
+export const sendMeetingsNotification = () => {
   const changeStream = Meeting.watch([], { fullDocument: 'updateLookup' });
 
   changeStream.on('change', async (change) => {

@@ -9,7 +9,6 @@ import "./controllers/Notifications/scheduledNotification"
 import "./controllers/Subscription/scheduler"
 import "./controllers/Quiz/WeeklyQuiz/schedular"
 import "./helpers/updateStreak"
-import { watchMeetingChanges } from "./events/Meeting";
 
 const port = process.env.PORT || 4000;
 
@@ -25,7 +24,6 @@ meetingWorker;
 
 // Triggers
 // watchTrackerChanges()
-watchMeetingChanges()
 
 const handler = serverless(app);
 
