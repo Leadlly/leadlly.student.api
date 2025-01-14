@@ -38,6 +38,11 @@ export const insertCompletedTopics = async(userId: string, data: Data, questions
     const plannerTopicQuestions = todayPlannerDay.questions[data.name] || [];
 
     if (plannerTopicQuestions.length === questions.length) {
+
+        // If lengths match, check if data._id is in incompletedTopics and remove it
+        if (todayPlannerDay.incompletedTopics.includes(data._id)) {
+            todayPlannerDay.incompletedTopics = todayPlannerDay.incompletedTopics.filter(id => id !== data._id);
+        }
         // If lengths match, push topic into completedTopics array
         if (!todayPlannerDay.completedTopics.includes(data._id)) {
             todayPlannerDay.completedTopics.push(data._id);
