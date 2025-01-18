@@ -227,7 +227,7 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 		try {
 		    createPlanner(req, res, next);
 		} catch (error) {
-			console.log(error); 
+			console.log("Error creating planner", error); 
 		}
 
 		// Send confirmation email
@@ -250,14 +250,16 @@ export const verifySubscription = async (req: Request, res: Response, next: Next
 
 		console.log(appRedirectURI, "here is redirecturi")
 
-		res
-			.status(200)
-			.json({
-				success: "true",
-				appRedirectURI: appRedirectURI
-					? `${appRedirectURI}?payment=success&reference=${razorpay_payment_id}`
-					: `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
-			});
+		if (!appRedirectURI) {
+			res.redirect(
+			  `${process.env.FRONTEND_URL}/paymentsuccess?reference=${razorpay_payment_id}`
+			);
+		  } else {
+			res.redirect(
+			  `${appRedirectURI}`
+			);
+		  }
+
 	} catch (error: any) {
 		next(new CustomError(error.message, 500));
 	}

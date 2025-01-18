@@ -41,7 +41,7 @@ export const checkCoupon = async (
   next: NextFunction
 ) => {
   try {
-    const { code } = req.body;
+    const { code, plan } = req.body;
 
     if (!code) {
       return next(new CustomError("Coupon code not provided", 400));
@@ -59,6 +59,10 @@ export const checkCoupon = async (
 
     if (coupon.usageLimit <= 0) {
       return next(new CustomError("Coupon usage limit has been reached", 400));
+    }
+
+    if(coupon.plan && coupon.plan !== plan){
+      return next(new CustomError("This coupon is not valid for this plan", 400))
     }
 
     res.status(200).json({

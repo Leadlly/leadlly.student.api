@@ -97,10 +97,10 @@ export const getBackRevisionTopics = async (
     console.log("4 week2");
     // Construct the backRevisionTopics array in the specified order
     backRevisionTopics = [
+      ...filteredUnrevisedTopics,
       ...filteredContinuousLowEfficiency,
       ...filteredUnrevisedLowEfficiency,
-      ...filteredUnrevisedTopics,
-      ...continuousModerateEfficiency,
+      ...continuousModerateEfficiency
     ];
   }
 
