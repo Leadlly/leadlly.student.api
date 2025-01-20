@@ -61,8 +61,8 @@ export const checkCoupon = async (
       return next(new CustomError("Coupon usage limit has been reached", 400));
     }
 
-    if(coupon.plan && coupon.plan !== plan){
-      return next(new CustomError("This coupon is not valid for this plan", 400))
+    if (coupon.plan && !coupon.plan.includes(plan)) {
+      return next(new CustomError("This coupon is not valid for this plan", 400));
     }
 
     res.status(200).json({
