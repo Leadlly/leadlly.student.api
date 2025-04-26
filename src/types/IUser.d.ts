@@ -51,6 +51,24 @@ interface IUser extends Document {
   mentor: {
     _id: ObjectId;
   };
+  institute: {
+    _id: ObjectId;
+    name?: string;
+    logo?: {
+      key?: string;
+      url?: string;
+    };
+  };
+  batches: Array<{
+    _id: mongoose.Types.ObjectId;
+    status: 'pending' | 'accepted' | 'rejected';
+    requestedAt: Date;
+  }>;
+  classes: Array<{
+    _id: mongoose.Types.ObjectId;
+    status: 'pending' | 'accepted' | 'rejected';
+    requestedAt: Date;
+  }>;
   address: {
     country?: string;
     addressLine?: string;

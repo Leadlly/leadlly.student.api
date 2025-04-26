@@ -32,6 +32,48 @@ const userSchema = new Schema<IUser>({
       default: null
     }
   },
+  institute: {
+    _id: { 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Institute',
+      default: null
+    },
+    name: { type: String, default: null },
+    logo: {
+      key: { type: String, default: null },
+      url: { type: String, default: null }
+    }
+  },
+  batches: [{
+    _id: { 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Batch'
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending'
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  classes: [{
+    _id: { 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Class'
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending'
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   planner:{ type: Boolean, default: false},
   preferences: {
       continuousData: { nextDay: { type: Boolean, default: true }}, // to decide continousTopics will come same day or next day    
