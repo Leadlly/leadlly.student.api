@@ -17,6 +17,7 @@ import trackerRoutes from "./routes/tracker";
 import meetingRoutes from "./routes/meeting";
 import errorBookRoutes from "./routes/errorBook";
 import notificationRoutes from "./routes/notificationRoutes"
+import batchRoutes from "./routes/batchManagment"
 import dataRoutes from "./routes/data"
 
 config({
@@ -76,7 +77,8 @@ app.use("/api/tracker", trackerRoutes);
 app.use("/api/meeting", meetingRoutes);
 app.use("/api/errorBook", errorBookRoutes);
 app.use("/api/notification", notificationRoutes);
-app.use("/api/data", dataRoutes)
+app.use("/api/data", dataRoutes);
+app.use("/api/batch", batchRoutes);
 
 app.get("/api", (req, res) => {
   res.send("Hello, world!");

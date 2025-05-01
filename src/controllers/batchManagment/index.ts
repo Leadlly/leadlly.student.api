@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../../middlewares/error";
 import User from "../../models/userModel";
 import mongoose from "mongoose";
-import { db } from "../../db/db";
 
 // Request to join a batch
 export const requestBatch = async (req: Request, res: Response, next: NextFunction) => {
@@ -114,6 +113,41 @@ export const getRequestStatus = async (req: Request, res: Response, next: NextFu
                 class: cls._id,
                 status: cls.status,
                 requestedAt: cls.requestedAt
+            }))
+        });
+
+    } catch (error: any) {
+        next(new CustomError(error.message));
+    }
+};
+
+// Get classes by status
+export const getClassesByStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user._id;
+        const status = req.query.status as string ;
+
+        // Validate status
+        if (!status || !['pending', 'accepted', 'rejected'].includes(status)) {
+            return next(new CustomError("Invalid status. Must be 'pending', 'accepted', or 'rejected'", 400));
+        }
+
+        const user = await User.findById(userId)
+            .populate('classes._id');
+
+        if (!user) {
+            return next(new CustomError("User not found", 404));
+        }
+
+        // Filter classes by the requested status
+        const filteredClasses = user.classes.filter(cls => cls.status === status);
+
+        res.status(200).json({
+            success: true,
+            status: status,
+            classes: filteredClasses.map(cls => ({
+                class: cls._id,
+                joinedAt: cls.requestedAt
             }))
         });
 
