@@ -4,7 +4,6 @@ import {
     requestBatch, 
     requestClass, 
     getRequestStatus, 
-    getApprovedClasses,
     getClassesByStatus
 } from '../controllers/batchManagment'
 
@@ -18,7 +17,7 @@ router.post('/class/request', requestClass)
 
 // Status routes
 router.get('/requests/status', getRequestStatus)
-router.get('/classes/approved', getApprovedClasses)
+router.get('/classes/approved', getClassesByStatus)
 router.get('/classes', getClassesByStatus)
 
 export default router

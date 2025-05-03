@@ -28,14 +28,12 @@ const userSchema = new Schema<IUser>({
   mentor: {
     _id: { 
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Mentor',
       default: null
     }
   },
   institute: {
     _id: { 
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Institute',
       default: null
     },
     name: { type: String, default: null },
@@ -47,7 +45,6 @@ const userSchema = new Schema<IUser>({
   batches: [{
     _id: { 
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Batch'
     },
     status: {
       type: String,
@@ -62,7 +59,6 @@ const userSchema = new Schema<IUser>({
   classes: [{
     _id: { 
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Class'
     },
     status: {
       type: String,
