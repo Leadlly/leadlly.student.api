@@ -4,7 +4,8 @@ import {
     requestBatch, 
     requestClass, 
     getRequestStatus, 
-    getClassesByStatus
+    getClassesByStatus,
+    getAllClasses
 } from '../controllers/batchManagment'
 
 const router = express.Router()
@@ -19,5 +20,6 @@ router.post('/class/request', requestClass)
 router.get('/requests/status', getRequestStatus)
 router.get('/classes/approved', getClassesByStatus)
 router.get('/classes', getClassesByStatus)
+router.get('/classes/all', getAllClasses)
 
 export default router

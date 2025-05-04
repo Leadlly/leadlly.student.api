@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../../middlewares/error";
 import User from "../../models/userModel";
 import mongoose from "mongoose";
+import { db } from "../../db/db";
 
 // Request to join a batch
 export const requestBatch = async (
@@ -253,3 +254,59 @@ export const getClassesByStatus = async (
     next(new CustomError(error.message));
   }
 };
+
+
+export const getAllClasses = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user._id;
+      const Batch = db.collection("batches");
+      const Class = db.collection("classes");
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return next(new CustomError("User not found", 404));
+      }
+
+      if (!user.institute?._id) {
+        return next(new CustomError("Institute not found for user", 404));
+      }
+
+      // First find batches according to institute ID
+      const batches = await Batch.find({
+        institute: user.institute._id,
+      }).toArray();
+
+      if (!batches || batches.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No batches found for this institute"
+        });
+      }
+
+      // Get batch IDs
+      const batchIds = batches.map(batch => batch._id);
+
+      // Find classes based on batch IDs
+      const classes = await Class.find({
+        batch: { $in: batchIds }
+      }).toArray();
+
+      // Populate batch information for each class
+      const classesWithBatch = await Promise.all(classes.map(async (cls) => {
+        const batchInfo = batches.find(batch => batch._id.equals(cls.batch));
+        return {
+          ...cls,
+          batchInfo
+        };
+      }));
+
+      res.status(200).json({
+        success: true,
+        classes: classesWithBatch
+      });
+      
+    } catch (error: any) {
+        next(new CustomError(error.message));
+    }
+};
+
