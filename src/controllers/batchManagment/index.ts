@@ -255,58 +255,103 @@ export const getClassesByStatus = async (
   }
 };
 
+export const getAllClasses = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user._id;
+    const Batch = db.collection("batches");
+    const Class = db.collection("classes");
+    const user = await User.findById(userId);
 
-export const getAllClasses = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user._id;
-      const Batch = db.collection("batches");
-      const Class = db.collection("classes");
-      const user = await User.findById(userId);
-
-      if (!user) {
-        return next(new CustomError("User not found", 404));
-      }
-
-      if (!user.institute?._id) {
-        return next(new CustomError("Institute not found for user", 404));
-      }
-
-      // First find batches according to institute ID
-      const batches = await Batch.find({
-        institute: user.institute._id,
-      }).toArray();
-
-      if (!batches || batches.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "No batches found for this institute"
-        });
-      }
-
-      // Get batch IDs
-      const batchIds = batches.map(batch => batch._id);
-
-      // Find classes based on batch IDs
-      const classes = await Class.find({
-        batch: { $in: batchIds }
-      }).toArray();
-
-      // Populate batch information for each class
-      const classesWithBatch = await Promise.all(classes.map(async (cls) => {
-        const batchInfo = batches.find(batch => batch._id.equals(cls.batch));
-        return {
-          ...cls,
-          batchInfo
-        };
-      }));
-
-      res.status(200).json({
-        success: true,
-        classes: classesWithBatch
-      });
-      
-    } catch (error: any) {
-        next(new CustomError(error.message));
+    if (!user) {
+      return next(new CustomError("User not found", 404));
     }
-};
 
+    if (!user.institute?._id) {
+      return next(new CustomError("Institute not found for user", 404));
+    }
+
+    // First find batches according to institute ID
+    const batches = await Batch.find({
+      institute: user.institute._id,
+      standard: user.academic.standard.toString(),
+    }).toArray();
+
+    if (!batches || batches.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No batches found for this institute",
+      });
+    }
+
+    const alreadyRequestedClasses = user.classes.filter(
+      (class_) => class_.status === "accepted" || class_.status === "pending"
+    );
+
+    // Find classes based on batch IDs
+    const classes = await Class.aggregate([
+      {
+        $match: {
+          _id: { $nin: alreadyRequestedClasses.map((item) => item._id) },
+          batch: { $in: batches.map((batch) => batch._id) },
+          acceptingResponses: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "batches",
+          localField: "batch",
+          foreignField: "_id",
+          as: "batch",
+        },
+      },
+      {
+        $unwind: "$batch",
+      },
+      {
+        $lookup: {
+          from: "mentors",
+          localField: "teacher",
+          foreignField: "_id",
+          as: "teacher",
+        },
+      },
+      {
+        $unwind: "$teacher",
+      },
+      {
+        $project: {
+          _id: 1,
+          acceptingResponses: 1,
+          classReport: 1,
+          createdAt: 1,
+          description: 1,
+          meetingLink: 1,
+          notes: 1,
+          recordingLink: 1,
+          resources: 1,
+          shareCode: 1,
+          shareLink: 1,
+          subject: 1,
+          updatedAt: 1,
+          "batch._id": 1,
+          "batch.name": 1,
+          "batch.standard": 1,
+          "teacher._id": 1,
+          "teacher.firstname": 1,
+          "teacher.lastname": 1,
+        },
+      },
+    ]).toArray();
+
+    res.status(200).json({
+      success: true,
+      classes,
+    });
+  } catch (error: any) {
+    next(new CustomError(error.message));
+  }
+};

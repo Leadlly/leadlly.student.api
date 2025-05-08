@@ -5,11 +5,15 @@ import { todaysVibeSchema } from "../../Schemas/user.schema";
 import { getSubjectList } from "../../utils/getSubjectList";
 import { CustomError } from "../../middlewares/error";
 import { StudentReport } from "../../models/reportModel";
-import moment from 'moment';
+import moment from "moment";
 import { db } from "../../db/db";
 import mongoose from "mongoose";
 
-export const studentPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
+export const studentPersonalInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const bodyData = req.body;
     const user = (await User.findById(req.user._id)) as IUser;
@@ -38,18 +42,18 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
       user.about.gender = bodyData.gender;
     }
 
-    if(bodyData.nextDay === true ) {
-      user.preferences.continuousData.nextDay = true
+    if (bodyData.nextDay === true) {
+      user.preferences.continuousData.nextDay = true;
     } else {
-      user.preferences.continuousData.nextDay = false
+      user.preferences.continuousData.nextDay = false;
     }
 
-    if(bodyData.dailyQuestions) {
-      user.preferences.dailyQuestions = bodyData.dailyQuestions
+    if (bodyData.dailyQuestions) {
+      user.preferences.dailyQuestions = bodyData.dailyQuestions;
     }
 
-    if(bodyData.backRevisionTopics) {
-      user.preferences.backRevisionTopics = bodyData.backRevisionTopics
+    if (bodyData.backRevisionTopics) {
+      user.preferences.backRevisionTopics = bodyData.backRevisionTopics;
     }
 
     if (bodyData.parentName) {
@@ -105,7 +109,7 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
       user.academic.coachingAddress = bodyData.coachingAddress;
     }
 
-    user.updatedAt = new Date()
+    user.updatedAt = new Date();
     await user.save();
 
     res.status(200).json({
@@ -114,11 +118,15 @@ export const studentPersonalInfo = async (req: Request, res: Response, next: Nex
     });
   } catch (error: any) {
     console.error("Error updating personal info:", error);
-    next(new CustomError(error.message))
+    next(new CustomError(error.message));
   }
 };
 
-export const setTodaysVibe = async (req: Request, res: Response, next: NextFunction) => {
+export const setTodaysVibe = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const isSunday = () => {
     const today = new Date();
     return today.getDay() === 0; // Sunday is 0 in JavaScript
@@ -139,7 +147,7 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
 
   const today = new Date();
   const formattedToday = today.toISOString().split("T")[0]; // Format today's date (YYYY-MM-DD)
-  const dayOfWeek = today.toLocaleString('en-US', { weekday: 'long' }); // e.g., 'Monday', 'Tuesday'
+  const dayOfWeek = today.toLocaleString("en-US", { weekday: "long" }); // e.g., 'Monday', 'Tuesday'
 
   // Initialize mood field if missing
   if (!user.details) {
@@ -151,7 +159,9 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
   }
 
   // Check if today's mood is already set
-  const todaysMoodIndex = user.details.mood.findIndex((moodEntry) => moodEntry.day === dayOfWeek);
+  const todaysMoodIndex = user.details.mood.findIndex(
+    (moodEntry) => moodEntry.day === dayOfWeek
+  );
 
   // If today is Sunday, clear mood for the entire week
   if (isSunday()) {
@@ -165,7 +175,15 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
 
   if (targetDate > nextWeekDate) {
     // Reset all fields to null except the current day
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     user.details.mood = daysOfWeek.map((day) => {
       return {
         day: day,
@@ -201,173 +219,216 @@ export const setTodaysVibe = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-
-export const getWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
+export const getWeeklyReport = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const startDate = moment().startOf('isoWeek'); // assuming the week starts on Monday
-    const endDate = moment().endOf('isoWeek');
+    const startDate = moment().startOf("isoWeek"); // assuming the week starts on Monday
+    const endDate = moment().endOf("isoWeek");
 
     const reports = await StudentReport.find({
       user: req.user._id,
-      date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
     });
 
     const daysInWeek = [];
-    for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+    for (
+      let date = startDate.clone();
+      date.isSameOrBefore(endDate);
+      date.add(1, "day")
+    ) {
       daysInWeek.push(date.clone());
     }
 
     const weeklyReport = {
-      startDate: startDate.format('YYYY-MM-DD'),
-      endDate: endDate.format('YYYY-MM-DD'),
-      days: daysInWeek.map(day => {
-        const report = reports.find(r => moment(r.date).isSame(day, 'day'));
+      startDate: startDate.format("YYYY-MM-DD"),
+      endDate: endDate.format("YYYY-MM-DD"),
+      days: daysInWeek.map((day) => {
+        const report = reports.find((r) => moment(r.date).isSame(day, "day"));
         return {
-          day: day.format('dddd'),
-          date: day.format('YYYY-MM-DD'),
+          day: day.format("dddd"),
+          date: day.format("YYYY-MM-DD"),
           session: report ? report.session : 0,
           quiz: report ? report.quiz : 0,
-          overall: report ? report.overall : 0
+          overall: report ? report.overall : 0,
         };
-      })
+      }),
     };
 
     res.status(200).json({
       success: true,
-      weeklyReport
+      weeklyReport,
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
   }
 };
 
-export const getMonthlyReport = async (req: Request, res: Response, next: NextFunction) => {
+export const getMonthlyReport = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const startDate = moment().startOf('month');
-    const endDate = moment().endOf('month');
+    const startDate = moment().startOf("month");
+    const endDate = moment().endOf("month");
 
     const reports = await StudentReport.find({
       user: req.user._id,
-      date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
     });
 
     const daysInMonth = [];
-    for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+    for (
+      let date = startDate.clone();
+      date.isSameOrBefore(endDate);
+      date.add(1, "day")
+    ) {
       daysInMonth.push(date.clone());
     }
 
     const monthlyReport = {
-      startDate: startDate.format('YYYY-MM-DD'),
-      endDate: endDate.format('YYYY-MM-DD'),
-      days: daysInMonth.map(day => {
-        const report = reports.find(r => moment(r.date).isSame(day, 'day'));
+      startDate: startDate.format("YYYY-MM-DD"),
+      endDate: endDate.format("YYYY-MM-DD"),
+      days: daysInMonth.map((day) => {
+        const report = reports.find((r) => moment(r.date).isSame(day, "day"));
         return {
-          day: day.format('dddd'),
-          date: day.format('YYYY-MM-DD'),
+          day: day.format("dddd"),
+          date: day.format("YYYY-MM-DD"),
           session: report ? report.session : 0,
           quiz: report ? report.quiz : 0,
-          overall: report ? report.overall : 0
+          overall: report ? report.overall : 0,
         };
-      })
+      }),
     };
 
     res.status(200).json({
       success: true,
-      monthlyReport
+      monthlyReport,
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
   }
 };
 
-export const getOverallReport = async (req: Request, res: Response, next: NextFunction) => {
+export const getOverallReport = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const reports = await StudentReport.find({
       user: req.user._id,
     });
 
-    if (!reports.length) return next(new CustomError("No reports found for the user"));
+    if (!reports.length)
+      return next(new CustomError("No reports found for the user", 404));
 
-    const uniqueDates = Array.from(new Set(reports.map(report => moment(report.date).format('YYYY-MM-DD'))));
-    
+    const uniqueDates = Array.from(
+      new Set(reports.map((report) => moment(report.date).format("YYYY-MM-DD")))
+    );
+
     uniqueDates.sort((a, b) => moment(a).diff(moment(b)));
-    
+
     // Generate report
-    const overallReport = uniqueDates.map(dateString => {
-      const dayReports = reports.filter(report => moment(report.date).isSame(dateString, 'day'));
-      const aggregatedReport = dayReports.reduce((acc, report) => {
-        acc.session += report.session;
-        acc.quiz += report.quiz;
-        acc.overall += report.overall;
-        return acc;
-      }, { session: 0, quiz: 0, overall: 0 });
+    const overallReport = uniqueDates.map((dateString) => {
+      const dayReports = reports.filter((report) =>
+        moment(report.date).isSame(dateString, "day")
+      );
+      const aggregatedReport = dayReports.reduce(
+        (acc, report) => {
+          acc.session += report.session;
+          acc.quiz += report.quiz;
+          acc.overall += report.overall;
+          return acc;
+        },
+        { session: 0, quiz: 0, overall: 0 }
+      );
 
       return {
-        day: moment(dateString).format('dddd'),
+        day: moment(dateString).format("dddd"),
         date: dateString,
         session: aggregatedReport.session,
         quiz: aggregatedReport.quiz,
-        overall: aggregatedReport.overall
+        overall: aggregatedReport.overall,
       };
     });
 
     res.status(200).json({
       success: true,
-      overallReport
+      overallReport,
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
   }
 };
 
-
-export const getMentorInfo = async(req: Request, res: Response, next: NextFunction) =>{
+export const getMentorInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const Mentor = db.collection('mentors')
-    const mentorId = req.user.mentor._id
+    const Mentor = db.collection("mentors");
+    const mentorId = req.user.mentor._id;
 
-    if(!mentorId) next(new CustomError("Mentor not alloted", 400))
-    
-    const mentor = await Mentor.findOne({_id: mentorId })
-    if(!mentor) next(new CustomError("Mentor not exists", 404))
-    
-    console.log(mentor)
-    res.status(200).json({success: true, mentor})
+    if (!mentorId) next(new CustomError("Mentor not alloted", 400));
 
+    const mentor = await Mentor.findOne({ _id: mentorId });
+    if (!mentor) next(new CustomError("Mentor not exists", 404));
+
+    console.log(mentor);
+    res.status(200).json({ success: true, mentor });
   } catch (error) {
     next(new CustomError((error as Error).message));
   }
-}
+};
 
-export const checkForNotification = async (req: Request, res: Response, next: NextFunction) => {
+export const checkForNotification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { isRead } = req.query;
 
     // Convert isRead to a boolean
-    const isReadBoolean = isRead === 'true';
+    const isReadBoolean = isRead === "true";
 
-    if (typeof isRead !== 'string' || (isRead !== 'true' && isRead !== 'false')) {
-      console.log("invalid query", isRead)
+    if (
+      typeof isRead !== "string" ||
+      (isRead !== "true" && isRead !== "false")
+    ) {
+      console.log("invalid query", isRead);
       return next(new CustomError("Invalid query", 400));
     }
 
-    const notifications = await db.collection("notifications").find({
-      studentId: req.user._id,
-      isRead: isReadBoolean
-    }).toArray();
+    const notifications = await db
+      .collection("notifications")
+      .find({
+        studentId: req.user._id,
+        isRead: isReadBoolean,
+      })
+      .toArray();
 
-    console.log(notifications, "hre are ")
+    console.log(notifications, "hre are ");
 
     res.status(200).json({
       success: true,
-      notifications
+      notifications,
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
   }
 };
 
-export const modifyNotificationStatus = async (req: Request, res: Response, next: NextFunction) => {
+export const modifyNotificationStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
     const { status } = req.query;
@@ -378,18 +439,20 @@ export const modifyNotificationStatus = async (req: Request, res: Response, next
 
     let read = false;
 
-    if (status === 'read') {
+    if (status === "read") {
       read = true;
-    } 
+    }
 
-    await db.collection("notifications").updateOne(
-      { _id: new mongoose.Types.ObjectId(id) },
-      { $set: { isRead: read } }
-    );
+    await db
+      .collection("notifications")
+      .updateOne(
+        { _id: new mongoose.Types.ObjectId(id) },
+        { $set: { isRead: read } }
+      );
 
     res.status(200).json({
       success: true,
-      message: `Notification marked as ${read ? 'read' : 'unread'}`
+      message: `Notification marked as ${read ? "read" : "unread"}`,
     });
   } catch (error) {
     next(new CustomError((error as Error).message));
