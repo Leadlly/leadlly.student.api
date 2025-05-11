@@ -59,6 +59,11 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     type: Number,
     required: true,
   },
+  createdBy: {
+    type: String,
+    enum: ["student", "mentor"],
+    default: "student",
+  },
   createdAt: {
     type: Date,
     default: Date.now,

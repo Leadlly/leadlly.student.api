@@ -11,7 +11,7 @@ export const storeTopics = async (
   next: NextFunction,
 ) => {
   try {
-    const { topics, tag, subject, chapter, ...restBody } = req.body;
+    const { topics, tag, subject, chapter, createdBy, userId, ...restBody } = req.body;
 
     // Check if topics is an array and not empty
     if (!Array.isArray(topics) || topics.length === 0) {
@@ -50,7 +50,8 @@ export const storeTopics = async (
           },
           tag,
           "subject.name": subject.toLowerCase(),
-          user: req.user._id,
+          user: req.user._id || userId,
+          createdBy: createdBy || 'student',
         });
 
         createdDocuments.push(data);
@@ -61,7 +62,7 @@ export const storeTopics = async (
           { $set: { tag, updatedAt: new Date() } }
         );
         console.log(
-          `Document with topic "${topic.name}" updated with new tag "${tag}" for user "${req.user._id}".`
+          `Document with topic "${topic.name}" updated with new tag "${tag}" for user "${req.user._id || userId}".`
         );
       }
 
@@ -80,18 +81,18 @@ export const storeTopics = async (
           const existingSubtopic = await SubtopicsData.findOne({
             "subtopic.id": subtopic._id,
             tag,
-            user: req.user._id,
+            user: req.user._id || userId,
           });
 
           if (existingSubtopic) {
             console.log(
-              `Subtopic "${subtopic._id}" already exists for user "${req.user._id}". Skipping...`
+              `Subtopic "${subtopic._id}" already exists for user "${req.user._id || userId}". Skipping...`
             );
             continue;
           }
 
           await SubtopicsData.create({
-            user: req.user._id,
+            user: req.user._id || userId,
             tag,
             subtopic: {
               id: subtopic._id,
@@ -109,6 +110,7 @@ export const storeTopics = async (
               name: subject.toLowerCase(),
             },
             standard: restBody.standard,
+            createdBy: createdBy || 'student', 
           });
         }
       }

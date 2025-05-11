@@ -38,6 +38,7 @@ interface IDataSchema extends mongoose.Document {
   chapter: Chapter;
   subject: Subject;
   standard: number;
+  createdBy?: 'mentor' | 'student';
   createdAt?: Date;
   updatedAt?: Date;
   efficiency?: any;
