@@ -60,12 +60,9 @@ const dataSchema = new mongoose.Schema<IDataSchema>({
     required: true,
   },
   createdBy: {
-    _id: mongoose.Schema.Types.ObjectId,
-    tag: {
-      type: String,
-      enum: ["mentor", "student"],  
-      default: "student" 
-    }
+    type: String,
+    enum: ["student", "mentor"],
+    default: "student",
   },
   createdAt: {
     type: Date,
