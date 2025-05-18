@@ -10,7 +10,7 @@ import { authorizeSubscriber } from "../middlewares/checkCategory";
 
 const router = express.Router();
 
-router.use(checkAuth, authorizeSubscriber());
+router.use(checkAuth);
 
 router.get("/create", createPlanner);
 router.get("/update", updateDailyPlanner);

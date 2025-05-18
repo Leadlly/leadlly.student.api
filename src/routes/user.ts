@@ -5,12 +5,16 @@ import { checkAuth } from "../middlewares/checkAuth";
 import convertToLowercase from "../middlewares/lowercase";
 import { studentPersonalInfo } from "../controllers/User";
 import { authorizeSubscriber } from "../middlewares/checkCategory";
+import { generateReferCode, getReferralCode } from "../controllers/ReferAndEarn";
 
 const router = express.Router();
 
-router.post("/profile/save", checkAuth, convertToLowercase, studentPersonalInfo);
+router.use(checkAuth);
+router.post("/profile/save", convertToLowercase, studentPersonalInfo);
 
-router.use(checkAuth, authorizeSubscriber());
+//referrals
+router.post("/referral/create", generateReferCode);
+router.get("/referral/get", getReferralCode);
 
 router.post(
   "/progress/save",

@@ -13,6 +13,13 @@ export const storeTopics = async (
   try {
     const { topics, tag, subject, chapter, createdBy, userId, ...restBody } = req.body;
 
+    // Determine the user ID to use
+    const targetUserId = req.user?._id || userId;
+    
+    if (!targetUserId) {
+      return next(new CustomError("User ID is required", 400));
+    }
+
     // Check if topics is an array and not empty
     if (!Array.isArray(topics) || topics.length === 0) {
       throw new CustomError("Topics must be a non-empty array");
@@ -33,7 +40,7 @@ export const storeTopics = async (
       const normalizedTopicName = topic.name.toLowerCase();
       const existingDocument = await StudyData.findOne({
         "topic.name": normalizedTopicName,
-        user: req.user._id,
+        user: targetUserId,
       });
 
       if (!existingDocument) {
@@ -49,8 +56,8 @@ export const storeTopics = async (
             id: chapter._id,
           },
           tag,
-          "subject.name": subject.toLowerCase(),
-          user: req.user._id || userId,
+          "subject.name": subject?.toLowerCase(),
+          user: targetUserId,
           createdBy: createdBy || 'student',
         });
 
@@ -62,7 +69,7 @@ export const storeTopics = async (
           { $set: { tag, updatedAt: new Date() } }
         );
         console.log(
-          `Document with topic "${topic.name}" updated with new tag "${tag}" for user "${req.user._id || userId}".`
+          `Document with topic "${topic.name}" updated with new tag "${tag}" for user "${targetUserId}".`
         );
       }
 
@@ -81,18 +88,18 @@ export const storeTopics = async (
           const existingSubtopic = await SubtopicsData.findOne({
             "subtopic.id": subtopic._id,
             tag,
-            user: req.user._id || userId,
+            user: targetUserId,
           });
 
           if (existingSubtopic) {
             console.log(
-              `Subtopic "${subtopic._id}" already exists for user "${req.user._id || userId}". Skipping...`
+              `Subtopic "${subtopic._id}" already exists for user "${targetUserId}". Skipping...`
             );
             continue;
           }
 
           await SubtopicsData.create({
-            user: req.user._id || userId,
+            user: targetUserId,
             tag,
             subtopic: {
               id: subtopic._id,
@@ -123,6 +130,7 @@ export const storeTopics = async (
       data: createdDocuments,
     });
   } catch (error: any) {
+    console.log(error);
     next(new CustomError(error.message));
   }
 };
