@@ -54,8 +54,9 @@ export const updateDailyPlanner = async (
   next: NextFunction,
 ) => {
   try {
-    const userIds = req.body.userIds || [];
-    const mentor = req.body.mentor || false;
+   // In your planner update endpoint
+const userIds = (req.query.userIds as string[]) || [];
+const mentor = req.query.mentor === 'true';
     
     // If no userIds provided and req.user exists, use current user
     if (userIds.length === 0 && req.user) {
