@@ -25,7 +25,7 @@ export const createApiKey = async (
     
     res.status(201).json({
       success: true,
-      message: "API key created successfully",
+      message: "API key created",
       apiKey: {
         key: apiKey.key,
         name: apiKey.name,
