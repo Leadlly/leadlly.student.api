@@ -2,6 +2,8 @@ import mongoose, { Document, Types } from "mongoose";
 
 export interface IQuiz extends Document {
   user: Types.ObjectId;
+  createdBy: "teacher" | "student";
+  class?: Types.ObjectId;
   questions: Record<string, Types.ObjectId[]>;
   quizType: string;
   attempted: boolean;
@@ -11,10 +13,18 @@ export interface IQuiz extends Document {
   createdAt: Date;
 }
 
-const quizSchema = new mongoose.Schema({
+const quizSchema = new mongoose.Schema<IQuiz>({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    required: true,
+  },
+  class: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
+  createdBy: {
+    type: String,
+    enum: ["teacher", "student"],
+    default: 'student',
     required: true,
   },
   questions: {
