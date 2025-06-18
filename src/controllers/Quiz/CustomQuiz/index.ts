@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { Collection, ObjectId } from "mongodb";
 import { Quiz } from "../../../models/quizModel";
 import { questions_db } from "../../../db/db";
-import IUser from "../../../types/IUser";
 
 export const createCustomQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -14,10 +13,11 @@ export const createCustomQuiz = async (req: Request, res: Response, next: NextFu
       level,
       createdBy,
       endDate,
-      classId
+      classId,
+      userId
     } = req.body;
 
-    const user = req.user as IUser;
+    const user = userId || req.user._id;
 
     // ✅ Validate required 'subjects'
     if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
@@ -68,7 +68,7 @@ export const createCustomQuiz = async (req: Request, res: Response, next: NextFu
     }
 
     const quiz = await Quiz.create({
-      user: user._id,
+      user: user,
       questions: questionsByTopic,
       quizType: "custom",
       createdAt: new Date(),
@@ -84,6 +84,34 @@ export const createCustomQuiz = async (req: Request, res: Response, next: NextFu
     });
   } catch (error: any) {
     console.error("Custom Quiz Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getCustomQuizzes = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {userId, classId} = req.body
+
+    const query: any = {
+      quizType: "custom",
+    };
+
+    if (userId) {
+      query.user = userId;
+    }
+
+    if (classId) {
+      query.class = new ObjectId(classId);
+    }
+
+    const customQuizzes = await Quiz.find(query);
+    
+    res.status(200).json({
+      message: "Custom quizzes fetched successfully",
+      data: customQuizzes,
+    });
+  } catch (error: any) {
+    console.error("Custom Quizzes Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
