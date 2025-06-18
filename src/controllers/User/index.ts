@@ -379,8 +379,29 @@ export const getMentorInfo = async (
     const mentor = await Mentor.findOne({ _id: mentorId });
     if (!mentor) next(new CustomError("Mentor not exists", 404));
 
-    console.log(mentor);
     res.status(200).json({ success: true, mentor });
+  } catch (error) {
+    next(new CustomError((error as Error).message));
+  }
+};
+
+export const getInstituteInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const instituteId = req.user.institute._id;
+
+    if (!instituteId) next(new CustomError("Institute not alloted", 400));
+
+    const institute = await db
+      .collection("institutes")
+      .findOne({ _id: instituteId });
+
+    if (!institute) next(new CustomError("Institute does not exist", 404));
+
+    res.status(200).json({ success: true, institute });
   } catch (error) {
     next(new CustomError((error as Error).message));
   }
