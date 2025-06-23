@@ -15,7 +15,11 @@ export const createWeeklyQuiz = async (
   try {
     const user: IUser = req.user;
 
-    const result = await create_weekly_quiz(user) as { status: number, message?: string,  data?: any };
+    const result = (await create_weekly_quiz(user)) as {
+      status: number;
+      message?: string;
+      data?: any;
+    };
 
     return res.status(result.status).json({
       success: true,
@@ -26,7 +30,6 @@ export const createWeeklyQuiz = async (
     next(new CustomError(error.message));
   }
 };
-
 
 export const getWeeklyQuiz = async (
   req: Request,
@@ -73,10 +76,11 @@ export const getWeeklyQuizQuestions = async (
   next: NextFunction
 ) => {
   try {
+    const { quizId } = req.query;
+
     // Fetch the specific quiz for the user based on quizId
     const weeklyQuiz = await Quiz.findOne({
-      _id: req.query.quizId,
-      user: req.user._id,
+      _id: quizId,
     });
 
     if (!weeklyQuiz) {
@@ -109,15 +113,13 @@ export const getWeeklyQuizQuestions = async (
   }
 };
 
-
 export const saveQuestions = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-
-    const { topic, question, quizId } = req.body
+    const { topic, question, quizId } = req.body;
 
     if (!topic || !question || !quizId) {
       throw new Error("Invalid quiz entry format");
@@ -139,4 +141,3 @@ export const saveQuestions = async (
     next(new CustomError(error.message));
   }
 };
-
