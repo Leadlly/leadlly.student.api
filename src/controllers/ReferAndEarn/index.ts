@@ -11,12 +11,14 @@ export const generateReferCode = async (
     const { ReferralCode, expiredBy, update } = req.body;
 
     // Check if user already has a referral code
-    const existingReferralCode = await Coupon.findOne({ createdBy: req.user._id });
-    
+    const existingReferralCode = await Coupon.findOne({
+      createdBy: req.user._id,
+    });
+
     // If code exists and update flag is not provided, return the existing code
     if (existingReferralCode && !update) {
-      return res.status(400).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "Referral code already exists for this user",
         referralCode: existingReferralCode,
       });
@@ -29,7 +31,7 @@ export const generateReferCode = async (
       code = "LEAD" + Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
-    if (expiryDate) {
+    if (expiredBy) {
       expiryDate = new Date(expiredBy);
     } else {
       expiryDate = new Date("9999-12-31T23:59:59.999Z"); // Set to a far future date effectively making it infinite
@@ -55,12 +57,12 @@ export const generateReferCode = async (
       res.status(200).json({
         success: true,
         message: "Referral code updated successfully",
-        updatedReferralCode,
+        referralCode: updatedReferralCode,
       });
 
       return;
     }
-    
+
     // Create new referral code if one doesn't exist
     const referralCode = await Coupon.create({
       code,
@@ -100,6 +102,3 @@ export const getReferralCode = async (
     next(new CustomError((error as Error).message));
   }
 };
-
-
-

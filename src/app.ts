@@ -16,10 +16,11 @@ import quizRoutes from "./routes/quiz";
 import trackerRoutes from "./routes/tracker";
 import meetingRoutes from "./routes/meeting";
 import errorBookRoutes from "./routes/errorBook";
-import notificationRoutes from "./routes/notificationRoutes"
-import batchRoutes from "./routes/batchManagment"
-import dataRoutes from "./routes/data"
-import apiKeyRoutes from "./routes/apiKeyRoutes"
+import notificationRoutes from "./routes/notificationRoutes";
+import batchRoutes from "./routes/batchManagment";
+import dataRoutes from "./routes/data";
+import apiKeyRoutes from "./routes/apiKeyRoutes";
+import referAndEarnRoutes from "./routes/referandearn";
 
 config({
   path: "./.env",
@@ -80,7 +81,8 @@ app.use("/api/errorBook", errorBookRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/batch", batchRoutes);
-app.use("/api/key", apiKeyRoutes)
+app.use("/api/key", apiKeyRoutes);
+app.use("/api/refer", referAndEarnRoutes);
 
 app.get("/api", (req, res) => {
   res.send("Hello, world!");
